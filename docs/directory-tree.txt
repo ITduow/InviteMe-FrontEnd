@@ -1,0 +1,175 @@
+InviteMe frontend — complete source tree (generated files and local env excluded)
+.
+├── docs/
+│   ├── architecture.md
+│   ├── backend-contract.md
+│   └── directory-tree.txt
+├── src/
+│   ├── app/
+│   │   ├── (admin)/
+│   │   │   ├── admin/
+│   │   │   │   ├── audit-logs/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── dashboard/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── plans/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── templates/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── users/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (auth)/
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (guest)/
+│   │   │   ├── invite/
+│   │   │   │   └── [token]/
+│   │   │   │       ├── rsvp/
+│   │   │   │       │   └── page.tsx
+│   │   │   │       └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (host)/
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── weddings/
+│   │   │   │   ├── [weddingId]/
+│   │   │   │   │   ├── analytics/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── check-in/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── co-hosts/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── gifts/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── guests/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── invitations/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── overview/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── rsvp/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── seating/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── settings/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── waitlist/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── website/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (public)/
+│   │   │   ├── pricing/
+│   │   │   │   └── page.tsx
+│   │   │   ├── wedding/
+│   │   │   │   └── [slug]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── error.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── loading.tsx
+│   │   ├── not-found.tsx
+│   │   └── providers.tsx
+│   ├── core/
+│   │   ├── api/
+│   │   │   ├── api-client.ts
+│   │   │   ├── api-error.ts
+│   │   │   └── api-types.ts
+│   │   ├── auth/
+│   │   │   ├── auth.types.ts
+│   │   │   └── session.ts
+│   │   ├── config/
+│   │   │   ├── env.ts
+│   │   │   └── runtime.tsx
+│   │   ├── query/
+│   │   │   └── query-client.ts
+│   │   └── realtime/
+│   │       ├── realtime-events.ts
+│   │       └── signalr-client.ts
+│   ├── features/
+│   │   ├── auth/
+│   │   │   ├── api/
+│   │   │   │   └── auth.api.ts
+│   │   │   ├── components/
+│   │   │   │   ├── account-menu.tsx
+│   │   │   │   ├── auth-guard.tsx
+│   │   │   │   ├── login-form.tsx
+│   │   │   │   ├── session-bootstrap.tsx
+│   │   │   │   └── wedding-access-boundary.tsx
+│   │   │   ├── hooks/
+│   │   │   │   └── use-current-user.ts
+│   │   │   ├── schemas/
+│   │   │   │   └── login.schema.ts
+│   │   │   └── index.ts
+│   │   └── weddings/
+│   │       ├── api/
+│   │       │   ├── wedding.api.ts
+│   │       │   └── wedding.keys.ts
+│   │       ├── components/
+│   │       │   ├── wedding-list.tsx
+│   │       │   └── wedding-realtime.tsx
+│   │       ├── hooks/
+│   │       │   └── use-weddings.ts
+│   │       ├── schemas/
+│   │       │   └── wedding.schema.ts
+│   │       └── index.ts
+│   └── shared/
+│       ├── components/
+│       │   ├── data-table.tsx
+│       │   ├── page-header.tsx
+│       │   ├── pagination.tsx
+│       │   ├── permission-guard.tsx
+│       │   ├── search-input.tsx
+│       │   └── status-badge.tsx
+│       ├── feedback/
+│       │   ├── confirm-dialog.tsx
+│       │   ├── empty-state.tsx
+│       │   ├── error-state.tsx
+│       │   ├── feature-placeholder.tsx
+│       │   └── loading-state.tsx
+│       ├── forms/
+│       │   ├── form-field.tsx
+│       │   └── map-api-errors.ts
+│       ├── layout/
+│       │   ├── dashboard-shell.tsx
+│       │   ├── public-shell.tsx
+│       │   └── wedding-navigation.tsx
+│       ├── lib/
+│       │   └── utils.ts
+│       ├── stores/
+│       │   └── ui.store.ts
+│       └── ui/
+│           ├── button.tsx
+│           ├── input.tsx
+│           └── label.tsx
+├── tests/
+│   ├── api-client.test.ts
+│   ├── realtime.test.ts
+│   └── session.test.ts
+├── .env.example
+├── .gitignore
+├── .prettierignore
+├── .prettierrc.json
+├── components.json
+├── eslint.config.mjs
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── README.md
+└── tsconfig.json
