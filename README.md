@@ -41,7 +41,7 @@ These are public values, never JWT signing keys, database credentials, provider 
 
 ## Architecture and directory tree
 
-The complete tracked-source tree is in [docs/directory-tree.txt](docs/directory-tree.txt). Detailed design and module ownership are in [docs/architecture.md](docs/architecture.md). Proposed backend contracts are in [docs/backend-contract.md](docs/backend-contract.md).
+The complete tracked-source tree is in [docs/directory-tree.txt](docs/directory-tree.txt). Public marketing homepage content and section order are in [docs/public-landing-page-spec.md](docs/public-landing-page-spec.md). Detailed design and module ownership are in [docs/architecture.md](docs/architecture.md). Proposed backend contracts are in [docs/backend-contract.md](docs/backend-contract.md).
 
 ```text
 src/

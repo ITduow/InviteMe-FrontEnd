@@ -4,11 +4,11 @@ import { Providers } from "./providers";
 import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "InviteMe", template: "%s | InviteMe" },
-  description: "A thoughtful space for your wedding, your guests, and every shared moment.",
+  description: "Tạo website cưới và lời mời trực tuyến thật riêng cho ngày vui của hai bạn.",
 };
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body>
         <a
           href="#main-content"
