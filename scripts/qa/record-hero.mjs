@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import assert from "node:assert/strict";
@@ -10,6 +10,7 @@ const { chromium } = require("playwright");
 const url = process.env.HERO_QA_URL || "http://localhost:3100/";
 const out = path.resolve("docs/qa/hero");
 await mkdir(out, { recursive: true });
+const recordingDir = await mkdtemp(path.join(os.tmpdir(), "inviteme-hero-recordings-"));
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
@@ -25,7 +26,7 @@ for (const config of [
     reducedMotion: config.reducedMotion,
     isMobile: config.name === "mobile",
     hasTouch: config.name === "mobile",
-    recordVideo: { dir: path.join(out, "raw"), size: viewport },
+    recordVideo: { dir: recordingDir, size: viewport },
   });
   await context.addInitScript(() => {
     const seen = new WeakSet();
@@ -79,16 +80,8 @@ for (const config of [
   const recording = page.video();
   await page.goto(url, { waitUntil: "domcontentloaded" });
   if (config.animated) {
-    for (const [target, name] of [
-      [350, "scene-1"],
-      [3000, "scene-2"],
-      [4700, "transition"],
-      [8000, "scene-3"],
-    ]) {
-      const now = await page.evaluate(() => performance.now());
-      await page.waitForTimeout(Math.max(0, target - now));
-      await page.screenshot({ path: path.join(out, `${config.name}-${name}.png`) });
-    }
+    const now = await page.evaluate(() => performance.now());
+    await page.waitForTimeout(Math.max(0, 8000 - now));
   } else {
     await page.waitForTimeout(1800);
     await page.screenshot({ path: path.join(out, `${config.name}.png`), fullPage: true });
@@ -109,8 +102,10 @@ for (const config of [
   results.push({ ...config, ...evidence, videoRequests, errors });
   await context.close();
   await recording.saveAs(path.join(out, `${config.name}.webm`));
+  await recording.delete();
 }
 await browser.close();
+await rm(recordingDir, { recursive: true, force: true });
 await writeFile(
   path.join(out, "browser-evidence.json"),
   JSON.stringify(
