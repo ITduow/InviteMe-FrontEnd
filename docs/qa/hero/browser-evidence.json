@@ -1,7 +1,7 @@
 {
   "url": "http://localhost:3100/",
   "browser": "Playwright Chromium",
-  "recordedAt": "2026-10-08T11:26:51.368Z",
+  "recordedAt": "2026-10-08T11:53:10.083Z",
   "results": [
     {
       "name": "desktop",
@@ -13,18 +13,18 @@
       "removed": 0,
       "samples": [
         {
-          "ms": 198,
+          "ms": 256,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
           },
           "overflow": false
         },
@@ -33,19 +33,51 @@
           "scene": "initial",
           "videoCount": 0,
           "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
           },
           "overflow": false
         },
         {
-          "ms": 319,
+          "ms": 350,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 437,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 631,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -61,7 +93,23 @@
           "overflow": false
         },
         {
-          "ms": 397,
+          "ms": 702,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 803,
           "scene": "intro",
           "videoCount": 1,
           "time": 0,
@@ -79,10 +127,10 @@
           "overflow": false
         },
         {
-          "ms": 474,
+          "ms": 931,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.0601,
+          "time": 0,
           "paused": false,
           "frame": {
             "x": 0,
@@ -97,10 +145,10 @@
           "overflow": false
         },
         {
-          "ms": 551,
+          "ms": 999,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.1377,
+          "time": 0,
           "paused": false,
           "frame": {
             "x": 0,
@@ -115,10 +163,10 @@
           "overflow": false
         },
         {
-          "ms": 632,
+          "ms": 1075,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.2182,
+          "time": 0.0471,
           "paused": false,
           "frame": {
             "x": 0,
@@ -133,10 +181,10 @@
           "overflow": false
         },
         {
-          "ms": 712,
+          "ms": 1150,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.298,
+          "time": 0.1215,
           "paused": false,
           "frame": {
             "x": 0,
@@ -151,10 +199,10 @@
           "overflow": false
         },
         {
-          "ms": 791,
+          "ms": 1230,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.3778,
+          "time": 0.2022,
           "paused": false,
           "frame": {
             "x": 0,
@@ -169,10 +217,10 @@
           "overflow": false
         },
         {
-          "ms": 871,
+          "ms": 1310,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.4576,
+          "time": 0.2814,
           "paused": false,
           "frame": {
             "x": 0,
@@ -187,10 +235,10 @@
           "overflow": false
         },
         {
-          "ms": 952,
+          "ms": 1390,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.5381,
+          "time": 0.3615,
           "paused": false,
           "frame": {
             "x": 0,
@@ -205,10 +253,10 @@
           "overflow": false
         },
         {
-          "ms": 1037,
+          "ms": 1469,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.6228,
+          "time": 0.4408,
           "paused": false,
           "frame": {
             "x": 0,
@@ -223,10 +271,10 @@
           "overflow": false
         },
         {
-          "ms": 1115,
+          "ms": 1557,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.7017,
+          "time": 0.5285,
           "paused": false,
           "frame": {
             "x": 0,
@@ -241,10 +289,10 @@
           "overflow": false
         },
         {
-          "ms": 1192,
+          "ms": 1633,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.7788,
+          "time": 0.6043,
           "paused": false,
           "frame": {
             "x": 0,
@@ -259,82 +307,10 @@
           "overflow": false
         },
         {
-          "ms": 1273,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 0.8596,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1352,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 0.9378,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1431,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 1.0174,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1513,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 1.0994,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1596,
+          "ms": 1710,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.1825,
+          "time": 0.6824,
           "paused": false,
           "frame": {
             "x": 0,
@@ -349,10 +325,10 @@
           "overflow": false
         },
         {
-          "ms": 1674,
+          "ms": 1796,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.26,
+          "time": 0.7678,
           "paused": false,
           "frame": {
             "x": 0,
@@ -367,10 +343,10 @@
           "overflow": false
         },
         {
-          "ms": 1752,
+          "ms": 1884,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.3382,
+          "time": 0.8557,
           "paused": false,
           "frame": {
             "x": 0,
@@ -385,10 +361,10 @@
           "overflow": false
         },
         {
-          "ms": 1832,
+          "ms": 1956,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.418,
+          "time": 0.9274,
           "paused": false,
           "frame": {
             "x": 0,
@@ -403,10 +379,10 @@
           "overflow": false
         },
         {
-          "ms": 1921,
+          "ms": 2035,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.507,
+          "time": 1.0063,
           "paused": false,
           "frame": {
             "x": 0,
@@ -421,10 +397,10 @@
           "overflow": false
         },
         {
-          "ms": 1995,
+          "ms": 2111,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.5812,
+          "time": 1.083,
           "paused": false,
           "frame": {
             "x": 0,
@@ -439,10 +415,10 @@
           "overflow": false
         },
         {
-          "ms": 2084,
+          "ms": 2204,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.6701,
+          "time": 1.176,
           "paused": false,
           "frame": {
             "x": 0,
@@ -457,10 +433,10 @@
           "overflow": false
         },
         {
-          "ms": 2155,
+          "ms": 2281,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.741,
+          "time": 1.2529,
           "paused": false,
           "frame": {
             "x": 0,
@@ -475,10 +451,10 @@
           "overflow": false
         },
         {
-          "ms": 2235,
+          "ms": 2351,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.8213,
+          "time": 1.3228,
           "paused": false,
           "frame": {
             "x": 0,
@@ -493,10 +469,10 @@
           "overflow": false
         },
         {
-          "ms": 2311,
+          "ms": 2434,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.8977,
+          "time": 1.4057,
           "paused": false,
           "frame": {
             "x": 0,
@@ -511,10 +487,10 @@
           "overflow": false
         },
         {
-          "ms": 2404,
+          "ms": 2512,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.9905,
+          "time": 1.484,
           "paused": false,
           "frame": {
             "x": 0,
@@ -529,10 +505,10 @@
           "overflow": false
         },
         {
-          "ms": 2482,
+          "ms": 2590,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.0687,
+          "time": 1.5616,
           "paused": false,
           "frame": {
             "x": 0,
@@ -547,10 +523,10 @@
           "overflow": false
         },
         {
-          "ms": 2560,
+          "ms": 2684,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.1468,
+          "time": 1.6553,
           "paused": false,
           "frame": {
             "x": 0,
@@ -565,10 +541,10 @@
           "overflow": false
         },
         {
-          "ms": 2641,
+          "ms": 2762,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.2274,
+          "time": 1.7341,
           "paused": false,
           "frame": {
             "x": 0,
@@ -583,10 +559,10 @@
           "overflow": false
         },
         {
-          "ms": 2717,
+          "ms": 2831,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.3033,
+          "time": 1.8026,
           "paused": false,
           "frame": {
             "x": 0,
@@ -601,10 +577,10 @@
           "overflow": false
         },
         {
-          "ms": 2794,
+          "ms": 2923,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.3801,
+          "time": 1.895,
           "paused": false,
           "frame": {
             "x": 0,
@@ -619,10 +595,10 @@
           "overflow": false
         },
         {
-          "ms": 2872,
+          "ms": 2999,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.4584,
+          "time": 1.9705,
           "paused": false,
           "frame": {
             "x": 0,
@@ -637,10 +613,10 @@
           "overflow": false
         },
         {
-          "ms": 2961,
+          "ms": 3077,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.547,
+          "time": 2.049,
           "paused": false,
           "frame": {
             "x": 0,
@@ -655,10 +631,10 @@
           "overflow": false
         },
         {
-          "ms": 3033,
+          "ms": 3153,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.6198,
+          "time": 2.1248,
           "paused": false,
           "frame": {
             "x": 0,
@@ -673,10 +649,10 @@
           "overflow": false
         },
         {
-          "ms": 3114,
+          "ms": 3231,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.6999,
+          "time": 2.2027,
           "paused": false,
           "frame": {
             "x": 0,
@@ -691,10 +667,10 @@
           "overflow": false
         },
         {
-          "ms": 3192,
+          "ms": 3309,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.7785,
+          "time": 2.2809,
           "paused": false,
           "frame": {
             "x": 0,
@@ -709,10 +685,10 @@
           "overflow": false
         },
         {
-          "ms": 3272,
+          "ms": 3404,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.858,
+          "time": 2.3754,
           "paused": false,
           "frame": {
             "x": 0,
@@ -727,10 +703,10 @@
           "overflow": false
         },
         {
-          "ms": 3361,
+          "ms": 3473,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.9475,
+          "time": 2.4452,
           "paused": false,
           "frame": {
             "x": 0,
@@ -745,10 +721,10 @@
           "overflow": false
         },
         {
-          "ms": 3438,
+          "ms": 3550,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.0248,
+          "time": 2.5214,
           "paused": false,
           "frame": {
             "x": 0,
@@ -763,10 +739,10 @@
           "overflow": false
         },
         {
-          "ms": 3516,
+          "ms": 3630,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.1022,
+          "time": 2.6021,
           "paused": false,
           "frame": {
             "x": 0,
@@ -781,10 +757,10 @@
           "overflow": false
         },
         {
-          "ms": 3593,
+          "ms": 3721,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.1789,
+          "time": 2.6928,
           "paused": false,
           "frame": {
             "x": 0,
@@ -799,10 +775,10 @@
           "overflow": false
         },
         {
-          "ms": 3671,
+          "ms": 3800,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.2577,
+          "time": 2.7714,
           "paused": false,
           "frame": {
             "x": 0,
@@ -817,10 +793,10 @@
           "overflow": false
         },
         {
-          "ms": 3761,
+          "ms": 3873,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.3472,
+          "time": 2.8445,
           "paused": false,
           "frame": {
             "x": 0,
@@ -835,10 +811,64 @@
           "overflow": false
         },
         {
-          "ms": 3833,
+          "ms": 3955,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.9267,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4031,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.0032,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4123,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.0945,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4200,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.4192,
+          "time": 3.1714,
           "paused": false,
           "frame": {
             "x": 0,
@@ -853,424 +883,424 @@
           "overflow": false
         },
         {
-          "ms": 3912,
+          "ms": 4277,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.4982,
+          "time": 3.2493,
           "paused": false,
           "frame": {
-            "x": 0.023193359375,
-            "y": 0.008514404296875,
-            "width": 1441.392333984375,
-            "height": 901.0469970703125,
-            "top": 0.008514404296875,
-            "right": 1441.41552734375,
-            "bottom": 901.0555114746094,
-            "left": 0.023193359375
+            "x": 0.0054931640625,
+            "y": 0.00201416015625,
+            "width": 1441.42724609375,
+            "height": 901.0470581054688,
+            "top": 0.00201416015625,
+            "right": 1441.4327392578125,
+            "bottom": 901.049072265625,
+            "left": 0.0054931640625
           },
           "overflow": false
         },
         {
-          "ms": 3991,
+          "ms": 4352,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.5777,
+          "time": 3.3233,
           "paused": false,
           "frame": {
-            "x": 0.1270751953125,
-            "y": 0.04693603515625,
-            "width": 1441.2176513671875,
-            "height": 900.966552734375,
-            "top": 0.04693603515625,
-            "right": 1441.3447265625,
-            "bottom": 901.0134887695312,
-            "left": 0.1270751953125
+            "x": 0.0665283203125,
+            "y": 0.0245361328125,
+            "width": 1441.322509765625,
+            "height": 901.0067749023438,
+            "top": 0.0245361328125,
+            "right": 1441.3890380859375,
+            "bottom": 901.0313110351562,
+            "left": 0.0665283203125
           },
           "overflow": false
         },
         {
-          "ms": 4078,
+          "ms": 4441,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.6646,
+          "time": 3.4123,
           "paused": false,
           "frame": {
-            "x": 1.27459716796875,
-            "y": 0.47003173828125,
-            "width": 1439.470947265625,
+            "x": 1.29730224609375,
+            "y": 0.47833251953125,
+            "width": 1439.435791015625,
             "height": 900.1615600585938,
-            "top": 0.47003173828125,
-            "right": 1440.7455444335938,
-            "bottom": 900.631591796875,
-            "left": 1.27459716796875
+            "top": 0.47833251953125,
+            "right": 1440.7330932617188,
+            "bottom": 900.639892578125,
+            "left": 1.29730224609375
           },
           "overflow": false
         },
         {
-          "ms": 4160,
+          "ms": 4511,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.746,
+          "time": 3.4832,
           "paused": false,
           "frame": {
-            "x": 5.794189453125,
-            "y": 2.13641357421875,
-            "width": 1432.5888671875,
-            "height": 897.0223999023438,
-            "top": 2.13641357421875,
-            "right": 1438.383056640625,
-            "bottom": 899.1588134765625,
-            "left": 5.794189453125
+            "x": 3.50360107421875,
+            "y": 1.291839599609375,
+            "width": 1436.08203125,
+            "height": 898.592041015625,
+            "top": 1.291839599609375,
+            "right": 1439.5856323242188,
+            "bottom": 899.8838806152344,
+            "left": 3.50360107421875
           },
           "overflow": false
         },
         {
-          "ms": 4236,
+          "ms": 4596,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.8223,
+          "time": 3.5678,
           "paused": false,
           "frame": {
-            "x": 9.4573974609375,
-            "y": 3.487030029296875,
-            "width": 1426.999267578125,
-            "height": 894.446533203125,
-            "top": 3.487030029296875,
-            "right": 1436.4566650390625,
-            "bottom": 897.9335632324219,
-            "left": 9.4573974609375
+            "x": 13.406494140625,
+            "y": 4.943115234375,
+            "width": 1420.9556884765625,
+            "height": 891.7097778320312,
+            "top": 4.943115234375,
+            "right": 1434.3621826171875,
+            "bottom": 896.6528930664062,
+            "left": 13.406494140625
           },
           "overflow": false
         },
         {
-          "ms": 4314,
+          "ms": 4684,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.9007,
+          "time": 3.6559,
           "paused": false,
           "frame": {
-            "x": 14.77337646484375,
-            "y": 5.447113037109375,
-            "width": 1418.859619140625,
-            "height": 890.743896484375,
-            "top": 5.447113037109375,
-            "right": 1433.6329956054688,
-            "bottom": 896.1910095214844,
-            "left": 14.77337646484375
+            "x": 22.64691162109375,
+            "y": 8.350128173828125,
+            "width": 1406.84228515625,
+            "height": 885.270263671875,
+            "top": 8.350128173828125,
+            "right": 1429.4891967773438,
+            "bottom": 893.6203918457031,
+            "left": 22.64691162109375
           },
           "overflow": false
         },
         {
-          "ms": 4399,
+          "ms": 4763,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.9855,
+          "time": 3.7342,
           "paused": false,
           "frame": {
-            "x": 44.70819091796875,
-            "y": 16.484420776367188,
-            "width": 1373.16552734375,
-            "height": 869.89599609375,
-            "top": 16.484420776367188,
-            "right": 1417.8737182617188,
-            "bottom": 886.3804168701172,
-            "left": 44.70819091796875
+            "x": 36.8350830078125,
+            "y": 13.581527709960938,
+            "width": 1385.182861328125,
+            "height": 875.3695068359375,
+            "top": 13.581527709960938,
+            "right": 1422.0179443359375,
+            "bottom": 888.9510345458984,
+            "left": 36.8350830078125
           },
           "overflow": false
         },
         {
-          "ms": 4484,
+          "ms": 4832,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.0702,
+          "time": 3.804,
           "paused": false,
           "frame": {
-            "x": 74.55157470703125,
-            "y": 27.487930297851562,
-            "width": 1327.611083984375,
-            "height": 849.0883178710938,
-            "top": 27.487930297851562,
-            "right": 1402.1626586914062,
-            "bottom": 876.5762481689453,
-            "left": 74.55157470703125
+            "x": 84.03887939453125,
+            "y": 30.985931396484375,
+            "width": 1313.148193359375,
+            "height": 842.48779296875,
+            "top": 30.985931396484375,
+            "right": 1397.1870727539062,
+            "bottom": 873.4737243652344,
+            "left": 84.03887939453125
           },
           "overflow": false
         },
         {
-          "ms": 4560,
+          "ms": 4913,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.1467,
+          "time": 3.8849,
           "paused": false,
           "frame": {
-            "x": 138.74847412109375,
-            "y": 51.157928466796875,
-            "width": 1229.6201171875,
-            "height": 804.333740234375,
-            "top": 51.157928466796875,
-            "right": 1368.3685913085938,
-            "bottom": 855.4916687011719,
-            "left": 138.74847412109375
+            "x": 116.6395263671875,
+            "y": 43.00611877441406,
+            "width": 1263.36669921875,
+            "height": 819.748291015625,
+            "top": 43.00611877441406,
+            "right": 1380.0062255859375,
+            "bottom": 862.7544097900391,
+            "left": 116.6395263671875
           },
           "overflow": false
         },
         {
-          "ms": 4637,
+          "ms": 5003,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.2234,
+          "time": 3.9751,
           "paused": false,
           "frame": {
-            "x": 208.24868774414062,
-            "y": 76.7833251953125,
-            "width": 1123.5244140625,
-            "height": 755.9168090820312,
-            "top": 76.7833251953125,
-            "right": 1331.7731018066406,
-            "bottom": 832.7001342773438,
-            "left": 208.24868774414062
+            "x": 199.12420654296875,
+            "y": 73.41902160644531,
+            "width": 1137.463134765625,
+            "height": 762.2758178710938,
+            "top": 73.41902160644531,
+            "right": 1336.5873413085938,
+            "bottom": 835.6948394775391,
+            "left": 199.12420654296875
           },
           "overflow": false
         },
         {
-          "ms": 4716,
+          "ms": 5079,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.3026,
+          "time": 4.051,
           "paused": false,
           "frame": {
-            "x": 301.0729064941406,
-            "y": 111.00852966308594,
-            "width": 981.795654296875,
-            "height": 691.1998291015625,
-            "top": 111.00852966308594,
-            "right": 1282.8685607910156,
-            "bottom": 802.2083587646484,
-            "left": 301.0729064941406
+            "x": 252.6505126953125,
+            "y": 93.15472412109375,
+            "width": 1055.716796875,
+            "height": 724.9669799804688,
+            "top": 93.15472412109375,
+            "right": 1308.3673095703125,
+            "bottom": 818.1217041015625,
+            "left": 252.6505126953125
           },
           "overflow": false
         },
         {
-          "ms": 4798,
+          "ms": 5157,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.3839,
+          "time": 4.1286,
           "paused": false,
           "frame": {
-            "x": 407.4480895996094,
-            "y": 150.2300262451172,
-            "width": 819.420654296875,
-            "height": 617.0651245117188,
-            "top": 150.2300262451172,
-            "right": 1226.8687438964844,
-            "bottom": 767.2951507568359,
-            "left": 407.4480895996094
+            "x": 401.8811950683594,
+            "y": 148.17742919921875,
+            "width": 827.90966796875,
+            "height": 620.968994140625,
+            "top": 148.17742919921875,
+            "right": 1229.7908630371094,
+            "bottom": 769.1464233398438,
+            "left": 401.8811950683594
           },
           "overflow": false
         },
         {
-          "ms": 4877,
+          "ms": 5236,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.4635,
+          "time": 4.2074,
           "paused": false,
           "frame": {
-            "x": 512.2332763671875,
-            "y": 188.86532592773438,
-            "width": 659.4561767578125,
-            "height": 544.0572509765625,
-            "top": 188.86532592773438,
-            "right": 1171.689453125,
-            "bottom": 732.9225769042969,
-            "left": 512.2332763671875
+            "x": 481.259521484375,
+            "y": 177.4450225830078,
+            "width": 706.75732421875,
+            "height": 565.6295776367188,
+            "top": 177.4450225830078,
+            "right": 1188.016845703125,
+            "bottom": 743.0746002197266,
+            "left": 481.259521484375
           },
           "overflow": false
         },
         {
-          "ms": 4953,
+          "ms": 5312,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.539,
+          "time": 4.2839,
           "paused": false,
           "frame": {
-            "x": 578.893310546875,
-            "y": 213.4435272216797,
-            "width": 557.6923828125,
-            "height": 497.57208251953125,
-            "top": 213.4435272216797,
-            "right": 1136.585693359375,
-            "bottom": 711.0156097412109,
-            "left": 578.893310546875
+            "x": 568.8662109375,
+            "y": 209.74642944335938,
+            "width": 572.99365234375,
+            "height": 504.5751037597656,
+            "top": 209.74642944335938,
+            "right": 1141.85986328125,
+            "bottom": 714.321533203125,
+            "left": 568.8662109375
           },
           "overflow": false
         },
         {
-          "ms": 5040,
+          "ms": 5391,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.6267,
+          "time": 4.3624,
           "paused": false,
           "frame": {
-            "x": 619.8265991210938,
-            "y": 228.53602600097656,
-            "width": 495.19476318359375,
-            "height": 469.07733154296875,
-            "top": 228.53602600097656,
-            "right": 1115.0213623046875,
-            "bottom": 697.6133575439453,
-            "left": 619.8265991210938
+            "x": 607.1735229492188,
+            "y": 223.8707275390625,
+            "width": 514.5134887695312,
+            "height": 477.891357421875,
+            "top": 223.8707275390625,
+            "right": 1121.68701171875,
+            "bottom": 701.7620849609375,
+            "left": 607.1735229492188
           },
           "overflow": false
         },
         {
-          "ms": 5121,
+          "ms": 5471,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.7078,
+          "time": 4.4429,
           "paused": false,
           "frame": {
-            "x": 658.5435791015625,
-            "y": 242.8113250732422,
-            "width": 436.0858154296875,
-            "height": 442.0716552734375,
-            "top": 242.8113250732422,
-            "right": 1094.62939453125,
-            "bottom": 684.8829803466797,
-            "left": 658.5435791015625
+            "x": 664.8776245117188,
+            "y": 245.146728515625,
+            "width": 426.44390869140625,
+            "height": 437.64453125,
+            "top": 245.146728515625,
+            "right": 1091.321533203125,
+            "bottom": 682.791259765625,
+            "left": 664.8776245117188
           },
           "overflow": false
         },
         {
-          "ms": 5205,
+          "ms": 5550,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.7916,
+          "time": 4.5215,
           "paused": false,
           "frame": {
-            "x": 684.8386840820312,
-            "y": 252.50662231445312,
-            "width": 395.94622802734375,
-            "height": 423.7593688964844,
-            "top": 252.50662231445312,
-            "right": 1080.784912109375,
-            "bottom": 676.2659912109375,
-            "left": 684.8386840820312
+            "x": 685.5650024414062,
+            "y": 252.77442932128906,
+            "width": 394.86322021484375,
+            "height": 423.236083984375,
+            "top": 252.77442932128906,
+            "right": 1080.42822265625,
+            "bottom": 676.0105133056641,
+            "left": 685.5650024414062
           },
           "overflow": false
         },
         {
-          "ms": 5282,
+          "ms": 5632,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.8679,
+          "time": 4.6039,
           "paused": false,
           "frame": {
-            "x": 703.1156005859375,
-            "y": 259.24542236328125,
-            "width": 368.068603515625,
-            "height": 411.00103759765625,
-            "top": 259.24542236328125,
-            "right": 1071.1842041015625,
-            "bottom": 670.2464599609375,
-            "left": 703.1156005859375
+            "x": 695.6939086914062,
+            "y": 256.509033203125,
+            "width": 379.38726806640625,
+            "height": 416.1929931640625,
+            "top": 256.509033203125,
+            "right": 1075.0811767578125,
+            "bottom": 672.7020263671875,
+            "left": 695.6939086914062
           },
           "overflow": false
         },
         {
-          "ms": 5352,
+          "ms": 5716,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.9378,
+          "time": 4.6875,
           "paused": false,
           "frame": {
-            "x": 709.6506958007812,
-            "y": 261.655029296875,
-            "width": 358.07733154296875,
-            "height": 406.45318603515625,
-            "top": 261.655029296875,
-            "right": 1067.72802734375,
-            "bottom": 668.1082153320312,
-            "left": 709.6506958007812
+            "x": 708.9224243164062,
+            "y": 261.38653564453125,
+            "width": 359.19525146484375,
+            "height": 406.97637939453125,
+            "top": 261.38653564453125,
+            "right": 1068.11767578125,
+            "bottom": 668.3629150390625,
+            "left": 708.9224243164062
           },
           "overflow": false
         },
         {
-          "ms": 5434,
+          "ms": 5793,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.0203,
+          "time": 4.7645,
           "paused": false,
           "frame": {
-            "x": 713.585693359375,
-            "y": 263.1059265136719,
-            "width": 352.068603515625,
-            "height": 403.7164611816406,
-            "top": 263.1059265136719,
-            "right": 1065.654296875,
-            "bottom": 666.8223876953125,
-            "left": 713.585693359375
+            "x": 711.9193725585938,
+            "y": 262.49151611328125,
+            "width": 354.61883544921875,
+            "height": 404.88360595703125,
+            "top": 262.49151611328125,
+            "right": 1066.5382080078125,
+            "bottom": 667.3751220703125,
+            "left": 711.9193725585938
           },
           "overflow": false
         },
         {
-          "ms": 5515,
+          "ms": 5869,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.1016,
+          "time": 4.8406,
           "paused": false,
           "frame": {
-            "x": 714.5615234375,
-            "y": 263.4657287597656,
-            "width": 350.601318359375,
-            "height": 403.0321960449219,
-            "top": 263.4657287597656,
-            "right": 1065.162841796875,
-            "bottom": 666.4979248046875,
-            "left": 714.5615234375
+            "x": 714.8955078125,
+            "y": 263.5888366699219,
+            "width": 350.077392578125,
+            "height": 402.7907409667969,
+            "top": 263.5888366699219,
+            "right": 1064.972900390625,
+            "bottom": 666.3795776367188,
+            "left": 714.8955078125
           },
           "overflow": false
         },
         {
-          "ms": 5593,
+          "ms": 5956,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.1797,
+          "time": 4.9274,
           "paused": false,
           "frame": {
-            "x": 715.3109741210938,
-            "y": 263.7420349121094,
-            "width": 349.44854736328125,
-            "height": 402.5090026855469,
-            "top": 263.7420349121094,
-            "right": 1064.759521484375,
-            "bottom": 666.2510375976562,
-            "left": 715.3109741210938
+            "x": 715.29248046875,
+            "y": 263.7352294921875,
+            "width": 349.4835205078125,
+            "height": 402.509033203125,
+            "top": 263.7352294921875,
+            "right": 1064.7760009765625,
+            "bottom": 666.2442626953125,
+            "left": 715.29248046875
           },
           "overflow": false
         },
         {
-          "ms": 5680,
+          "ms": 6033,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.2665,
+          "time": 5.0048,
           "paused": false,
           "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
+            "x": 715.3748168945312,
+            "y": 263.7655334472656,
+            "width": 349.34368896484375,
+            "height": 402.4687194824219,
+            "top": 263.7655334472656,
+            "right": 1064.718505859375,
+            "bottom": 666.2342529296875,
+            "left": 715.3748168945312
           },
           "overflow": false
         },
         {
-          "ms": 5751,
+          "ms": 6112,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1285,10 +1315,10 @@
           "overflow": false
         },
         {
-          "ms": 5833,
+          "ms": 6196,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1303,10 +1333,10 @@
           "overflow": false
         },
         {
-          "ms": 5919,
+          "ms": 6275,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1321,10 +1351,10 @@
           "overflow": false
         },
         {
-          "ms": 5999,
+          "ms": 6353,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1339,10 +1369,10 @@
           "overflow": false
         },
         {
-          "ms": 6077,
+          "ms": 6441,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1357,10 +1387,10 @@
           "overflow": false
         },
         {
-          "ms": 6153,
+          "ms": 6519,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1375,10 +1405,10 @@
           "overflow": false
         },
         {
-          "ms": 6231,
+          "ms": 6591,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1393,10 +1423,10 @@
           "overflow": false
         },
         {
-          "ms": 6324,
+          "ms": 6673,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1411,10 +1441,10 @@
           "overflow": false
         },
         {
-          "ms": 6392,
+          "ms": 6750,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1429,10 +1459,10 @@
           "overflow": false
         },
         {
-          "ms": 6475,
+          "ms": 6840,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1447,28 +1477,10 @@
           "overflow": false
         },
         {
-          "ms": 6552,
-          "scene": "card-growing",
-          "videoCount": 1,
-          "time": 5.2963,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 6632,
+          "ms": 6919,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1483,10 +1495,10 @@
           "overflow": false
         },
         {
-          "ms": 6711,
+          "ms": 6990,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1501,10 +1513,10 @@
           "overflow": false
         },
         {
-          "ms": 6800,
+          "ms": 7073,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1519,10 +1531,10 @@
           "overflow": false
         },
         {
-          "ms": 6873,
+          "ms": 7151,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1537,10 +1549,10 @@
           "overflow": false
         },
         {
-          "ms": 6954,
+          "ms": 7239,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1555,10 +1567,10 @@
           "overflow": false
         },
         {
-          "ms": 7032,
+          "ms": 7321,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1573,10 +1585,10 @@
           "overflow": false
         },
         {
-          "ms": 7123,
+          "ms": 7390,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1591,10 +1603,10 @@
           "overflow": false
         },
         {
-          "ms": 7191,
+          "ms": 7473,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1609,64 +1621,10 @@
           "overflow": false
         },
         {
-          "ms": 7272,
+          "ms": 7555,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2963,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 7351,
-          "scene": "settled",
-          "videoCount": 1,
-          "time": 5.2963,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 7438,
-          "scene": "settled",
-          "videoCount": 1,
-          "time": 5.2963,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 7512,
-          "scene": "settled",
-          "videoCount": 1,
-          "time": 5.2963,
+          "time": 5.0195,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -1708,23 +1666,7 @@
       "removed": 0,
       "samples": [
         {
-          "ms": 121,
-          "scene": "initial",
-          "videoCount": 0,
-          "frame": {
-            "x": 22,
-            "y": 528.375,
-            "width": 193.765625,
-            "height": 223.21875,
-            "top": 528.375,
-            "right": 215.765625,
-            "bottom": 751.59375,
-            "left": 22
-          },
-          "overflow": false
-        },
-        {
-          "ms": 195,
+          "ms": 169,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -1741,6 +1683,38 @@
         },
         {
           "ms": 257,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 311,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 350,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1756,7 +1730,7 @@
           "overflow": false
         },
         {
-          "ms": 334,
+          "ms": 422,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1772,7 +1746,7 @@
           "overflow": false
         },
         {
-          "ms": 413,
+          "ms": 503,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1788,7 +1762,7 @@
           "overflow": false
         },
         {
-          "ms": 502,
+          "ms": 582,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1804,7 +1778,7 @@
           "overflow": false
         },
         {
-          "ms": 573,
+          "ms": 673,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1820,7 +1794,7 @@
           "overflow": false
         },
         {
-          "ms": 654,
+          "ms": 743,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1836,7 +1810,7 @@
           "overflow": false
         },
         {
-          "ms": 733,
+          "ms": 822,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1852,7 +1826,7 @@
           "overflow": false
         },
         {
-          "ms": 824,
+          "ms": 902,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1868,7 +1842,7 @@
           "overflow": false
         },
         {
-          "ms": 897,
+          "ms": 983,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1884,7 +1858,7 @@
           "overflow": false
         },
         {
-          "ms": 973,
+          "ms": 1062,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1900,7 +1874,7 @@
           "overflow": false
         },
         {
-          "ms": 1067,
+          "ms": 1153,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1916,7 +1890,7 @@
           "overflow": false
         },
         {
-          "ms": 1145,
+          "ms": 1236,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1932,7 +1906,7 @@
           "overflow": false
         },
         {
-          "ms": 1223,
+          "ms": 1314,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1948,7 +1922,7 @@
           "overflow": false
         },
         {
-          "ms": 1301,
+          "ms": 1392,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1964,7 +1938,7 @@
           "overflow": false
         },
         {
-          "ms": 1380,
+          "ms": 1469,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1980,7 +1954,7 @@
           "overflow": false
         },
         {
-          "ms": 1459,
+          "ms": 1546,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -1996,7 +1970,7 @@
           "overflow": false
         },
         {
-          "ms": 1537,
+          "ms": 1623,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2012,7 +1986,7 @@
           "overflow": false
         },
         {
-          "ms": 1614,
+          "ms": 1701,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2028,7 +2002,7 @@
           "overflow": false
         },
         {
-          "ms": 1707,
+          "ms": 1790,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2044,7 +2018,7 @@
           "overflow": false
         },
         {
-          "ms": 1785,
+          "ms": 1876,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2060,7 +2034,7 @@
           "overflow": false
         },
         {
-          "ms": 1853,
+          "ms": 1945,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2076,7 +2050,7 @@
           "overflow": false
         },
         {
-          "ms": 1935,
+          "ms": 2024,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2092,7 +2066,7 @@
           "overflow": false
         },
         {
-          "ms": 2018,
+          "ms": 2118,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2108,7 +2082,7 @@
           "overflow": false
         },
         {
-          "ms": 2094,
+          "ms": 2195,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2124,7 +2098,7 @@
           "overflow": false
         },
         {
-          "ms": 2183,
+          "ms": 2271,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2140,7 +2114,7 @@
           "overflow": false
         },
         {
-          "ms": 2260,
+          "ms": 2350,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2156,7 +2130,7 @@
           "overflow": false
         },
         {
-          "ms": 2337,
+          "ms": 2430,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2172,7 +2146,7 @@
           "overflow": false
         },
         {
-          "ms": 2425,
+          "ms": 2514,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2188,7 +2162,7 @@
           "overflow": false
         },
         {
-          "ms": 2502,
+          "ms": 2590,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2204,7 +2178,7 @@
           "overflow": false
         },
         {
-          "ms": 2580,
+          "ms": 2667,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2220,7 +2194,7 @@
           "overflow": false
         },
         {
-          "ms": 2658,
+          "ms": 2744,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2236,7 +2210,7 @@
           "overflow": false
         },
         {
-          "ms": 2743,
+          "ms": 2822,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2252,7 +2226,7 @@
           "overflow": false
         },
         {
-          "ms": 2821,
+          "ms": 2902,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2268,7 +2242,7 @@
           "overflow": false
         },
         {
-          "ms": 2898,
+          "ms": 2996,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2284,7 +2258,7 @@
           "overflow": false
         },
         {
-          "ms": 2974,
+          "ms": 3075,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2300,7 +2274,7 @@
           "overflow": false
         },
         {
-          "ms": 3067,
+          "ms": 3147,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2316,7 +2290,7 @@
           "overflow": false
         },
         {
-          "ms": 3143,
+          "ms": 3230,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2332,7 +2306,7 @@
           "overflow": false
         },
         {
-          "ms": 3219,
+          "ms": 3303,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2348,7 +2322,7 @@
           "overflow": false
         },
         {
-          "ms": 3297,
+          "ms": 3395,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2364,7 +2338,7 @@
           "overflow": false
         },
         {
-          "ms": 3380,
+          "ms": 3478,
           "scene": "static",
           "videoCount": 0,
           "frame": {
@@ -2405,7 +2379,7 @@
       "removed": 0,
       "samples": [
         {
-          "ms": 134,
+          "ms": 130,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -2421,7 +2395,7 @@
           "overflow": false
         },
         {
-          "ms": 176,
+          "ms": 239,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -2437,7 +2411,7 @@
           "overflow": false
         },
         {
-          "ms": 265,
+          "ms": 257,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -2453,7 +2427,23 @@
           "overflow": false
         },
         {
-          "ms": 388,
+          "ms": 341,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 503,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -2469,7 +2459,7 @@
           "overflow": false
         },
         {
-          "ms": 446,
+          "ms": 605,
           "scene": "initial",
           "videoCount": 0,
           "frame": {
@@ -2485,7 +2475,7 @@
           "overflow": false
         },
         {
-          "ms": 522,
+          "ms": 742,
           "scene": "intro",
           "videoCount": 1,
           "time": 0,
@@ -2503,10 +2493,10 @@
           "overflow": false
         },
         {
-          "ms": 586,
+          "ms": 817,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.0243,
+          "time": 0,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2521,10 +2511,10 @@
           "overflow": false
         },
         {
-          "ms": 667,
+          "ms": 901,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.105,
+          "time": 0.0068,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2539,10 +2529,10 @@
           "overflow": false
         },
         {
-          "ms": 744,
+          "ms": 983,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.1823,
+          "time": 0.089,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2557,10 +2547,10 @@
           "overflow": false
         },
         {
-          "ms": 815,
+          "ms": 1066,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.2535,
+          "time": 0.1717,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2575,10 +2565,10 @@
           "overflow": false
         },
         {
-          "ms": 897,
+          "ms": 1138,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.3356,
+          "time": 0.2436,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2593,10 +2583,10 @@
           "overflow": false
         },
         {
-          "ms": 975,
+          "ms": 1220,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.4138,
+          "time": 0.3263,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2611,10 +2601,10 @@
           "overflow": false
         },
         {
-          "ms": 1067,
+          "ms": 1302,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.5052,
+          "time": 0.4081,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2629,10 +2619,10 @@
           "overflow": false
         },
         {
-          "ms": 1144,
+          "ms": 1378,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.583,
+          "time": 0.4837,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2647,10 +2637,10 @@
           "overflow": false
         },
         {
-          "ms": 1216,
+          "ms": 1467,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.6544,
+          "time": 0.5728,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2665,10 +2655,10 @@
           "overflow": false
         },
         {
-          "ms": 1294,
+          "ms": 1546,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.7328,
+          "time": 0.6525,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2683,10 +2673,10 @@
           "overflow": false
         },
         {
-          "ms": 1375,
+          "ms": 1619,
           "scene": "intro",
           "videoCount": 1,
-          "time": 0.8135,
+          "time": 0.7249,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2701,64 +2691,10 @@
           "overflow": false
         },
         {
-          "ms": 1460,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 0.898,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1539,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 0.9776,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1615,
-          "scene": "intro",
-          "videoCount": 1,
-          "time": 1.054,
-          "paused": false,
-          "frame": {
-            "x": 0,
-            "y": 0.000030517578125,
-            "width": 1441.42724609375,
-            "height": 901.047119140625,
-            "top": 0.000030517578125,
-            "right": 1441.42724609375,
-            "bottom": 901.0471496582031,
-            "left": 0
-          },
-          "overflow": false
-        },
-        {
-          "ms": 1701,
+          "ms": 1706,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.139,
+          "time": 0.8124,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2773,10 +2709,10 @@
           "overflow": false
         },
         {
-          "ms": 1787,
+          "ms": 1783,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.226,
+          "time": 0.8889,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2791,10 +2727,10 @@
           "overflow": false
         },
         {
-          "ms": 1864,
+          "ms": 1862,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.303,
+          "time": 0.9678,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2809,10 +2745,10 @@
           "overflow": false
         },
         {
-          "ms": 1940,
+          "ms": 1947,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.3782,
+          "time": 1.0531,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2827,10 +2763,10 @@
           "overflow": false
         },
         {
-          "ms": 2014,
+          "ms": 2029,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.453,
+          "time": 1.1347,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2845,10 +2781,10 @@
           "overflow": false
         },
         {
-          "ms": 2099,
+          "ms": 2097,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.5379,
+          "time": 1.2033,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2863,10 +2799,10 @@
           "overflow": false
         },
         {
-          "ms": 2185,
+          "ms": 2187,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.6234,
+          "time": 1.2927,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2881,10 +2817,10 @@
           "overflow": false
         },
         {
-          "ms": 2256,
+          "ms": 2263,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.6942,
+          "time": 1.3693,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2899,10 +2835,10 @@
           "overflow": false
         },
         {
-          "ms": 2336,
+          "ms": 2342,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.7743,
+          "time": 1.4477,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2917,10 +2853,10 @@
           "overflow": false
         },
         {
-          "ms": 2426,
+          "ms": 2420,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.8648,
+          "time": 1.5263,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2935,10 +2871,10 @@
           "overflow": false
         },
         {
-          "ms": 2509,
+          "ms": 2497,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 1.9473,
+          "time": 1.603,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2953,10 +2889,10 @@
           "overflow": false
         },
         {
-          "ms": 2579,
+          "ms": 2578,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.0174,
+          "time": 1.6838,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2971,10 +2907,10 @@
           "overflow": false
         },
         {
-          "ms": 2662,
+          "ms": 2659,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.1005,
+          "time": 1.7648,
           "paused": false,
           "frame": {
             "x": 0,
@@ -2989,10 +2925,10 @@
           "overflow": false
         },
         {
-          "ms": 2739,
+          "ms": 2750,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.1772,
+          "time": 1.8563,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3007,10 +2943,10 @@
           "overflow": false
         },
         {
-          "ms": 2829,
+          "ms": 2819,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.2676,
+          "time": 1.9249,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3028,7 +2964,7 @@
           "ms": 2897,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.3358,
+          "time": 2.0032,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3043,10 +2979,10 @@
           "overflow": false
         },
         {
-          "ms": 2975,
+          "ms": 2990,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.4132,
+          "time": 2.0956,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3061,10 +2997,10 @@
           "overflow": false
         },
         {
-          "ms": 3060,
+          "ms": 3066,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.4984,
+          "time": 2.1723,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3079,10 +3015,10 @@
           "overflow": false
         },
         {
-          "ms": 3142,
+          "ms": 3143,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.5809,
+          "time": 2.2495,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3100,7 +3036,7 @@
           "ms": 3220,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.6586,
+          "time": 2.3259,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3118,7 +3054,7 @@
           "ms": 3298,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.7364,
+          "time": 2.4037,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3133,10 +3069,10 @@
           "overflow": false
         },
         {
-          "ms": 3379,
+          "ms": 3384,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.8173,
+          "time": 2.4897,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3151,10 +3087,10 @@
           "overflow": false
         },
         {
-          "ms": 3457,
+          "ms": 3464,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.8952,
+          "time": 2.5699,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3169,10 +3105,10 @@
           "overflow": false
         },
         {
-          "ms": 3535,
+          "ms": 3541,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 2.9739,
+          "time": 2.6473,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3187,10 +3123,10 @@
           "overflow": false
         },
         {
-          "ms": 3615,
+          "ms": 3629,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.0538,
+          "time": 2.7348,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3205,10 +3141,10 @@
           "overflow": false
         },
         {
-          "ms": 3708,
+          "ms": 3707,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.1466,
+          "time": 2.8126,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3223,10 +3159,10 @@
           "overflow": false
         },
         {
-          "ms": 3775,
+          "ms": 3782,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.2138,
+          "time": 2.8885,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3241,10 +3177,10 @@
           "overflow": false
         },
         {
-          "ms": 3859,
+          "ms": 3863,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.2976,
+          "time": 2.9691,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3259,10 +3195,10 @@
           "overflow": false
         },
         {
-          "ms": 3944,
+          "ms": 3950,
           "scene": "leaves",
           "videoCount": 1,
-          "time": 3.3828,
+          "time": 3.0559,
           "paused": false,
           "frame": {
             "x": 0,
@@ -3277,92 +3213,92 @@
           "overflow": false
         },
         {
-          "ms": 4020,
+          "ms": 4017,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.1236,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4103,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.2092,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4179,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.4587,
+          "time": 3.2854,
           "paused": false,
           "frame": {
-            "x": 0.00079345703125,
-            "y": 0.000335693359375,
+            "x": 0.00140380859375,
+            "y": 0.000518798828125,
             "width": 1441.42724609375,
-            "height": 901.0469970703125,
-            "top": 0.000335693359375,
-            "right": 1441.4280395507812,
-            "bottom": 901.0473327636719,
-            "left": 0.00079345703125
+            "height": 901.047119140625,
+            "top": 0.000518798828125,
+            "right": 1441.4286499023438,
+            "bottom": 901.0476379394531,
+            "left": 0.00140380859375
           },
           "overflow": false
         },
         {
-          "ms": 4097,
+          "ms": 4271,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.5355,
+          "time": 3.3771,
           "paused": false,
           "frame": {
-            "x": 0.1671142578125,
-            "y": 0.061614990234375,
-            "width": 1441.1827392578125,
-            "height": 900.92626953125,
-            "top": 0.061614990234375,
-            "right": 1441.349853515625,
-            "bottom": 900.9878845214844,
-            "left": 0.1671142578125
+            "x": 0.039794921875,
+            "y": 0.014739990234375,
+            "width": 1441.3572998046875,
+            "height": 901.0067138671875,
+            "top": 0.014739990234375,
+            "right": 1441.3970947265625,
+            "bottom": 901.0214538574219,
+            "left": 0.039794921875
           },
           "overflow": false
         },
         {
-          "ms": 4187,
+          "ms": 4346,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.6258,
+          "time": 3.4521,
           "paused": false,
           "frame": {
-            "x": 0.1671142578125,
-            "y": 0.061614990234375,
-            "width": 1441.1827392578125,
-            "height": 900.92626953125,
-            "top": 0.061614990234375,
-            "right": 1441.349853515625,
-            "bottom": 900.9878845214844,
-            "left": 0.1671142578125
-          },
-          "overflow": false
-        },
-        {
-          "ms": 4265,
-          "scene": "shrinking",
-          "videoCount": 1,
-          "time": 3.7039,
-          "paused": false,
-          "frame": {
-            "x": 3.60089111328125,
-            "y": 1.327728271484375,
-            "width": 1435.942626953125,
-            "height": 898.5516357421875,
-            "top": 1.327728271484375,
-            "right": 1439.5435180664062,
-            "bottom": 899.8793640136719,
-            "left": 3.60089111328125
-          },
-          "overflow": false
-        },
-        {
-          "ms": 4340,
-          "scene": "shrinking",
-          "videoCount": 1,
-          "time": 3.7789,
-          "paused": false,
-          "frame": {
-            "x": 6.7625732421875,
-            "y": 2.493438720703125,
-            "width": 1431.086669921875,
-            "height": 896.338134765625,
-            "top": 2.493438720703125,
-            "right": 1437.8492431640625,
-            "bottom": 898.8315734863281,
-            "left": 6.7625732421875
+            "x": 0.6234130859375,
+            "y": 0.22991943359375,
+            "width": 1440.484130859375,
+            "height": 900.6043090820312,
+            "top": 0.22991943359375,
+            "right": 1441.1075439453125,
+            "bottom": 900.834228515625,
+            "left": 0.6234130859375
           },
           "overflow": false
         },
@@ -3370,17 +3306,17 @@
           "ms": 4425,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.8637,
+          "time": 3.5308,
           "paused": false,
           "frame": {
-            "x": 17.33392333984375,
-            "y": 6.3912353515625,
-            "width": 1414.981689453125,
-            "height": 888.9730224609375,
-            "top": 6.3912353515625,
-            "right": 1432.3156127929688,
-            "bottom": 895.3642578125,
-            "left": 17.33392333984375
+            "x": 1.789306640625,
+            "y": 0.65972900390625,
+            "width": 1438.702392578125,
+            "height": 899.79931640625,
+            "top": 0.65972900390625,
+            "right": 1440.49169921875,
+            "bottom": 900.4590454101562,
+            "left": 1.789306640625
           },
           "overflow": false
         },
@@ -3388,313 +3324,349 @@
           "ms": 4506,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 3.9445,
+          "time": 3.6121,
           "paused": false,
           "frame": {
-            "x": 25.72052001953125,
-            "y": 9.483428955078125,
-            "width": 1402.1611328125,
-            "height": 883.13720703125,
-            "top": 9.483428955078125,
-            "right": 1427.8816528320312,
-            "bottom": 892.6206359863281,
-            "left": 25.72052001953125
+            "x": 4.62969970703125,
+            "y": 1.70703125,
+            "width": 1434.37060546875,
+            "height": 897.8272705078125,
+            "top": 1.70703125,
+            "right": 1439.0003051757812,
+            "bottom": 899.5343017578125,
+            "left": 4.62969970703125
           },
           "overflow": false
         },
         {
-          "ms": 4586,
+          "ms": 4582,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.0245,
+          "time": 3.6883,
           "paused": false,
           "frame": {
-            "x": 68.98876953125,
-            "y": 25.43682861328125,
-            "width": 1336.10009765625,
-            "height": 852.9519653320312,
-            "top": 25.43682861328125,
-            "right": 1405.0888671875,
-            "bottom": 878.3887939453125,
-            "left": 68.98876953125
+            "x": 15.05889892578125,
+            "y": 5.55242919921875,
+            "width": 1418.4404296875,
+            "height": 890.5425415039062,
+            "top": 5.55242919921875,
+            "right": 1433.4993286132812,
+            "bottom": 896.094970703125,
+            "left": 15.05889892578125
           },
           "overflow": false
         },
         {
-          "ms": 4663,
+          "ms": 4660,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.1019,
+          "time": 3.766,
           "paused": false,
           "frame": {
-            "x": 110.747314453125,
-            "y": 40.8336181640625,
-            "width": 1272.3448486328125,
-            "height": 823.853515625,
-            "top": 40.8336181640625,
-            "right": 1383.0921630859375,
-            "bottom": 864.6871337890625,
-            "left": 110.747314453125
+            "x": 24.6632080078125,
+            "y": 9.0936279296875,
+            "width": 1403.76806640625,
+            "height": 883.8616333007812,
+            "top": 9.0936279296875,
+            "right": 1428.4312744140625,
+            "bottom": 892.9552612304688,
+            "left": 24.6632080078125
           },
           "overflow": false
         },
         {
-          "ms": 4747,
+          "ms": 4745,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.185,
+          "time": 3.8515,
           "paused": false,
           "frame": {
-            "x": 166.4600830078125,
-            "y": 61.37542724609375,
-            "width": 1187.3145751953125,
-            "height": 785.0153198242188,
-            "top": 61.37542724609375,
-            "right": 1353.774658203125,
-            "bottom": 846.3907470703125,
-            "left": 166.4600830078125
+            "x": 54.15521240234375,
+            "y": 19.967529296875,
+            "width": 1358.737548828125,
+            "height": 863.2954711914062,
+            "top": 19.967529296875,
+            "right": 1412.8927612304688,
+            "bottom": 883.2630004882812,
+            "left": 54.15521240234375
           },
           "overflow": false
         },
         {
-          "ms": 4822,
+          "ms": 4823,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.2606,
+          "time": 3.9287,
           "paused": false,
           "frame": {
-            "x": 257.4513854980469,
-            "y": 94.92481994628906,
-            "width": 1048.41552734375,
-            "height": 721.62646484375,
-            "top": 94.92481994628906,
-            "right": 1305.8669128417969,
-            "bottom": 816.5512847900391,
-            "left": 257.4513854980469
+            "x": 100.22991943359375,
+            "y": 36.955718994140625,
+            "width": 1288.41455078125,
+            "height": 831.1785888671875,
+            "top": 36.955718994140625,
+            "right": 1388.6444702148438,
+            "bottom": 868.1343078613281,
+            "left": 100.22991943359375
           },
           "overflow": false
         },
         {
-          "ms": 4900,
+          "ms": 4901,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.3385,
+          "time": 4.0076,
           "paused": false,
           "frame": {
-            "x": 368.3924865722656,
-            "y": 135.829833984375,
-            "width": 879.0537109375,
-            "height": 644.312255859375,
-            "top": 135.829833984375,
-            "right": 1247.4461975097656,
-            "bottom": 780.14208984375,
-            "left": 368.3924865722656
+            "x": 132.765625,
+            "y": 48.9520263671875,
+            "width": 1238.738037109375,
+            "height": 808.5194702148438,
+            "top": 48.9520263671875,
+            "right": 1371.503662109375,
+            "bottom": 857.4714965820312,
+            "left": 132.765625
           },
           "overflow": false
         },
         {
-          "ms": 4980,
+          "ms": 4983,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.4186,
+          "time": 4.089,
           "paused": false,
           "frame": {
-            "x": 489.03948974609375,
-            "y": 180.3135223388672,
-            "width": 694.8796997070312,
-            "height": 560.1962280273438,
-            "top": 180.3135223388672,
-            "right": 1183.919189453125,
-            "bottom": 740.5097503662109,
-            "left": 489.03948974609375
+            "x": 227.43490600585938,
+            "y": 83.857421875,
+            "width": 1094.2144775390625,
+            "height": 742.5548706054688,
+            "top": 83.857421875,
+            "right": 1321.6493835449219,
+            "bottom": 826.4122924804688,
+            "left": 227.43490600585938
           },
           "overflow": false
         },
         {
-          "ms": 5056,
+          "ms": 5059,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.494,
+          "time": 4.1646,
           "paused": false,
           "frame": {
-            "x": 561.607666015625,
-            "y": 207.07012939453125,
-            "width": 584.06787109375,
-            "height": 509.64617919921875,
-            "top": 207.07012939453125,
-            "right": 1145.675537109375,
-            "bottom": 716.71630859375,
-            "left": 561.607666015625
+            "x": 291.67041015625,
+            "y": 107.54171752929688,
+            "width": 996.1536865234375,
+            "height": 697.760009765625,
+            "top": 107.54171752929688,
+            "right": 1287.8240966796875,
+            "bottom": 805.3017272949219,
+            "left": 291.67041015625
           },
           "overflow": false
         },
         {
-          "ms": 5141,
+          "ms": 5151,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.58,
+          "time": 4.2572,
           "paused": false,
           "frame": {
-            "x": 607.802978515625,
-            "y": 224.1028289794922,
-            "width": 513.5703125,
-            "height": 477.44866943359375,
-            "top": 224.1028289794922,
-            "right": 1121.373291015625,
-            "bottom": 701.5514984130859,
-            "left": 607.802978515625
+            "x": 432.88519287109375,
+            "y": 159.60891723632812,
+            "width": 780.5736694335938,
+            "height": 599.3564453125,
+            "top": 159.60891723632812,
+            "right": 1213.4588623046875,
+            "bottom": 758.9653625488281,
+            "left": 432.88519287109375
           },
           "overflow": false
         },
         {
-          "ms": 5219,
+          "ms": 5229,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.6572,
+          "time": 4.3353,
           "paused": false,
           "frame": {
-            "x": 649.4838256835938,
-            "y": 239.47091674804688,
-            "width": 449.91973876953125,
-            "height": 448.3904113769531,
-            "top": 239.47091674804688,
-            "right": 1099.403564453125,
-            "bottom": 687.861328125,
-            "left": 649.4838256835938
+            "x": 533.5971069335938,
+            "y": 196.742431640625,
+            "width": 626.8274536132812,
+            "height": 529.1658935546875,
+            "top": 196.742431640625,
+            "right": 1160.424560546875,
+            "bottom": 725.9083251953125,
+            "left": 533.5971069335938
           },
           "overflow": false
         },
         {
-          "ms": 5296,
+          "ms": 5307,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.7349,
+          "time": 4.4129,
           "paused": false,
           "frame": {
-            "x": 677.4022216796875,
-            "y": 249.7647247314453,
-            "width": 407.2998046875,
-            "height": 428.951171875,
-            "top": 249.7647247314453,
-            "right": 1084.7020263671875,
-            "bottom": 678.7158966064453,
-            "left": 677.4022216796875
+            "x": 574.3316040039062,
+            "y": 211.76162719726562,
+            "width": 564.6442260742188,
+            "height": 500.7516174316406,
+            "top": 211.76162719726562,
+            "right": 1138.975830078125,
+            "bottom": 712.5132446289062,
+            "left": 574.3316040039062
           },
           "overflow": false
         },
         {
-          "ms": 5376,
+          "ms": 5386,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.8148,
+          "time": 4.492,
           "paused": false,
           "frame": {
-            "x": 698.2003173828125,
-            "y": 257.4331359863281,
-            "width": 375.5794677734375,
-            "height": 414.4220886230469,
-            "top": 257.4331359863281,
-            "right": 1073.77978515625,
-            "bottom": 671.855224609375,
-            "left": 698.2003173828125
+            "x": 641.2993774414062,
+            "y": 236.45321655273438,
+            "width": 462.42633056640625,
+            "height": 454.1054992675781,
+            "top": 236.45321655273438,
+            "right": 1103.7257080078125,
+            "bottom": 690.5587158203125,
+            "left": 641.2993774414062
           },
           "overflow": false
         },
         {
-          "ms": 5456,
+          "ms": 5463,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.894,
+          "time": 4.5688,
           "paused": false,
           "frame": {
-            "x": 705.9176025390625,
-            "y": 260.27862548828125,
-            "width": 363.7716064453125,
-            "height": 409.06927490234375,
-            "top": 260.27862548828125,
-            "right": 1069.689208984375,
-            "bottom": 669.347900390625,
-            "left": 705.9176025390625
+            "x": 675.3480834960938,
+            "y": 249.00732421875,
+            "width": 410.44403076171875,
+            "height": 430.35986328125,
+            "top": 249.00732421875,
+            "right": 1085.7921142578125,
+            "bottom": 679.3671875,
+            "left": 675.3480834960938
           },
           "overflow": false
         },
         {
-          "ms": 5549,
+          "ms": 5539,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 4.9872,
+          "time": 4.6453,
           "paused": false,
           "frame": {
-            "x": 712.5806884765625,
-            "y": 262.7353210449219,
-            "width": 353.605712890625,
-            "height": 404.4005432128906,
-            "top": 262.7353210449219,
-            "right": 1066.1864013671875,
-            "bottom": 667.1358642578125,
-            "left": 712.5806884765625
+            "x": 695.161376953125,
+            "y": 256.3127136230469,
+            "width": 380.1907958984375,
+            "height": 416.5551452636719,
+            "top": 256.3127136230469,
+            "right": 1075.3521728515625,
+            "bottom": 672.8678588867188,
+            "left": 695.161376953125
           },
           "overflow": false
         },
         {
-          "ms": 5630,
+          "ms": 5623,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.0683,
+          "time": 4.7294,
           "paused": false,
           "frame": {
-            "x": 714.6390991210938,
-            "y": 263.49432373046875,
-            "width": 350.46173095703125,
-            "height": 402.991943359375,
-            "top": 263.49432373046875,
-            "right": 1065.100830078125,
-            "bottom": 666.4862670898438,
-            "left": 714.6390991210938
+            "x": 705.4002075195312,
+            "y": 260.08782958984375,
+            "width": 364.57513427734375,
+            "height": 409.43145751953125,
+            "top": 260.08782958984375,
+            "right": 1069.975341796875,
+            "bottom": 669.519287109375,
+            "left": 705.4002075195312
           },
           "overflow": false
         },
         {
-          "ms": 5698,
+          "ms": 5697,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.1365,
+          "time": 4.8031,
           "paused": false,
           "frame": {
-            "x": 715.2703247070312,
-            "y": 263.7270202636719,
-            "width": 349.51837158203125,
-            "height": 402.5492248535156,
-            "top": 263.7270202636719,
-            "right": 1064.7886962890625,
-            "bottom": 666.2762451171875,
-            "left": 715.2703247070312
+            "x": 711.8713989257812,
+            "y": 262.47381591796875,
+            "width": 354.68865966796875,
+            "height": 404.923828125,
+            "top": 262.47381591796875,
+            "right": 1066.56005859375,
+            "bottom": 667.3976440429688,
+            "left": 711.8713989257812
           },
           "overflow": false
         },
         {
-          "ms": 5793,
+          "ms": 5779,
           "scene": "shrinking",
           "videoCount": 1,
-          "time": 5.2312,
+          "time": 4.8856,
           "paused": false,
           "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
+            "x": 713.807373046875,
+            "y": 263.1876220703125,
+            "width": 351.7542724609375,
+            "height": 403.555419921875,
+            "top": 263.1876220703125,
+            "right": 1065.5616455078125,
+            "bottom": 666.7430419921875,
+            "left": 713.807373046875
           },
           "overflow": false
         },
         {
-          "ms": 5864,
+          "ms": 5867,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.9727,
+          "paused": false,
+          "frame": {
+            "x": 715.1342163085938,
+            "y": 263.67681884765625,
+            "width": 349.72796630859375,
+            "height": 402.62969970703125,
+            "top": 263.67681884765625,
+            "right": 1064.8621826171875,
+            "bottom": 666.3065185546875,
+            "left": 715.1342163085938
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5944,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.05,
+          "paused": false,
+          "frame": {
+            "x": 715.3707885742188,
+            "y": 263.7641296386719,
+            "width": 349.34381103515625,
+            "height": 402.4687805175781,
+            "top": 263.7641296386719,
+            "right": 1064.714599609375,
+            "bottom": 666.23291015625,
+            "left": 715.3707885742188
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6023,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3709,10 +3681,10 @@
           "overflow": false
         },
         {
-          "ms": 5940,
+          "ms": 6104,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3727,10 +3699,10 @@
           "overflow": false
         },
         {
-          "ms": 6019,
+          "ms": 6186,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3745,10 +3717,10 @@
           "overflow": false
         },
         {
-          "ms": 6094,
+          "ms": 6259,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3763,10 +3735,10 @@
           "overflow": false
         },
         {
-          "ms": 6175,
+          "ms": 6337,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3781,10 +3753,10 @@
           "overflow": false
         },
         {
-          "ms": 6256,
+          "ms": 6420,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3799,10 +3771,10 @@
           "overflow": false
         },
         {
-          "ms": 6338,
+          "ms": 6497,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3817,10 +3789,10 @@
           "overflow": false
         },
         {
-          "ms": 6416,
+          "ms": 6586,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3835,10 +3807,10 @@
           "overflow": false
         },
         {
-          "ms": 6495,
+          "ms": 6667,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3853,10 +3825,10 @@
           "overflow": false
         },
         {
-          "ms": 6581,
+          "ms": 6743,
           "scene": "card-growing",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3871,28 +3843,10 @@
           "overflow": false
         },
         {
-          "ms": 6656,
-          "scene": "card-growing",
-          "videoCount": 1,
-          "time": 5.2648,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 6744,
+          "ms": 6821,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3907,10 +3861,10 @@
           "overflow": false
         },
         {
-          "ms": 6814,
+          "ms": 6902,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3925,10 +3879,10 @@
           "overflow": false
         },
         {
-          "ms": 6898,
+          "ms": 6986,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3943,10 +3897,10 @@
           "overflow": false
         },
         {
-          "ms": 6976,
+          "ms": 7066,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3961,10 +3915,10 @@
           "overflow": false
         },
         {
-          "ms": 7065,
+          "ms": 7143,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3979,10 +3933,10 @@
           "overflow": false
         },
         {
-          "ms": 7147,
+          "ms": 7219,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -3997,10 +3951,10 @@
           "overflow": false
         },
         {
-          "ms": 7215,
+          "ms": 7299,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -4015,10 +3969,10 @@
           "overflow": false
         },
         {
-          "ms": 7295,
+          "ms": 7386,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -4033,10 +3987,10 @@
           "overflow": false
         },
         {
-          "ms": 7380,
+          "ms": 7469,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,
@@ -4051,28 +4005,10 @@
           "overflow": false
         },
         {
-          "ms": 7457,
+          "ms": 7547,
           "scene": "settled",
           "videoCount": 1,
-          "time": 5.2648,
-          "paused": true,
-          "frame": {
-            "x": 715.375,
-            "y": 263.765625,
-            "width": 349.34375,
-            "height": 402.46875,
-            "top": 263.765625,
-            "right": 1064.71875,
-            "bottom": 666.234375,
-            "left": 715.375
-          },
-          "overflow": false
-        },
-        {
-          "ms": 7536,
-          "scene": "settled",
-          "videoCount": 1,
-          "time": 5.2648,
+          "time": 5.1034,
           "paused": true,
           "frame": {
             "x": 715.375,

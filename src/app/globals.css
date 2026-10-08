@@ -36,15 +36,18 @@
   --font-display: "Noto Serif", Georgia, serif;
 }
 :root {
-  --background: #f8f6f0;
-  --foreground: #302e2a;
-  --card: #fffefa;
-  --primary: #365a4b;
-  --primary-foreground: #fff;
-  --muted: #eeeee8;
-  --muted-foreground: #64655f;
+  --background: #ffe9e8;
+  --foreground: #4a2c2f;
+  --card: #fff6f6;
+  --primary: #ffadad;
+  --primary-foreground: #4a2c2f;
+  --muted: #ffdedd;
+  --muted-foreground: #79565a;
   --destructive: #b42332;
-  --border: #dedfd6;
+  --border: #ebc6c5;
+  --sage: #7c454c;
+  --sage-surface: #ffdedd;
+  --gold-accent: #b49b70;
   --radius: 0.625rem;
 }
 @layer base {
@@ -59,7 +62,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   ::selection {
-    background: #d5e3d8;
+    background: #ffc2be;
   }
 }
 .public-shell {
@@ -73,7 +76,7 @@
   left: 0;
   width: 100%;
   padding: 25px clamp(22px, 5.5vw, 88px);
-  color: #302e2a;
+  color: var(--foreground);
 }
 .public-nav__inner {
   display: flex;
@@ -108,6 +111,9 @@
   border: 1px solid currentColor;
   border-radius: 99px;
   padding: 0 22px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--foreground);
 }
 .public-shell:has(.wedding-hero[data-theme="light"]) .public-nav {
   color: white;
@@ -145,7 +151,7 @@
   z-index: 50;
 }
 .wedding-hero__copy {
-  color: #302e2a;
+  color: var(--foreground);
 }
 .wedding-hero__copy--light {
   position: absolute;
@@ -182,7 +188,7 @@
   font-style: italic;
 }
 .wedding-hero__copy--dark .wedding-hero__title span {
-  color: #526d59;
+  color: var(--sage);
 }
 .wedding-hero__description {
   max-width: 460px;
@@ -210,15 +216,15 @@
   font-weight: 600;
 }
 .wedding-hero__primary-cta {
-  background: #365a4b;
-  color: white;
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 .wedding-hero__secondary-cta {
-  border-color: #c4cbbf;
+  border-color: var(--border);
 }
 .wedding-hero__copy--light .wedding-hero__primary-cta {
   background: white;
-  color: #302e2a;
+  color: var(--foreground);
 }
 .wedding-hero__copy--light .wedding-hero__secondary-cta {
   border-color: #fff;
@@ -250,7 +256,7 @@
   inset: 0 44% 0 0;
   overflow: hidden;
   transform-origin: 0 0;
-  background: #d6dfd1;
+  background: var(--sage-surface);
 }
 .wedding-hero__media {
   position: absolute;
@@ -291,47 +297,47 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  background: #fffefa;
+  background: var(--card);
   text-align: center;
   padding: 24px 16px;
 }
 .wedding-hero__invite-kicker {
   font-size: 0.46rem;
   letter-spacing: 0.15em;
-  color: #6b7767;
+  color: var(--muted-foreground);
 }
 .wedding-hero__couple {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.1vw, 2rem);
-  color: #415b47;
+  color: var(--foreground);
   white-space: nowrap;
 }
 .wedding-hero__invite-rule {
   width: 32px;
   height: 1px;
-  background: #c7b898;
+  background: var(--gold-accent);
 }
 .wedding-hero__invite-date {
   font-size: 0.58rem;
   letter-spacing: 0.14em;
-  color: #6b7767;
+  color: var(--muted-foreground);
 }
 .wedding-hero__invitation p {
   font-size: 0.62rem;
   line-height: 1.9;
-  color: #6b7767;
+  color: var(--muted-foreground);
 }
 .wedding-hero__invite-signature {
   font-family: var(--font-display);
   font-style: italic;
   font-size: 0.58rem;
-  color: #7c8275;
+  color: var(--muted-foreground);
 }
 .wedding-hero__card-edge {
   position: absolute;
   inset: -5px;
   z-index: 25;
-  border: 6px solid #fffefa;
+  border: 6px solid var(--card);
   border-radius: 8px;
   box-shadow: 0 14px 34px -15px rgb(36 48 35 / 24%);
   pointer-events: none;
@@ -490,7 +496,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #526d59;
+  color: var(--sage);
 }
 .public-features h2 {
   font-family: var(--font-display);
@@ -513,7 +519,7 @@
 .public-feature-card svg {
   width: 24px;
   height: 24px;
-  color: #526d59;
+  color: var(--sage);
 }
 .public-feature-card h3 {
   font-family: var(--font-display);
@@ -1084,5 +1090,279 @@
   .botanical--flowers .botanical__bud {
     width: 20%;
     height: 23%;
+  }
+}
+
+.public-shell:has(.wedding-hero[data-theme="light"]) .public-nav__cta,
+.public-shell:has(.wedding-hero[data-scene="initial"]) .public-nav__cta {
+  background: rgb(255 255 255 / 12%);
+  color: white;
+  border-color: rgb(255 255 255 / 75%);
+}
+.wedding-hero__copy--dark .wedding-hero__eyebrow {
+  color: var(--sage);
+}
+.wedding-hero__copy--dark .wedding-hero__description,
+.wedding-hero__copy--dark .wedding-hero__note {
+  color: var(--muted-foreground);
+}
+.wedding-hero__copy--dark .wedding-hero__secondary-cta {
+  color: var(--foreground);
+  background: var(--card);
+}
+.wedding-hero__primary-cta:hover,
+.public-nav__cta:hover {
+  filter: brightness(0.95);
+}
+.public-feature-card svg {
+  background: var(--sage-surface);
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+/* Login composition ported from the user's Demo_InviteMe source. */
+.auth-shell:has(.login-screen) {
+  display: block;
+  padding: 0;
+}
+.auth-shell:has(.login-screen) > .auth-shell__brand {
+  display: none;
+}
+.auth-shell:has(.login-screen) > .auth-shell__panel {
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.login-screen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100svh;
+  background: #fff7f9;
+  color: #302629;
+}
+.login-editorial {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #302629;
+  color: white;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.login-editorial > img {
+  object-fit: cover;
+  opacity: 0.8;
+}
+.login-editorial__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    #302629 0%,
+    rgb(48 38 41 / 55%) 45%,
+    rgb(173 97 115 / 15%) 100%
+  );
+}
+.login-editorial__brand,
+.login-editorial__copy {
+  position: relative;
+  z-index: 1;
+}
+.login-editorial__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+.login-editorial__brand > span {
+  padding: 9px;
+  border: 1px solid rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 15%);
+  border-radius: 12px;
+  color: #f6dbe2;
+}
+.login-editorial__copy {
+  max-width: 512px;
+}
+.login-editorial__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 5px 12px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 99px;
+  background: rgb(255 255 255 / 10%);
+  color: #f6dbe2;
+}
+.login-editorial h2 {
+  margin: 24px 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3vw, 48px);
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+}
+.login-editorial h2 em {
+  color: #f6dbe2;
+}
+.login-editorial__copy > p:not(.login-editorial__badge) {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgb(255 255 255 / 80%);
+}
+.login-editorial__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 15%);
+  padding-top: 18px;
+  font-size: 11px;
+  color: #f6dbe2;
+}
+.login-editorial__details span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 48px;
+}
+.login-content__inner {
+  width: 100%;
+  max-width: 448px;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin-bottom: 26px;
+}
+.login-brand em {
+  color: #c45877;
+}
+.login-brand__monogram {
+  font-size: 16px;
+  font-style: italic;
+  color: #c45877;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 1px solid #f6dbe2;
+  border-radius: 12px;
+  margin-right: 12px;
+}
+.login-content h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.2vw, 34px);
+  letter-spacing: -0.035em;
+  line-height: 1.35;
+}
+.login-subtitle {
+  font-size: 14px;
+  color: #827176;
+  margin: 12px 0 32px;
+  line-height: 1.6;
+}
+.login-field {
+  position: relative;
+}
+.login-field > svg {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  color: #827176;
+}
+.login-form input {
+  height: 44px;
+  background: white;
+  border-color: #f1dce2;
+  padding-left: 40px;
+  border-radius: 12px;
+}
+.login-form label {
+  font-size: 12px;
+}
+.login-form__options {
+  text-align: right;
+  color: #b84868;
+  font-size: 12px;
+}
+.login-form > button {
+  height: 46px;
+  border-radius: 14px;
+  background: #efa3b5;
+  color: #4a2c2f;
+  font-weight: 600;
+}
+.login-form > button:disabled {
+  opacity: 0.75;
+}
+.login-divider {
+  border-top: 1px solid #f1dce2;
+  margin: 32px 0 22px;
+  text-align: center;
+  height: 0;
+}
+.login-divider span {
+  position: relative;
+  top: -10px;
+  padding: 0 12px;
+  background: #fff7f9;
+  color: #827176;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.login-google {
+  width: 100%;
+  border: 1px solid #f1dce2;
+  border-radius: 12px;
+  background: white;
+  padding: 11px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #827176;
+}
+.login-google > span {
+  color: #4285f4;
+  font-weight: 700;
+  font-size: 17px;
+}
+.login-register {
+  margin-top: 32px;
+  font-size: 12px;
+  text-align: center;
+  color: #827176;
+}
+.login-register a {
+  color: #b84868;
+  font-weight: 600;
+}
+@media (max-width: 1023px) {
+  .login-screen {
+    grid-template-columns: 1fr;
+  }
+  .login-editorial {
+    display: none;
+  }
+  .login-content {
+    min-height: 100svh;
+    padding: 40px 24px;
   }
 }

@@ -170,3 +170,13 @@ Thay ảnh nguyên cành bằng thân cành trống, 7 lá/hoa độc lập. Th�
 
 ### Gió và sự liên tục của cụm bên phải
 Cụm bên trái xoay và trôi ngang ra ngoài viewport, không rơi thẳng xuống. Ba cành bên phải giữ nguyên các phần tử thân/lá, chuyển vị trí và kích thước về ba vị trí quanh thiệp đồng thời với video. Các slot đích không hiện thêm bản sao. Lớp chuyển tiếp hạ xuống sau khung khi video co xong; các cành mới khác mọc bổ sung trong pha co.
+
+
+## Bộ màu landing đã đồng bộ
+
+Dùng token trong globals.css thay cho các mã màu rải rác. Nền ivory `#f8f6f0`, mặt thiệp/card `#fffefa`, chữ charcoal `#302e2a`, CTA và tên cặp đôi forest `#365a4b`, nhấn sage `#526d59`, chữ phụ `#64655f`, nền icon sage nhạt `#e5ece3`, đường trang trí gold `#b49b70`. Navbar CTA và hero CTA dùng cùng màu forest ở cảnh cuối; cảnh video giữ chữ trắng và nút viền trắng để đọc rõ. Hoa lá và animation giữ nguyên.
+
+
+## Palette gốc — ưu tiên thay cho palette xanh ở các mục trước
+
+Người dùng xác nhận palette brand gốc là hồng. Nguồn: HTML Stitch người dùng gửi (`a75f91f2-9e52-4e4a-85c8-308d7626547e/Pasted text.txt`). Blush 50 `#FFE9E8`, 100 `#FFDEDD`, 200 `#FFD6D6`, 300 `#FFC2BE`, 400 `#FFADAD`; ink `#4A2C2F`; surface `#FFF6F6` và trắng. CTA blush dùng chữ ink tối; không dùng chữ trắng trên hồng nhạt. Palette sage/forest trong các mục cũ đã bị thay thế, không dùng làm brand. Màu xanh của watercolor là màu artwork riêng. Font Noto Serif/Be Vietnam Pro và animation giữ nguyên.
