@@ -1,55 +1,47 @@
-import Link from "next/link";
-import { ArrowRight, CalendarDays, Users, HeartHandshake } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { CalendarDays, HeartHandshake, Users } from "lucide-react";
+import { PublicLandingHero } from "@/features/public";
+
+const benefits = [
+  {
+    Icon: CalendarDays,
+    title: "Một nơi cho ngày vui",
+    text: "Gom câu chuyện, lịch trình và những thông tin quan trọng vào một trang dễ chia sẻ.",
+  },
+  {
+    Icon: Users,
+    title: "Khách mời luôn được kết nối",
+    text: "Thiết kế trải nghiệm lời mời gần gũi, dễ xem trên điện thoại của mọi người.",
+  },
+  {
+    Icon: HeartHandshake,
+    title: "Chuẩn bị cùng nhau",
+    text: "InviteMe đang được xây dựng để hai bạn và người thân cùng chuẩn bị ngày cưới.",
+  },
+];
+
 export default function HomePage() {
   return (
-    <div className="space-y-20 py-8 md:py-16">
-      <section className="max-w-3xl">
-        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          Your people. Your day.
-        </p>
-        <h1 className="font-display text-5xl leading-tight tracking-tight md:text-7xl">
-          Every shared moment
-          <br />
-          <span className="text-primary">starts with an invitation.</span>
-        </h1>
-        <p className="mt-7 max-w-xl text-lg leading-8 text-muted-foreground">
-          A thoughtful space to bring your wedding plans and the people you love together.
-        </p>
-        <Button asChild className="mt-8">
-          <Link href="/login">
-            Open your workspace
-            <ArrowRight />
-          </Link>
-        </Button>
+    <div>
+      <PublicLandingHero />
+
+      <section id="features" aria-labelledby="features-heading" className="public-features">
+        <div className="public-features__intro">
+          <p className="public-features__eyebrow">Ngày vui bắt đầu từ những điều nhỏ</p>
+          <h2 id="features-heading">Cùng nhau chuẩn bị, để vui trọn từng khoảnh khắc</h2>
+        </div>
+        <div className="public-features__grid">
+          {benefits.map(({ Icon, title, text }) => (
+            <article key={title} className="public-feature-card">
+              <Icon aria-hidden="true" />
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
       </section>
-      <section aria-label="What InviteMe is being built for" className="grid gap-6 md:grid-cols-3">
-        {[
-          {
-            Icon: CalendarDays,
-            title: "One beautiful beginning",
-            text: "A place for your story, your celebration, and the details that matter.",
-          },
-          {
-            Icon: Users,
-            title: "Everyone, thoughtfully included",
-            text: "An invitation experience designed around your guests.",
-          },
-          {
-            Icon: HeartHandshake,
-            title: "Plan together",
-            text: "A shared workspace for you and your trusted co-hosts.",
-          },
-        ].map(({ Icon, title, text }) => (
-          <article key={title} className="rounded-xl border bg-card p-7">
-            <Icon className="mb-6 size-6 text-primary" aria-hidden="true" />
-            <h2 className="font-display text-2xl">{title}</h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{text}</p>
-          </article>
-        ))}
-      </section>
-      <p className="text-sm text-muted-foreground">
-        InviteMe is in development. Wedding planning features are coming in future milestones.
+
+      <p className="public-development-note">
+        InviteMe đang trong quá trình phát triển. Một số tính năng quản lý tiệc cưới chưa sẵn sàng.
       </p>
     </div>
   );

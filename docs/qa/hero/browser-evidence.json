@@ -1,0 +1,4140 @@
+{
+  "url": "http://localhost:3100/",
+  "browser": "Playwright Chromium",
+  "recordedAt": "2026-10-08T13:01:51.032Z",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "reducedMotion": "no-preference",
+      "animated": true,
+      "added": 1,
+      "removed": 0,
+      "samples": [
+        {
+          "ms": 112,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 181,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 257,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 384,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 425,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 496,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 589,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.0597,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 656,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.1268,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 735,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.2061,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 816,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.287,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 896,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.3673,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 982,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.4525,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1056,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.5265,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1142,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.6128,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1218,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.6889,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1296,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.7666,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1380,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.851,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1460,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 0.9304,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1539,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.0094,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1619,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.0903,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1699,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.1697,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1777,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.2482,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1857,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.3281,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1936,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.4071,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2028,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.4987,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2110,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.5808,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2189,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.6599,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2257,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.7279,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2335,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.8064,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2415,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.8863,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2503,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.974,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2583,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.0541,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2660,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.1307,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2741,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.212,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2818,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.2884,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2898,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.3692,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2978,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.4485,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3058,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.5288,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3137,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.6077,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3231,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.7018,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3302,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.7726,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3386,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.8569,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3465,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.9359,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3545,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.0158,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3624,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.0945,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3700,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.1704,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3777,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.2478,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3855,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.3261,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3940,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.4113,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4031,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.5016,
+          "paused": false,
+          "frame": {
+            "x": 0.00592041015625,
+            "y": 0.002227783203125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.002227783203125,
+            "right": 1441.4331665039062,
+            "bottom": 901.0493469238281,
+            "left": 0.00592041015625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4108,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.5786,
+          "paused": false,
+          "frame": {
+            "x": 0.1270751953125,
+            "y": 0.04693603515625,
+            "width": 1441.2176513671875,
+            "height": 900.966552734375,
+            "top": 0.04693603515625,
+            "right": 1441.3447265625,
+            "bottom": 901.0134887695312,
+            "left": 0.1270751953125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4189,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.6598,
+          "paused": false,
+          "frame": {
+            "x": 2.2672119140625,
+            "y": 0.836029052734375,
+            "width": 1437.96875,
+            "height": 899.4774169921875,
+            "top": 0.836029052734375,
+            "right": 1440.2359619140625,
+            "bottom": 900.3134460449219,
+            "left": 2.2672119140625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4267,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.7381,
+          "paused": false,
+          "frame": {
+            "x": 5.1875,
+            "y": 1.9127197265625,
+            "width": 1433.4971923828125,
+            "height": 897.4248046875,
+            "top": 1.9127197265625,
+            "right": 1438.6846923828125,
+            "bottom": 899.3375244140625,
+            "left": 5.1875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4339,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.8097,
+          "paused": false,
+          "frame": {
+            "x": 11.77392578125,
+            "y": 4.341217041015625,
+            "width": 1423.4361572265625,
+            "height": 892.836669921875,
+            "top": 4.341217041015625,
+            "right": 1435.2100830078125,
+            "bottom": 897.1778869628906,
+            "left": 11.77392578125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4425,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.8962,
+          "paused": false,
+          "frame": {
+            "x": 25.9359130859375,
+            "y": 9.562820434570312,
+            "width": 1401.8466796875,
+            "height": 882.9762573242188,
+            "top": 9.562820434570312,
+            "right": 1427.7825927734375,
+            "bottom": 892.5390777587891,
+            "left": 25.9359130859375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4499,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.9698,
+          "paused": false,
+          "frame": {
+            "x": 52.30230712890625,
+            "y": 19.284423828125,
+            "width": 1361.5673828125,
+            "height": 864.5833740234375,
+            "top": 19.284423828125,
+            "right": 1413.8696899414062,
+            "bottom": 883.8677978515625,
+            "left": 52.30230712890625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4581,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.052,
+          "paused": false,
+          "frame": {
+            "x": 69.44012451171875,
+            "y": 25.603225708007812,
+            "width": 1335.436279296875,
+            "height": 852.6702270507812,
+            "top": 25.603225708007812,
+            "right": 1404.8764038085938,
+            "bottom": 878.2734527587891,
+            "left": 69.44012451171875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4663,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.1335,
+          "paused": false,
+          "frame": {
+            "x": 141.8145751953125,
+            "y": 52.288421630859375,
+            "width": 1224.93896484375,
+            "height": 802.20068359375,
+            "top": 52.288421630859375,
+            "right": 1366.7535400390625,
+            "bottom": 854.4891052246094,
+            "left": 141.8145751953125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4738,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.2085,
+          "paused": false,
+          "frame": {
+            "x": 178.0823974609375,
+            "y": 65.66072082519531,
+            "width": 1169.56787109375,
+            "height": 776.9256591796875,
+            "top": 65.66072082519531,
+            "right": 1347.6502685546875,
+            "bottom": 842.5863800048828,
+            "left": 178.0823974609375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4816,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.287,
+          "paused": false,
+          "frame": {
+            "x": 249.09420776367188,
+            "y": 91.84342956542969,
+            "width": 1061.1666259765625,
+            "height": 727.4219970703125,
+            "top": 91.84342956542969,
+            "right": 1310.2608337402344,
+            "bottom": 819.2654266357422,
+            "left": 249.09420776367188
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4910,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.3811,
+          "paused": false,
+          "frame": {
+            "x": 436.752685546875,
+            "y": 161.03492736816406,
+            "width": 774.669677734375,
+            "height": 596.659912109375,
+            "top": 161.03492736816406,
+            "right": 1211.42236328125,
+            "bottom": 757.6948394775391,
+            "left": 436.752685546875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4984,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.4544,
+          "paused": false,
+          "frame": {
+            "x": 519.224609375,
+            "y": 191.443115234375,
+            "width": 648.80126953125,
+            "height": 539.1873779296875,
+            "top": 191.443115234375,
+            "right": 1168.02587890625,
+            "bottom": 730.6304931640625,
+            "left": 519.224609375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5070,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.5409,
+          "paused": false,
+          "frame": {
+            "x": 568.0726928710938,
+            "y": 209.45382690429688,
+            "width": 574.2163696289062,
+            "height": 505.1385192871094,
+            "top": 209.45382690429688,
+            "right": 1142.2890625,
+            "bottom": 714.5923461914062,
+            "left": 568.0726928710938
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5150,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.6205,
+          "paused": false,
+          "frame": {
+            "x": 612.7409057617188,
+            "y": 225.92343139648438,
+            "width": 506.02447509765625,
+            "height": 473.9874572753906,
+            "top": 225.92343139648438,
+            "right": 1118.765380859375,
+            "bottom": 699.910888671875,
+            "left": 612.7409057617188
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5229,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.6996,
+          "paused": false,
+          "frame": {
+            "x": 646.835205078125,
+            "y": 238.49432373046875,
+            "width": 453.97216796875,
+            "height": 450.24176025390625,
+            "top": 238.49432373046875,
+            "right": 1100.807373046875,
+            "bottom": 688.736083984375,
+            "left": 646.835205078125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5307,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.7783,
+          "paused": false,
+          "frame": {
+            "x": 681.5369262695312,
+            "y": 251.2892303466797,
+            "width": 401.01165771484375,
+            "height": 426.05340576171875,
+            "top": 251.2892303466797,
+            "right": 1082.548583984375,
+            "bottom": 677.3426361083984,
+            "left": 681.5369262695312
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5387,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.8575,
+          "paused": false,
+          "frame": {
+            "x": 701.2974853515625,
+            "y": 258.57513427734375,
+            "width": 370.828369140625,
+            "height": 412.28900146484375,
+            "top": 258.57513427734375,
+            "right": 1072.1258544921875,
+            "bottom": 670.8641357421875,
+            "left": 701.2974853515625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5465,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.9356,
+          "paused": false,
+          "frame": {
+            "x": 709.7886962890625,
+            "y": 261.7059326171875,
+            "width": 357.8677978515625,
+            "height": 406.3726806640625,
+            "top": 261.7059326171875,
+            "right": 1067.656494140625,
+            "bottom": 668.07861328125,
+            "left": 709.7886962890625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5545,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.0157,
+          "paused": false,
+          "frame": {
+            "x": 713.585693359375,
+            "y": 263.1059265136719,
+            "width": 352.068603515625,
+            "height": 403.7164611816406,
+            "top": 263.1059265136719,
+            "right": 1065.654296875,
+            "bottom": 666.8223876953125,
+            "left": 713.585693359375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5621,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.0913,
+          "paused": false,
+          "frame": {
+            "x": 715.0704956054688,
+            "y": 263.6533203125,
+            "width": 349.79791259765625,
+            "height": 402.66998291015625,
+            "top": 263.6533203125,
+            "right": 1064.868408203125,
+            "bottom": 666.3233032226562,
+            "left": 715.0704956054688
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5704,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.1746,
+          "paused": false,
+          "frame": {
+            "x": 715.2703247070312,
+            "y": 263.7270202636719,
+            "width": 349.51837158203125,
+            "height": 402.5492248535156,
+            "top": 263.7270202636719,
+            "right": 1064.7886962890625,
+            "bottom": 666.2762451171875,
+            "left": 715.2703247070312
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5784,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5861,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5942,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6021,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6102,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6178,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6257,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6337,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6419,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6502,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6587,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6667,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6743,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6819,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6899,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6977,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7068,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7136,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7219,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7303,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7380,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7457,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7550,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.253,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        }
+      ],
+      "mediaPreference": false,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scene": "settled",
+      "videoCount": 1,
+      "heading": "Ngày vui của mình gần nhau hơn.",
+      "headingFont": "\"Noto Serif\", Georgia, serif",
+      "bodyFont": "\"Be Vietnam Pro\", sans-serif",
+      "fontsLoaded": "loaded",
+      "overflow": false,
+      "videoRequests": [
+        "http://localhost:3100/videos/wedding-hero.mp4"
+      ],
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "reducedMotion": "no-preference",
+      "animated": false,
+      "added": 0,
+      "removed": 0,
+      "samples": [
+        {
+          "ms": 131,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 184,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 254,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 347,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 415,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 497,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 575,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 664,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 735,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 822,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 900,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 977,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1055,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1147,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1226,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1304,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1380,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1459,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1537,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1629,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1707,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1784,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1857,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1934,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2016,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2096,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2189,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2268,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2344,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2421,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2499,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2576,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2670,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2747,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2825,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2903,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2980,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3058,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3135,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3228,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3307,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3384,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3463,
+          "scene": "static",
+          "videoCount": 0,
+          "frame": {
+            "x": 22,
+            "y": 528.375,
+            "width": 193.765625,
+            "height": 223.21875,
+            "top": 528.375,
+            "right": 215.765625,
+            "bottom": 751.59375,
+            "left": 22
+          },
+          "overflow": false
+        }
+      ],
+      "mediaPreference": false,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scene": "static",
+      "videoCount": 0,
+      "heading": "Ngày vui của mình gần nhau hơn.",
+      "headingFont": "\"Noto Serif\", Georgia, serif",
+      "bodyFont": "\"Be Vietnam Pro\", sans-serif",
+      "fontsLoaded": "loaded",
+      "overflow": false,
+      "videoRequests": [],
+      "errors": []
+    },
+    {
+      "name": "reduced-motion",
+      "width": 1440,
+      "height": 900,
+      "reducedMotion": "reduce",
+      "animated": true,
+      "added": 1,
+      "removed": 0,
+      "samples": [
+        {
+          "ms": 129,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 183,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 265,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 377,
+          "scene": "initial",
+          "videoCount": 0,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 462,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 492,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 580,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.0603,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 652,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.1327,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 733,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.2132,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 813,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.2935,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 893,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.3739,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 973,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.4532,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1054,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.5345,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1132,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.6128,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1226,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.7061,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1292,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.773,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1372,
+          "scene": "intro",
+          "videoCount": 1,
+          "time": 0.853,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1462,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 0.9425,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1540,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.0208,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1620,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.1002,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1697,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.1776,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1777,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.2571,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1856,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.3364,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 1934,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.4151,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2014,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.4943,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2093,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.5734,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2187,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.6677,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2265,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.7457,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2344,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.8242,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2422,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.9025,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2501,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 1.9813,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2580,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.0603,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2658,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.1386,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2736,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.2163,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2815,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.2954,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2894,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.3747,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 2972,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.4529,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3069,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.5499,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3138,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.6185,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3226,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.7063,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3306,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.7864,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3385,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.8653,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3463,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 2.9439,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3541,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.0217,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3621,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.1017,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3699,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.18,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3779,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.2593,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3856,
+          "scene": "leaves",
+          "videoCount": 1,
+          "time": 3.3366,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 3936,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.4167,
+          "paused": false,
+          "frame": {
+            "x": 0,
+            "y": 0.000030517578125,
+            "width": 1441.42724609375,
+            "height": 901.047119140625,
+            "top": 0.000030517578125,
+            "right": 1441.42724609375,
+            "bottom": 901.0471496582031,
+            "left": 0
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4013,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.494,
+          "paused": false,
+          "frame": {
+            "x": 0.023193359375,
+            "y": 0.008514404296875,
+            "width": 1441.392333984375,
+            "height": 901.0469970703125,
+            "top": 0.008514404296875,
+            "right": 1441.41552734375,
+            "bottom": 901.0555114746094,
+            "left": 0.023193359375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4093,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.5734,
+          "paused": false,
+          "frame": {
+            "x": 0.24078369140625,
+            "y": 0.088836669921875,
+            "width": 1441.04296875,
+            "height": 900.885986328125,
+            "top": 0.088836669921875,
+            "right": 1441.2837524414062,
+            "bottom": 900.9748229980469,
+            "left": 0.24078369140625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4173,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.6533,
+          "paused": false,
+          "frame": {
+            "x": 1.0833740234375,
+            "y": 0.3994140625,
+            "width": 1439.7852783203125,
+            "height": 900.2824096679688,
+            "top": 0.3994140625,
+            "right": 1440.86865234375,
+            "bottom": 900.6818237304688,
+            "left": 1.0833740234375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4252,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.7331,
+          "paused": false,
+          "frame": {
+            "x": 2.7537841796875,
+            "y": 1.015411376953125,
+            "width": 1437.235107421875,
+            "height": 899.115234375,
+            "top": 1.015411376953125,
+            "right": 1439.9888916015625,
+            "bottom": 900.1306457519531,
+            "left": 2.7537841796875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4347,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.8277,
+          "paused": false,
+          "frame": {
+            "x": 12.5076904296875,
+            "y": 4.611724853515625,
+            "width": 1422.3182373046875,
+            "height": 892.3134765625,
+            "top": 4.611724853515625,
+            "right": 1434.825927734375,
+            "bottom": 896.9252014160156,
+            "left": 12.5076904296875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4413,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.8939,
+          "paused": false,
+          "frame": {
+            "x": 30.7813720703125,
+            "y": 11.34942626953125,
+            "width": 1394.4405517578125,
+            "height": 879.5953979492188,
+            "top": 11.34942626953125,
+            "right": 1425.221923828125,
+            "bottom": 890.94482421875,
+            "left": 30.7813720703125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4505,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 3.9856,
+          "paused": false,
+          "frame": {
+            "x": 44.70819091796875,
+            "y": 16.484420776367188,
+            "width": 1373.16552734375,
+            "height": 869.89599609375,
+            "top": 16.484420776367188,
+            "right": 1417.8737182617188,
+            "bottom": 886.3804168701172,
+            "left": 44.70819091796875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4575,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.0558,
+          "paused": false,
+          "frame": {
+            "x": 94.9749755859375,
+            "y": 35.018218994140625,
+            "width": 1296.4495849609375,
+            "height": 834.8409423828125,
+            "top": 35.018218994140625,
+            "right": 1391.424560546875,
+            "bottom": 869.8591613769531,
+            "left": 94.9749755859375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4662,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.143,
+          "paused": false,
+          "frame": {
+            "x": 135.7322998046875,
+            "y": 50.04582214355469,
+            "width": 1234.2314453125,
+            "height": 806.4668579101562,
+            "top": 50.04582214355469,
+            "right": 1369.9637451171875,
+            "bottom": 856.5126800537109,
+            "left": 135.7322998046875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4735,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.216,
+          "paused": false,
+          "frame": {
+            "x": 225.2401123046875,
+            "y": 83.0482177734375,
+            "width": 1097.568115234375,
+            "height": 744.084228515625,
+            "top": 83.0482177734375,
+            "right": 1322.8082275390625,
+            "bottom": 827.1324462890625,
+            "left": 225.2401123046875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4816,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.2967,
+          "paused": false,
+          "frame": {
+            "x": 285.09039306640625,
+            "y": 105.11552429199219,
+            "width": 1006.2147827148438,
+            "height": 702.3482055664062,
+            "top": 105.11552429199219,
+            "right": 1291.30517578125,
+            "bottom": 807.4637298583984,
+            "left": 285.09039306640625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4893,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.374,
+          "paused": false,
+          "frame": {
+            "x": 408.8280944824219,
+            "y": 150.73883056640625,
+            "width": 817.3245849609375,
+            "height": 616.0991821289062,
+            "top": 150.73883056640625,
+            "right": 1226.1526794433594,
+            "bottom": 766.8380126953125,
+            "left": 408.8280944824219
+          },
+          "overflow": false
+        },
+        {
+          "ms": 4973,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.4539,
+          "paused": false,
+          "frame": {
+            "x": 497.69171142578125,
+            "y": 183.50372314453125,
+            "width": 681.6395874023438,
+            "height": 554.199462890625,
+            "top": 183.50372314453125,
+            "right": 1179.331298828125,
+            "bottom": 737.7031860351562,
+            "left": 497.69171142578125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5054,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.535,
+          "paused": false,
+          "frame": {
+            "x": 592.611328125,
+            "y": 218.50152587890625,
+            "width": 536.7666015625,
+            "height": 488.03363037109375,
+            "top": 218.50152587890625,
+            "right": 1129.3779296875,
+            "bottom": 706.53515625,
+            "left": 592.611328125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5133,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.6135,
+          "paused": false,
+          "frame": {
+            "x": 628.1602172851562,
+            "y": 231.60873413085938,
+            "width": 482.47869873046875,
+            "height": 463.2415466308594,
+            "top": 231.60873413085938,
+            "right": 1110.638916015625,
+            "bottom": 694.8502807617188,
+            "left": 628.1602172851562
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5228,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.7086,
+          "paused": false,
+          "frame": {
+            "x": 660.4650268554688,
+            "y": 243.5198211669922,
+            "width": 433.15130615234375,
+            "height": 440.74359130859375,
+            "top": 243.5198211669922,
+            "right": 1093.6163330078125,
+            "bottom": 684.2634124755859,
+            "left": 660.4650268554688
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5295,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.7756,
+          "paused": false,
+          "frame": {
+            "x": 692.5322265625,
+            "y": 255.34332275390625,
+            "width": 384.208251953125,
+            "height": 418.40655517578125,
+            "top": 255.34332275390625,
+            "right": 1076.740478515625,
+            "bottom": 673.7498779296875,
+            "left": 692.5322265625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5386,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.8663,
+          "paused": false,
+          "frame": {
+            "x": 700.7427978515625,
+            "y": 258.3706359863281,
+            "width": 371.6668701171875,
+            "height": 412.6512145996094,
+            "top": 258.3706359863281,
+            "right": 1072.40966796875,
+            "bottom": 671.0218505859375,
+            "left": 700.7427978515625
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5464,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 4.9447,
+          "paused": false,
+          "frame": {
+            "x": 707.78857421875,
+            "y": 260.9684143066406,
+            "width": 360.9420166015625,
+            "height": 407.7410583496094,
+            "top": 260.9684143066406,
+            "right": 1068.7305908203125,
+            "bottom": 668.70947265625,
+            "left": 707.78857421875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5542,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.0227,
+          "paused": false,
+          "frame": {
+            "x": 712.5399169921875,
+            "y": 262.7203369140625,
+            "width": 353.6756591796875,
+            "height": 404.4407958984375,
+            "top": 262.7203369140625,
+            "right": 1066.215576171875,
+            "bottom": 667.1611328125,
+            "left": 712.5399169921875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5621,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.102,
+          "paused": false,
+          "frame": {
+            "x": 714.5452880859375,
+            "y": 263.459716796875,
+            "width": 350.6014404296875,
+            "height": 403.0322265625,
+            "top": 263.459716796875,
+            "right": 1065.146728515625,
+            "bottom": 666.491943359375,
+            "left": 714.5452880859375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5693,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.1735,
+          "paused": false,
+          "frame": {
+            "x": 715.36328125,
+            "y": 263.7613220214844,
+            "width": 349.378662109375,
+            "height": 402.4687805175781,
+            "top": 263.7613220214844,
+            "right": 1064.741943359375,
+            "bottom": 666.2301025390625,
+            "left": 715.36328125
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5778,
+          "scene": "shrinking",
+          "videoCount": 1,
+          "time": 5.2584,
+          "paused": false,
+          "frame": {
+            "x": 715.3748779296875,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.7186279296875,
+            "bottom": 666.234375,
+            "left": 715.3748779296875
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5855,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 5933,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6017,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6101,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6182,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6260,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6333,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6418,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6497,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6577,
+          "scene": "card-growing",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6654,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6733,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6812,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6900,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 6983,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7063,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7133,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7217,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7299,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7377,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7455,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        },
+        {
+          "ms": 7533,
+          "scene": "settled",
+          "videoCount": 1,
+          "time": 5.2666,
+          "paused": true,
+          "frame": {
+            "x": 715.375,
+            "y": 263.765625,
+            "width": 349.34375,
+            "height": 402.46875,
+            "top": 263.765625,
+            "right": 1064.71875,
+            "bottom": 666.234375,
+            "left": 715.375
+          },
+          "overflow": false
+        }
+      ],
+      "mediaPreference": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scene": "settled",
+      "videoCount": 1,
+      "heading": "Ngày vui của mình gần nhau hơn.",
+      "headingFont": "\"Noto Serif\", Georgia, serif",
+      "bodyFont": "\"Be Vietnam Pro\", sans-serif",
+      "fontsLoaded": "loaded",
+      "overflow": false,
+      "videoRequests": [
+        "http://localhost:3100/videos/wedding-hero.mp4"
+      ],
+      "errors": []
+    }
+  ]
+}
