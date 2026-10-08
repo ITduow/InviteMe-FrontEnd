@@ -67,12 +67,14 @@ export function PublicLandingHero() {
 
     const context = gsap.context(() => {
       const bounds = frame.getBoundingClientRect();
+      const heroBounds = root.getBoundingClientRect();
       setMediaSize();
       root.dataset.scene = "intro";
       root.dataset.theme = "light";
       gsap.set(frame, {
-        x: -bounds.left,
-        y: -bounds.top,
+        // Align with the hero, regardless of the browser's restored scroll position.
+        x: heroBounds.left - bounds.left,
+        y: heroBounds.top - bounds.top,
         scaleX: width / frameWidth,
         scaleY: height / frameHeight,
         transformOrigin: "0 0",
