@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -12,12 +11,11 @@ import {
   Monitor,
   Send,
   Users,
-  X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import Image from "next/image";
+import { SampleSite } from "./sample-site";
+import { StoryCover } from "./story-cover";
 
-type Layout = "invite" | "story";
-const photo = "/images/hero/wedding-poster.webp";
 const templates = [
   {
     id: "invite" as const,
@@ -30,6 +28,35 @@ const templates = [
     text: "Kể câu chuyện của hai bạn qua hình ảnh, kỷ niệm và những dấu mốc.",
   },
 ];
+
+function SectionBotanicals() {
+  return (
+    <div className="section-botanicals" aria-hidden="true">
+      {["left", "right"].map((side) => (
+        <div
+          className={`section-botanicals__branch section-botanicals__branch--${side}`}
+          key={side}
+        >
+          <Image
+            src="/images/hero/botanical-stem-v2.webp"
+            alt=""
+            fill
+            sizes="180px"
+            className="section-botanicals__stem"
+          />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span className={`section-botanicals__leaf section-botanicals__leaf--${i}`} key={i}>
+              <Image src="/images/hero/botanical-leaf.webp" alt="" fill sizes="90px" />
+            </span>
+          ))}
+          <span className="section-botanicals__gold">
+            <Image src="/images/hero/botanical-gold.webp" alt="" fill sizes="150px" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 const questions = [
   [
     "Khách có cần tài khoản không?",
@@ -53,106 +80,57 @@ const questions = [
   ],
 ];
 
-function SampleSite({ layout }: { layout: Layout }) {
-  return (
-    <div className={`sample-site sample-site--${layout}`}>
-      <div className="sample-site__nav">
-        <span>Minh & Lan</span>
-        <span>{layout === "story" ? "Câu chuyện · Ngày cưới" : "Lời mời · Ngày cưới"}</span>
-      </div>
-      <div className="sample-site__hero">
-        <div className="sample-site__photo">
-          <Image
-            src={photo}
-            alt="Cặp đôi trong mẫu trang cưới minh họa"
-            fill
-            sizes="(max-width: 700px) 90vw, 540px"
-          />
-        </div>
-        <div className="sample-site__copy">
-          <small>CHÚNG MÌNH SẮP CƯỚI</small>
-          <h3>Minh & Lan</h3>
-          <p>18 · 10 · 2026</p>
-          <span className="sample-site__pill">Xác nhận tham dự</span>
-        </div>
-      </div>
-      {layout === "story" ? (
-        <div className="sample-site__story">
-          <h4>Hành trình của chúng mình</h4>
-          <div className="sample-site__timeline">
-            <span>Lần đầu gặp gỡ</span>
-            <Heart size={14} />
-            <span>Cùng đón ngày vui</span>
-          </div>
-          <div className="sample-site__album">
-            {[0, 1, 2].map((i) => (
-              <div key={i}>
-                <Image
-                  src={photo}
-                  alt="Ảnh kỷ niệm minh họa"
-                  fill
-                  sizes="160px"
-                  style={{ objectPosition: `${30 + i * 30}% center` }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="sample-site__event">
-          <span>17:00 · Chủ nhật</span>
-          <span>Không gian tiệc cưới · Hà Nội</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function LandingContent() {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const [selected, setSelected] = useState<Layout>("invite");
-  const [sent, setSent] = useState(false);
-  function preview(layout: Layout) {
-    setSelected(layout);
-    setSent(false);
-    dialog.current?.showModal();
-  }
   return (
     <div className="landing-content">
       <section id="templates" className="landing-section" aria-labelledby="template-title">
         <div className="landing-heading">
           <p className="landing-eyebrow">MẪU TRANG CƯỚI</p>
-          <h2 id="template-title">Chọn mẫu cho ngày vui</h2>
-          <p>Hai cách thể hiện, cùng một ngày cưới đáng nhớ.</p>
+          <h2 id="template-title">Khám phá các mẫu thiết kế</h2>
+          <p>Chọn thiệp mời hoặc trang kể chuyện để khám phá mẫu phù hợp với hai bạn.</p>
         </div>
         <div className="landing-template-grid">
           {templates.map((t) => (
             <article className="landing-template" key={t.id}>
               <div className="landing-template__preview">
-                <span className="landing-demo-label">Dữ liệu minh họa</span>
-                <SampleSite layout={t.id} />
+                {t.id === "story" ? (
+                  <StoryCover />
+                ) : (
+                  <div className="landing-category-image">
+                    <Image
+                      src={
+                        t.id === "invite"
+                          ? "/images/templates/invite-portrait.png"
+                          : "/images/templates/story-meadow.png"
+                      }
+                      alt={
+                        t.id === "invite"
+                          ? "Ảnh cưới AI minh họa cho nhóm thiệp mời"
+                          : "Ảnh cưới AI minh họa cho nhóm trang kể chuyện"
+                      }
+                      fill
+                      sizes="(max-width: 640px) 90vw, 550px"
+                    />
+                    <span className="landing-category-image__label">
+                      {t.id === "invite" ? "THIỆP MỜI ONLINE" : "TRANG CƯỚI & CÂU CHUYỆN"}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="landing-template__body">
                 <h3>{t.title}</h3>
                 <p>{t.text}</p>
                 <div className="landing-actions">
-                  <button
-                    className="landing-button landing-button--outline"
-                    onClick={() => preview(t.id)}
-                  >
-                    Xem demo
-                  </button>
-                  <Link className="landing-button" href="/login">
-                    Dùng mẫu <ArrowRight size={16} />
+                  <Link className="landing-button" href={`/templates/${t.id}`}>
+                    {t.id === "invite" ? "Xem các mẫu thiệp" : "Xem các mẫu trang cưới"}{" "}
+                    <ArrowRight size={16} />
                   </Link>
                 </div>
               </div>
             </article>
           ))}
         </div>
-        <p className="landing-caption">
-          Xem demo không cần tài khoản. Đăng nhập để bắt đầu tạo trang cưới.
-        </p>
+        <p className="landing-caption">Khám phá danh sách mẫu và xem demo trước khi đăng nhập.</p>
       </section>
       <section id="features" className="landing-section" aria-labelledby="feature-title">
         <div className="landing-heading">
@@ -220,7 +198,12 @@ export function LandingContent() {
           </article>
         </div>
       </section>
-      <section id="guide" className="landing-section" aria-labelledby="guide-title">
+      <section
+        id="guide"
+        className="landing-section landing-decorated"
+        aria-labelledby="guide-title"
+      >
+        <SectionBotanicals />
         <div className="landing-heading">
           <p className="landing-eyebrow">HƯỚNG DẪN BẮT ĐẦU</p>
           <h2 id="guide-title">Bắt đầu với 3 bước</h2>
@@ -253,7 +236,12 @@ export function LandingContent() {
           ))}
         </div>
       </section>
-      <section id="faq" className="landing-section landing-faq" aria-labelledby="faq-title">
+      <section
+        id="faq"
+        className="landing-section landing-faq landing-decorated"
+        aria-labelledby="faq-title"
+      >
+        <SectionBotanicals />
         <div className="landing-heading">
           <p className="landing-eyebrow">CÂU HỎI THƯỜNG GẶP</p>
           <h2 id="faq-title">Một vài thắc mắc thường gặp</h2>
@@ -269,6 +257,7 @@ export function LandingContent() {
         ))}
       </section>
       <section className="landing-section landing-closing">
+        <SectionBotanicals />
         <p className="landing-eyebrow">SẴN SÀNG BẮT ĐẦU?</p>
         <h2>Tạo trang cưới của riêng hai bạn</h2>
         <p>Một lời mời thật riêng, cùng đón một ngày thật đẹp.</p>
@@ -276,64 +265,6 @@ export function LandingContent() {
           Bắt đầu cùng InviteMe <ArrowRight size={16} />
         </Link>
       </section>
-      <dialog
-        aria-labelledby="demo-title"
-        className="landing-dialog"
-        ref={dialog}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) dialog.current?.close();
-        }}
-      >
-        <div className="landing-dialog__toolbar">
-          <div>
-            <strong id="demo-title">
-              {selected === "invite" ? "Wedding Invite" : "Wedding Story"}
-            </strong>
-            <p>Demo · dữ liệu minh họa · không lưu phản hồi</p>
-          </div>
-          <button aria-label="Đóng demo" onClick={() => dialog.current?.close()}>
-            <X />
-          </button>
-        </div>
-        <div className="landing-dialog__content">
-          <SampleSite layout={selected} />
-          <div className="demo-event">
-            <h3>Hẹn gặp bạn trong ngày vui</h3>
-            <p>17:00 · 18/10/2026</p>
-            <p>Không gian tiệc cưới minh họa · Hà Nội</p>
-          </div>
-          <form
-            className="demo-rsvp"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
-          >
-            <h3>Bạn sẽ đến chung vui?</h3>
-            <fieldset>
-              <legend>Phản hồi tham dự</legend>
-              <label>
-                <input type="radio" name="attendance" value="yes" required defaultChecked /> Có,
-                mình sẽ tham dự
-              </label>
-              <label>
-                <input type="radio" name="attendance" value="no" /> Rất tiếc, mình không thể đến
-              </label>
-            </fieldset>
-            <button className="landing-button" type="submit">
-              Thử xác nhận <ArrowRight size={16} />
-            </button>
-            <p role="status">
-              {sent
-                ? "Bạn đã thử gửi phản hồi. Demo không lưu thông tin này."
-                : "Đây là demo, không phải lời mời thật."}
-            </p>
-          </form>
-          <Link className="landing-button landing-button--outline" href="/login">
-            Đăng nhập để bắt đầu
-          </Link>
-        </div>
-      </dialog>
     </div>
   );
 }

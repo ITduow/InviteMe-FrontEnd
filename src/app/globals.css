@@ -2066,3 +2066,318 @@ body:has(.landing-dialog[open]) {
     display: none;
   }
 }
+.landing-template__preview:has(.landing-category-image) {
+  padding: 14px 14px 0;
+}
+.landing-category-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.landing-category-image img {
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.landing-template:hover .landing-category-image img {
+  transform: scale(1.03);
+}
+.landing-category-image:after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(transparent, rgba(48, 30, 32, 0.5));
+  pointer-events: none;
+}
+.landing-category-image__label {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+.template-catalog {
+  padding: 20px 0 40px;
+}
+.template-catalog__back {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 38px;
+}
+.template-catalog h1 {
+  font: 400 clamp(30px, 4vw, 46px)/1.35 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.template-catalog .landing-template__body h2 {
+  font: 400 26px/1.4 var(--font-display);
+}
+.template-catalog__tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.template-catalog__tabs a {
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 10px 20px;
+  font-size: 12px;
+  background: var(--card);
+}
+.template-catalog__tabs a[aria-current="page"] {
+  background: var(--primary);
+}
+.template-catalog__note {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.template-catalog :is(button, a):focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-category-image img {
+    transition: none;
+  }
+  .landing-template:hover .landing-category-image img {
+    transform: none;
+  }
+}
+.template-catalog .landing-template-grid:has(> article:only-child) {
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
+}
+.landing-decorated {
+  position: relative;
+  isolation: isolate;
+}
+.section-botanicals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.section-botanicals__branch {
+  position: absolute;
+  width: 160px;
+  height: 250px;
+  opacity: 0.75;
+}
+.section-botanicals img {
+  object-fit: contain;
+}
+.section-botanicals__stem {
+  opacity: 0.6;
+}
+.section-botanicals__branch--left {
+  left: -105px;
+  top: 45%;
+  transform: rotate(35deg);
+}
+.section-botanicals__branch--right {
+  right: -105px;
+  top: 40%;
+  transform: scaleX(-1) rotate(30deg);
+}
+.section-botanicals__leaf {
+  position: absolute;
+  width: 75px;
+  height: 105px;
+}
+.section-botanicals__leaf--0 {
+  left: 5px;
+  top: 130px;
+  transform: rotate(-45deg);
+}
+.section-botanicals__leaf--1 {
+  left: 55px;
+  top: 108px;
+  transform: rotate(25deg);
+}
+.section-botanicals__leaf--2 {
+  left: 20px;
+  top: 65px;
+  transform: rotate(-55deg);
+}
+.section-botanicals__leaf--3 {
+  left: 76px;
+  top: 33px;
+  transform: rotate(15deg);
+}
+.section-botanicals__leaf--4 {
+  left: 67px;
+  top: -22px;
+  transform: rotate(-10deg);
+}
+.section-botanicals__gold {
+  position: absolute;
+  width: 140px;
+  height: 200px;
+  left: -35px;
+  top: 95px;
+  transform: rotate(-25deg);
+  opacity: 0.8;
+}
+.landing-faq .section-botanicals__branch--left {
+  top: 23%;
+  left: -130px;
+}
+.landing-faq .section-botanicals__branch--right {
+  top: 65%;
+  right: -130px;
+}
+.landing-closing {
+  isolation: isolate;
+}
+.landing-closing .section-botanicals {
+  z-index: 0;
+}
+.landing-closing > :not(.section-botanicals) {
+  position: relative;
+  z-index: 1;
+}
+.landing-closing .section-botanicals__branch--left {
+  left: -75px;
+  top: 15%;
+  opacity: 0.65;
+}
+.landing-closing .section-botanicals__branch--right {
+  right: -95px;
+  top: 35%;
+  opacity: 0.5;
+}
+.landing-closing:before,
+.landing-closing:after {
+  display: none;
+}
+@media (max-width: 640px) {
+  .section-botanicals__branch {
+    opacity: 0.4;
+    width: 125px;
+  }
+  .section-botanicals__branch--left {
+    left: -110px;
+  }
+  .section-botanicals__branch--right {
+    right: -110px;
+  }
+  .landing-closing .section-botanicals__branch--left {
+    left: -100px;
+  }
+}
+.story-cover {
+  aspect-ratio: 4 / 3;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fffaf2;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  grid-template-rows: 1fr auto 1.1fr;
+  gap: 15px;
+  border: 1px solid var(--border);
+}
+.story-cover:before {
+  content: "";
+  position: absolute;
+  inset: -15px auto auto -45px;
+  width: 150px;
+  height: 190px;
+  background: url("/images/hero/botanical-gold.webp") center/contain no-repeat;
+  opacity: 0.25;
+  pointer-events: none;
+}
+.story-cover__intro {
+  align-self: center;
+  text-align: center;
+  position: relative;
+}
+.story-cover__intro > span {
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  color: var(--muted-foreground);
+}
+.story-cover__intro h4 {
+  font: 400 clamp(20px, 2.4vw, 30px)/1.3 var(--font-display);
+  margin: 12px 0;
+}
+.story-cover__intro p {
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.story-cover__portrait {
+  position: relative;
+  border: 6px solid white;
+  box-shadow: 0 3px 12px #4a2c2f18;
+  transform: rotate(5deg);
+  margin: 0 8px 0 0;
+}
+.story-cover img {
+  object-fit: cover;
+}
+.story-cover__timeline {
+  grid-column: 1/-1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 8px;
+  color: var(--muted-foreground);
+}
+.story-cover__timeline i {
+  height: 1px;
+  width: 40px;
+  background: var(--border);
+}
+.story-cover__photos {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+}
+.story-cover__photos > div {
+  background: white;
+  padding: 5px 5px 10px;
+  box-shadow: 0 3px 12px #4a2c2f18;
+  display: flex;
+  flex-direction: column;
+}
+.story-cover__photos > div:first-child {
+  transform: rotate(-6deg);
+}
+.story-cover__photos > div:last-child {
+  transform: rotate(5deg);
+}
+.story-cover__photo {
+  position: relative;
+  flex: 1;
+  min-height: 45px;
+}
+.story-cover__photos span {
+  font: italic 9px/1.4 var(--font-display);
+  text-align: center;
+  margin-top: 7px;
+}
+@media (max-width: 640px) {
+  .story-cover {
+    padding: 18px;
+    gap: 10px;
+  }
+  .story-cover__intro h4 {
+    font-size: 22px;
+    margin: 7px 0;
+  }
+  .story-cover__intro p {
+    font-size: 8px;
+  }
+}

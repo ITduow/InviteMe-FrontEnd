@@ -12,7 +12,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             InviteMe
           </Link>
           <nav aria-label="Điều hướng chính" className="public-nav__links">
-            <Link href="/#templates">Mẫu thiệp</Link>
+            <Link href="/templates">Mẫu thiết kế</Link>
             <Link href="/#features">Tính năng</Link>
             <Link href="/#guide">Hướng dẫn</Link>
             <Link href="/login">Đăng nhập</Link>
@@ -31,7 +31,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             InviteMe
           </Link>
           <nav aria-label="Điều hướng chân trang" className="public-footer__links">
-            <Link href="/#templates">Mẫu thiệp</Link>
+            <Link href="/templates">Mẫu thiết kế</Link>
             <Link href="/#guide">Hướng dẫn</Link>
             <Link href="/#faq">FAQ</Link>
             <Link href="/#contact">Liên hệ</Link>

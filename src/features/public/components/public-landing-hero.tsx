@@ -8,6 +8,7 @@ import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 
 const POSTER = "/images/hero/wedding-poster.webp";
 const VIDEO = "/videos/wedding-hero.mp4";
+const INTRO_SPEED = 1.6;
 
 const MOTION_QUERY = "(min-width: 1024px)";
 function subscribeMotion(callback: () => void) {
@@ -336,6 +337,8 @@ export function PublicLandingHero() {
           )
           .to(nav, { opacity: 1, duration: 0.2 }, 3.97);
       }
+      // Shorten the whole intro while retaining the synchronized scene timings.
+      timeline.timeScale(INTRO_SPEED);
     }, root);
     void videoRef.current?.play().catch(() => {
       /* Poster remains if autoplay is blocked. */
