@@ -185,10 +185,10 @@ export function PublicLandingHero() {
             target.width / branch.offsetWidth,
             target.height / branch.offsetHeight,
           );
-          const card = root
-            .querySelector<HTMLElement>(".wedding-hero__visual")!
-            .getBoundingClientRect();
-          const growth = branch.querySelector<HTMLElement>(".botanical__growth")!;
+          const visual = root.querySelector<HTMLElement>(".wedding-hero__visual");
+          const growth = branch.querySelector<HTMLElement>(".botanical__growth");
+          if (!visual || !growth) return;
+          const card = visual.getBoundingClientRect();
           const matrix = new DOMMatrixReadOnly(getComputedStyle(growth).transform);
           // Transform the stem base about the artwork center, then tuck that
           // exact point inside the card so the frame naturally hides the root.
