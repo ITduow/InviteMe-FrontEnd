@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { ErrorState } from "@/shared/feedback/error-state";
 import type { Preview } from "../schemas/guest.schema";
-import { importHeaders, type DraftRow } from "../utils/import-edit";
+import { headersForPreview, type DraftRow } from "../utils/import-edit";
 
 type Options = {
   sides: { code: string; label: string }[];
@@ -12,6 +12,7 @@ type Options = {
   participantRoles?: { code: string; label: string }[] | null;
 };
 export function ImportGroupEditor({
+  formatVersion,
   rows,
   issues,
   options,
@@ -20,6 +21,7 @@ export function ImportGroupEditor({
   onClose,
   onSave,
 }: {
+  formatVersion: number;
   rows: Preview["rows"];
   issues: Preview["errors"];
   options: Options;
@@ -28,6 +30,7 @@ export function ImportGroupEditor({
   onClose: () => void;
   onSave: (rows: DraftRow[]) => void;
 }) {
+  const headers = headersForPreview({ formatVersion });
   const dialog = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState<DraftRow[]>(() =>
     rows.map((row) => ({ rowNumber: row.rowNumber, values: { ...row.rawValues } })),
@@ -63,7 +66,7 @@ export function ImportGroupEditor({
         <div>
           <p className="text-xs text-muted-foreground">Thông tin trước khi import</p>
           <h2 id="import-edit-title" className="mt-2 font-serif text-2xl">
-            Chi tiết / Sửa nhóm mời
+            {formatVersion === 2 ? "Chi tiết / Sửa nhóm mời" : "Sửa dòng khách mời"}
           </h2>
         </div>
         <Button
@@ -93,14 +96,15 @@ export function ImportGroupEditor({
               Dòng {row.rowNumber} · {row.values["Họ và tên"] || "Thiếu tên"}
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
-              {importHeaders.map((header) => {
+              {headers.map((header) => {
                 const choices = dictionaries[header];
                 const value = row.values[header] ?? "";
                 const isPrimary = ["PRIMARY", "Người đại diện"].includes(
                   row.values["Vai trò"] ?? "",
                 );
-                if (importHeaders.indexOf(header) > 2 && !isPrimary && !value) return null;
-                const id = `edit-${row.rowNumber}-${importHeaders.indexOf(header)}`;
+                if (formatVersion === 2 && headers.indexOf(header) > 2 && !isPrimary && !value)
+                  return null;
+                const id = `edit-${row.rowNumber}-${headers.indexOf(header)}`;
                 return (
                   <label
                     key={header}
@@ -145,7 +149,7 @@ export function ImportGroupEditor({
                         value={value}
                         onChange={(event) => update(row.rowNumber, header, event.target.value)}
                         className="w-full rounded-md border bg-background p-2"
-                        inputMode={header === "Số người được thêm" ? "numeric" : undefined}
+                        inputMode={header.startsWith("Số người") ? "numeric" : undefined}
                       />
                     )}
                   </label>
@@ -161,10 +165,12 @@ export function ImportGroupEditor({
               ))}
           </fieldset>
         ))}
-        <p className="text-xs text-muted-foreground">
-          Muốn đổi mã cả gia đình, sửa cùng mã trên các dòng. Thành viên chỉ giữ mã, tên và vai trò;
-          xóa thông tin nhập nhầm ở các ô còn lại.
-        </p>
+        {formatVersion === 2 && (
+          <p className="text-xs text-muted-foreground">
+            Muốn đổi mã cả gia đình, sửa cùng mã trên các dòng. Thành viên chỉ giữ mã, tên và vai
+            trò; xóa thông tin nhập nhầm ở các ô còn lại.
+          </p>
+        )}
         {error != null && <ErrorState error={error} />}
         <footer className="sticky bottom-0 flex justify-end gap-3 border-t bg-card py-4">
           <Button type="button" variant="outline" disabled={busy} onClick={onClose}>

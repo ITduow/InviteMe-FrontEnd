@@ -116,6 +116,9 @@ export function GuestImport({ weddingId, onClose }: { weddingId: string; onClose
   }
   const units = preview ? importUnits(preview) : [];
   const chosen = units.filter((unit) => selected.includes(unit.key));
+  const invalidUnits = units.filter((unit) => !unit.valid);
+  const invalidRowCount = invalidUnits.reduce((sum, unit) => sum + unit.members.length, 0);
+  const selectedPeople = chosen.reduce((sum, unit) => sum + unit.members.length, 0);
   const needsAck = !!preview?.warnings.some(
     (issue) =>
       issue.code === "POSSIBLE_DUPLICATE" &&
@@ -414,14 +417,47 @@ export function GuestImport({ weddingId, onClose }: { weddingId: string; onClose
           {preview.errors.length > 0 && (
             <div role="alert" className="rounded-xl border bg-card p-4">
               <p className="mb-2 flex items-center gap-2 font-medium">
-                <AlertTriangle className="size-4" /> Mở chi tiết để sửa hoặc sửa file và tải lại.
-                Nhóm có lỗi không thể nhập.
+                <AlertTriangle className="size-4" />
+                {preview.formatVersion === 2
+                  ? `${invalidUnits.length} nhóm có lỗi (${invalidRowCount} dòng) sẽ không được nhập.`
+                  : `${invalidRowCount} dòng lỗi sẽ không được nhập.`}
               </p>
-              {preview.errors.map((issue, index) => (
-                <p className="text-sm text-destructive" key={index}>
-                  Dòng {issue.rowNumber} · {issue.column}: {issue.message}
-                </p>
-              ))}
+              <p className="mb-3 text-sm">
+                Bạn đang chọn nhập {selectedPeople} người hợp lệ. Sửa lỗi bên dưới hoặc tiếp tục
+                nhập phần đã chọn.
+              </p>
+              {preview.errors.map((issue, index) => {
+                const unit = units.find((item) =>
+                  item.members.some((row) => row.rowNumber === issue.rowNumber),
+                );
+                return (
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-3 border-t py-3"
+                    key={index}
+                  >
+                    <p className="text-sm text-destructive">
+                      Dòng {issue.rowNumber} · {issue.column}: {issue.message}
+                    </p>
+                    {unit && canEditPreview(preview) && options.data ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={busy || !!submitted || expired}
+                        onClick={() => {
+                          recheck.reset();
+                          setEditing(unit.members.map((row) => row.rowNumber));
+                        }}
+                      >
+                        Sửa dòng {issue.rowNumber}
+                      </Button>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Sửa file gốc và tải lại vì dòng sai cấu trúc.
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
           {needsAck && (
@@ -470,11 +506,14 @@ export function GuestImport({ weddingId, onClose }: { weddingId: string; onClose
                 ? "Đang nhập…"
                 : submitted
                   ? "Thử lại xác nhận"
-                  : "Xác nhận nhập khách"}
+                  : preview.formatVersion === 2
+                    ? `Nhập ${chosen.length} nhóm hợp lệ · ${selectedPeople} người`
+                    : `Nhập ${chosen.length} dòng hợp lệ`}
             </Button>
           </div>
           {editing && options.data && (
             <ImportGroupEditor
+              formatVersion={preview.formatVersion}
               rows={preview.rows.filter((row) => editing.includes(row.rowNumber))}
               issues={preview.errors}
               options={options.data}

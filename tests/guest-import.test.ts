@@ -9,7 +9,33 @@ import {
 import { previewFile, confirmFile, getGuests } from "../src/features/guests/api/guest.api";
 import { createApiClient } from "../src/core/api/api-client";
 import { Session } from "../src/core/auth/session";
-import { canEditPreview, editedCsv, importHeaders } from "../src/features/guests/utils/import-edit";
+import {
+  canEditPreview,
+  editedCsv,
+  importHeaders,
+  legacyImportHeaders,
+} from "../src/features/guests/utils/import-edit";
+
+test("legacy editing keeps nine headers and untouched invalid values while fixing a row", () => {
+  const data = fixture();
+  data.formatVersion = 1;
+  data.groups = null;
+  data.rows.forEach((row) => {
+    row.rawValues = Object.fromEntries(legacyImportHeaders.map((header) => [header, ""]));
+    row.rawValues["Họ và tên"] = row.fullName;
+  });
+  data.rows[0]!.rawValues!["Email"] = "bad-email";
+  data.rows[1]!.rawValues!["Số người đi kèm dự kiến"] = "-5";
+  assert.equal(canEditPreview(data), true);
+  const csv = editedCsv(data, [
+    { rowNumber: 2, values: { ...data.rows[0]!.rawValues!, Email: "valid@example.test" } },
+  ]);
+  assert.equal(csv.split("\r\n")[0], "\uFEFF" + legacyImportHeaders.map((h) => `"${h}"`).join(","));
+  assert.ok(csv.includes('"valid@example.test"'));
+  assert.ok(csv.includes('"-5"'));
+  assert.equal(data.rows[0]!.rawValues!["Email"], "bad-email");
+  assert.ok(!csv.includes("Vai trò"));
+});
 
 test("editing preserves invalid untouched cells, empty member metadata and spreadsheet row numbers", () => {
   const preview = fixture();
