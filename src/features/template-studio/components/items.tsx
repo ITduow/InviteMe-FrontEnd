@@ -5,6 +5,9 @@ import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 export type ItemProps = {
+  revealPreset?: "none" | "fade" | "slide-up" | "scale-in";
+  revealDuration?: number;
+  revealDelay?: number;
   x?: number;
   y?: number;
   width?: number;

@@ -41,21 +41,34 @@ import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
 import { PhotoFocusContext, type PhotoFocus } from "../components/photo-focus";
 import styles from "./studio.module.css";
+import { StudioReveal, RevealReplayContext, type RevealPreset } from "../components/reveal";
 
 function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
-  const { actions, query, selected, canUndo, canRedo, items, serialized, background } = useEditor(
-    (state, query) => {
-      const id = Array.from(state.events.selected)[0];
-      return {
-        selected: id && id !== "ROOT" ? { id, node: state.nodes[id] } : undefined,
-        canUndo: query.history.canUndo(),
-        canRedo: query.history.canRedo(),
-        items: state.nodes.ROOT?.data.nodes ?? [],
-        serialized: query.serialize(),
-        background: (state.nodes.ROOT?.data.props.background as string | undefined) ?? "#fffaf1",
-      };
-    },
-  );
+  const {
+    actions,
+    query,
+    selected,
+    canUndo,
+    canRedo,
+    items,
+    serialized,
+    background,
+    revealPreset,
+    revealDuration,
+  } = useEditor((state, query) => {
+    const id = Array.from(state.events.selected)[0];
+    return {
+      selected: id && id !== "ROOT" ? { id, node: state.nodes[id] } : undefined,
+      canUndo: query.history.canUndo(),
+      canRedo: query.history.canRedo(),
+      items: state.nodes.ROOT?.data.nodes ?? [],
+      serialized: query.serialize(),
+      revealPreset: state.nodes.ROOT?.data.props.revealPreset ?? "none",
+      revealDuration: state.nodes.ROOT?.data.props.revealDuration ?? 800,
+      background: (state.nodes.ROOT?.data.props.background as string | undefined) ?? "#fffaf1",
+    };
+  });
+  const { replay } = useContext(RevealReplayContext);
   const [json, setJson] = useState("");
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
   const [preview, setPreview] = useState(false);
@@ -615,7 +628,59 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
                 </div>
               </>
             )}
-            {["stock", "shapes", "music", "presets", "effects"].includes(category) && (
+            {category === "effects" && (
+              <>
+                <h2>Hiệu ứng toàn trang</h2>
+                <p>Áp dụng khi cuộn ngay trong editor. Item có lựa chọn riêng sẽ được ưu tiên.</p>
+                <div className={styles.uploadGrid}>
+                  {(
+                    [
+                      ["none", "None"],
+                      ["fade", "Fade In All"],
+                      ["slide-up", "Slide Up All"],
+                      ["scale-in", "Scale In All"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={value}
+                      disabled={preview}
+                      aria-pressed={revealPreset === value}
+                      onClick={() => {
+                        actions.setProp("ROOT", (props: ItemProps) => {
+                          props.revealPreset = value;
+                        });
+                        replay();
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <label>
+                  Thời lượng hiệu ứng (ms)
+                  <input
+                    type="number"
+                    min={100}
+                    max={3000}
+                    disabled={preview}
+                    value={revealDuration}
+                    onChange={(event) =>
+                      actions.setProp("ROOT", (props: ItemProps) => {
+                        props.revealDuration = Math.max(
+                          100,
+                          Math.min(3000, Number(event.target.value)),
+                        );
+                      })
+                    }
+                  />
+                </label>
+                <p>
+                  Bấm preset rồi cuộn: từng item chạy khi xuất hiện trong khung. Bấm lại preset để
+                  bắt đầu lượt mới.
+                </p>
+              </>
+            )}
+            {["stock", "shapes", "music", "presets"].includes(category) && (
               <>
                 <h2>
                   {
@@ -723,6 +788,37 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
                   </button>
                 </div>
               </div>
+              <label>
+                Hiệu ứng item
+                <select
+                  value={props.revealPreset ?? "inherit"}
+                  onChange={(event) => {
+                    if (selection)
+                      actions.setProp(selection, (value: ItemProps) => {
+                        if (event.target.value === "inherit") delete value.revealPreset;
+                        else value.revealPreset = event.target.value as RevealPreset;
+                      });
+                  }}
+                >
+                  <option value="inherit">Theo toàn trang</option>
+                  <option value="none">Không hiệu ứng</option>
+                  <option value="fade">Hiện dần</option>
+                  <option value="slide-up">Trượt lên</option>
+                  <option value="scale-in">Phóng lớn</option>
+                </select>
+              </label>
+              <label>
+                Độ trễ hiệu ứng (ms)
+                <input
+                  type="number"
+                  min={0}
+                  max={3000}
+                  value={props.revealDelay ?? 0}
+                  onChange={(event) =>
+                    update({ revealDelay: Math.max(0, Math.min(3000, Number(event.target.value))) })
+                  }
+                />
+              </label>
               {selected?.node?.data.name === "StudioAlbum" && (
                 <>
                   <h2>
@@ -1282,25 +1378,31 @@ function ColorControl({
 
 export function TemplateStudio({ initialTemplate = false }: { initialTemplate?: boolean }) {
   const [focus, setFocus] = useState<PhotoFocus>(null);
+  const [revision, setRevision] = useState(0);
   return (
     <PhotoFocusContext.Provider
       value={{ focus, select: (nodeId, index) => setFocus({ nodeId, index }) }}
     >
-      <Editor
-        resolver={{
-          StudioFrame,
-          StudioText,
-          StudioImage,
-          StudioCalendar,
-          StudioCountdown,
-          StudioAlbum,
-          StudioMap,
-          StudioAction,
-          StudioWishes,
-        }}
+      <RevealReplayContext.Provider
+        value={{ revision, replay: () => setRevision((value) => value + 1) }}
       >
-        <Workspace initialTemplate={initialTemplate} />
-      </Editor>
+        <Editor
+          onRender={StudioReveal}
+          resolver={{
+            StudioFrame,
+            StudioText,
+            StudioImage,
+            StudioCalendar,
+            StudioCountdown,
+            StudioAlbum,
+            StudioMap,
+            StudioAction,
+            StudioWishes,
+          }}
+        >
+          <Workspace initialTemplate={initialTemplate} />
+        </Editor>
+      </RevealReplayContext.Provider>
     </PhotoFocusContext.Provider>
   );
 }

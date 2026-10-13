@@ -8,6 +8,9 @@ const assetSource = z
   );
 const props = z
   .object({
+    revealPreset: z.enum(["none", "fade", "slide-up", "scale-in"]).optional(),
+    revealDuration: z.number().min(100).max(3000).optional(),
+    revealDelay: z.number().min(0).max(3000).optional(),
     x: z.number().min(-3000).max(3000).optional(),
     y: z.number().min(-3000).max(10000).optional(),
     width: z.number().min(20).max(2000).optional(),

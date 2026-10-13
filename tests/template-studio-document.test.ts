@@ -157,3 +157,23 @@ test("album supports uploaded asset references and variable image counts", () =>
   Object.assign(album.props, { images: ["javascript:alert(1)"] });
   assert.throws(() => parseStudioDocument(JSON.stringify(input)));
 });
+
+test("reveal presets round-trip with per-item overrides and reject invalid motion settings", () => {
+  const input = structuredClone(brownTemplate);
+  Object.assign(input.nodes.ROOT.props, { revealPreset: "slide-up", revealDuration: 800 });
+  const image = Object.values(input.nodes).find(
+    (node) => node.type.resolvedName === "StudioImage",
+  )!;
+  Object.assign(image.props, { revealPreset: "none", revealDelay: 150 });
+  const saved = parseStudioDocument(JSON.stringify(input));
+  assert.equal(saved.nodes.ROOT!.props.revealPreset, "slide-up");
+  assert.equal(
+    Object.values(saved.nodes).find((node) => node.type.resolvedName === "StudioImage")!.props
+      .revealPreset,
+    "none",
+  );
+  Object.assign(input.nodes.ROOT.props, { revealDuration: -1 });
+  assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+  Object.assign(input.nodes.ROOT.props, { revealDuration: 800, revealPreset: "unknown" });
+  assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+});
