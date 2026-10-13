@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import brownTemplate from "../src/features/template-studio/templates/minimalism-brown.json";
 import { parseStudioDocument } from "../src/features/template-studio/schemas/document";
 import {
   calendarMonth,
@@ -118,5 +121,22 @@ test("calendar and countdown widget settings survive a document round-trip", () 
     assert.deepEqual(parseStudioDocument(JSON.stringify(input)), input);
     Object.assign(input.nodes.text.props, { eventDate: "2027-02-29" });
     assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+  }
+});
+
+test("Minimalism Brown loads as an editable document using InviteMe widgets and existing local assets", () => {
+  const document = parseStudioDocument(JSON.stringify(brownTemplate));
+  const kinds = new Set<string>(
+    Object.values(document.nodes).map((node) => node.type.resolvedName),
+  );
+  for (const type of ["StudioCalendar", "StudioMap", "StudioAlbum", "StudioAction", "StudioWishes"])
+    assert.ok(kinds.has(type));
+  assert.equal(document.nodes.ROOT?.props.width, 480);
+  assert.equal(document.nodes.ROOT?.props.height, 3680);
+  for (const node of Object.values(document.nodes)) {
+    for (const src of [node.props.src, ...(node.props.images ?? [])]) {
+      if (src)
+        assert.ok(existsSync(path.join(process.cwd(), "public", src)), `Missing asset: ${src}`);
+    }
   }
 });

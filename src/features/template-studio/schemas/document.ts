@@ -23,7 +23,17 @@ const props = z
       .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
       .optional(),
     timezone: z.enum(["Asia/Ho_Chi_Minh", "UTC"]).optional(),
-    fontFamily: z.enum(["Arial", "Georgia"]).optional(),
+    fontFamily: z.enum(["Arial", "Georgia", "EB Garamond"]).optional(),
+    objectFit: z.enum(["cover", "contain"]).optional(),
+    borderRadius: z.number().min(0).max(1000).optional(),
+    flipX: z.boolean().optional(),
+    address: z.string().max(500).optional(),
+    action: z.enum(["rsvp", "calendar", "gift"]).optional(),
+    message: z.string().max(2000).optional(),
+    images: z
+      .array(z.string().regex(/^\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp$/))
+      .max(20)
+      .optional(),
     title: z.string().max(150).optional(),
     accent: z
       .string()
@@ -39,7 +49,10 @@ const props = z
       .regex(/^#[0-9a-f]{6}$/i)
       .optional(),
     src: z
-      .enum(["/images/templates/invite-portrait.png", "/images/templates/story-meadow.png"])
+      .union([
+        z.enum(["/images/templates/invite-portrait.png", "/images/templates/story-meadow.png"]),
+        z.string().regex(/^\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp$/),
+      ])
       .optional(),
   })
   .strict();
@@ -54,6 +67,10 @@ const node = z
           "StudioImage",
           "StudioCalendar",
           "StudioCountdown",
+          "StudioAlbum",
+          "StudioMap",
+          "StudioAction",
+          "StudioWishes",
         ]),
       })
       .strict(),

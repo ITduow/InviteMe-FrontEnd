@@ -30,11 +30,18 @@ import {
 } from "lucide-react";
 import { StudioFrame, StudioImage, StudioText, type ItemProps } from "../components/items";
 import { StudioCalendar, StudioCountdown } from "../components/date-widgets";
+import {
+  StudioAlbum,
+  StudioMap,
+  StudioAction,
+  StudioWishes,
+} from "../components/invitation-widgets";
+import brownTemplate from "../templates/minimalism-brown.json";
 import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
 import styles from "./studio.module.css";
 
-function Workspace() {
+function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
   const { actions, query, selected, canUndo, canRedo, items, serialized, background } = useEditor(
     (state, query) => {
       const id = Array.from(state.events.selected)[0];
@@ -51,7 +58,7 @@ function Workspace() {
   const [json, setJson] = useState("");
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
   const [preview, setPreview] = useState(false);
-  const [category, setCategory] = useState("utilities");
+  const [category, setCategory] = useState(initialTemplate ? "templates" : "utilities");
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
   const moveable = useRef<Moveable>(null);
@@ -60,7 +67,47 @@ function Workspace() {
   const layerIndex = selection ? items.indexOf(selection) : -1;
 
   useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (preview || event.defaultPrevented || event.isComposing || event.altKey) return;
+      const element = event.target;
+      if (
+        element instanceof HTMLElement &&
+        (element.isContentEditable ||
+          element.closest("input, textarea, select, [role='textbox'], [role='dialog']"))
+      )
+        return;
+      const key = event.key.toLowerCase();
+      if ((key === "delete" || key === "backspace") && !event.ctrlKey && !event.metaKey) {
+        if (selection && query.getNodes()[selection]) {
+          event.preventDefault();
+          if (!event.repeat) {
+            actions.delete(selection);
+            setTarget(null);
+          }
+        }
+        return;
+      }
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const undo = key === "z" && !event.shiftKey;
+      const redo = (key === "z" && event.shiftKey) || key === "y";
+      if (!undo && !redo) return;
+      event.preventDefault();
+      if (event.repeat) return;
+      if (undo && query.history.canUndo()) actions.history.undo();
+      if (redo && query.history.canRedo()) actions.history.redo();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [actions, query, preview, selection]);
+
+  useEffect(() => {
     if (query.getNodes().ROOT) return;
+    if (initialTemplate) {
+      actions.history
+        .ignore()
+        .deserialize(JSON.stringify(parseStudioDocument(JSON.stringify(brownTemplate)).nodes));
+      return;
+    }
     const root = (
       <Element is={StudioFrame} canvas>
         <StudioText />
@@ -72,7 +119,7 @@ function Workspace() {
     });
     // Initialize after commit: Frame's JSX initializer mutates the store during render.
     actions.history.ignore().addNodeTree(tree);
-  }, [actions, query]);
+  }, [actions, query, initialTemplate]);
 
   const synchronizeTarget = useCallback(() => {
     const elements = stage.current?.querySelectorAll<HTMLElement>("[data-studio-node]");
@@ -97,6 +144,7 @@ function Workspace() {
       fontSize: [8, 200],
       opacity: [0, 1],
       lineHeight: [0.8, 3],
+      borderRadius: [0, 1000],
     } as const;
     for (const key of Object.keys(bounds) as (keyof typeof bounds)[]) {
       const value = values[key];
@@ -106,7 +154,19 @@ function Workspace() {
     if (selection)
       actions.setProp(selection, (current: ItemProps) => Object.assign(current, values));
   }
-  function add(kind: "text" | "image" | "calendar" | "countdown") {
+  function add(
+    kind:
+      | "text"
+      | "image"
+      | "calendar"
+      | "countdown"
+      | "map"
+      | "rsvp"
+      | "album"
+      | "wishes"
+      | "reminder"
+      | "gift",
+  ) {
     if (items.length >= 100) {
       setMessage("Bản thử hỗ trợ tối đa 100 item.");
       return;
@@ -118,12 +178,56 @@ function Workspace() {
         <StudioImage x={70} y={200} width={260} height={300} />
       ) : kind === "calendar" ? (
         <StudioCalendar />
-      ) : (
+      ) : kind === "countdown" ? (
         <StudioCountdown />
+      ) : kind === "map" ? (
+        <StudioMap />
+      ) : kind === "album" ? (
+        <StudioAlbum />
+      ) : kind === "wishes" ? (
+        <StudioWishes />
+      ) : (
+        <StudioAction
+          action={kind === "reminder" ? "calendar" : kind === "gift" ? "gift" : "rsvp"}
+          title={
+            kind === "reminder"
+              ? "Thêm vào lịch"
+              : kind === "gift"
+                ? "Hộp quà mừng"
+                : "XÁC NHẬN THAM DỰ"
+          }
+        />
       );
     const node = query.parseReactElement(component).toNodeTree();
+    const newItem = node.nodes[node.rootNodeId];
+    const frame = stage.current?.querySelector<HTMLElement>("[data-studio-frame]");
+    const viewport = stage.current?.parentElement;
+    if (newItem && frame && viewport) {
+      const frameProps = query.getNodes().ROOT?.data.props;
+      const frameWidth = Number(frameProps?.width ?? 480);
+      const frameHeight = Number(frameProps?.height ?? 760);
+      const frameRect = frame.getBoundingClientRect();
+      const viewRect = viewport.getBoundingClientRect();
+      const scale = frameRect.width / frameWidth || 1;
+      const visibleTop = Math.max(0, (viewRect.top - frameRect.top) / scale + 16);
+      const visibleHeight = Math.min(viewport.clientHeight / scale - 32, frameHeight - visibleTop);
+      const width = Math.min(Number(newItem.data.props.width ?? 220), frameWidth - 40);
+      const height = Number(newItem.data.props.height ?? 70);
+      Object.assign(newItem.data.props, {
+        width,
+        x: Math.max(0, (frameWidth - width) / 2),
+        y: Math.max(
+          20,
+          Math.min(
+            frameHeight - height - 20,
+            visibleTop + Math.max(0, (visibleHeight - height) / 2),
+          ),
+        ),
+      });
+    }
     actions.addNodeTree(node, "ROOT");
     actions.selectNode(node.rootNodeId);
+    setMessage(`Đã thêm ${newItem?.data.displayName ?? "item"} vào vùng đang xem.`);
   }
   function moveLayer(direction: "up" | "down") {
     if (!selection || layerIndex < 0) return;
@@ -169,13 +273,23 @@ function Workspace() {
       <header className={styles.header}>
         <div>
           <small>INVITEME / TEMPLATE STUDIO</small>
-          <h1>Bước 1 · Khung editor</h1>
+          <h1>Template Studio</h1>
         </div>
         <div className={styles.buttons}>
-          <button disabled={!canUndo} onClick={() => actions.history.undo()}>
+          <button
+            title="Undo · Ctrl+Z"
+            aria-keyshortcuts="Control+Z Meta+Z"
+            disabled={!canUndo}
+            onClick={() => actions.history.undo()}
+          >
             Undo
           </button>
-          <button disabled={!canRedo} onClick={() => actions.history.redo()}>
+          <button
+            title="Redo · Ctrl+Shift+Z / Ctrl+Y"
+            aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
+            disabled={!canRedo}
+            onClick={() => actions.history.redo()}
+          >
             Redo
           </button>
           <button
@@ -193,7 +307,7 @@ function Workspace() {
         </div>
       </header>
       <p className={styles.status} role="status">
-        {message}
+        {preview ? "Đang xem trước. Bấm Về editor để thêm hoặc chỉnh item." : message}
       </p>
       <div className={styles.layout}>
         <aside className={styles.library} aria-label="Thư viện thiết kế">
@@ -226,15 +340,17 @@ function Workspace() {
                   {[
                     { label: "Lịch", icon: CalendarDays, kind: "calendar" as const },
                     { label: "Đếm ngược", icon: Timer, kind: "countdown" as const },
-                    { label: "Bản đồ", icon: MapPin },
+                    { label: "Bản đồ", icon: MapPin, kind: "map" as const },
                     { label: "Nút gọi", icon: Phone },
-                    { label: "Thêm lời nhắc", icon: Bell },
-                    { label: "Form xác nhận tham dự", icon: ClipboardCheck },
+                    { label: "Thêm lời nhắc", icon: Bell, kind: "reminder" as const },
+                    { label: "Form xác nhận tham dự", icon: ClipboardCheck, kind: "rsvp" as const },
                     { label: "Form tùy chỉnh", icon: ClipboardCheck },
                     { label: "Tên khách tự động", icon: Type },
                     { label: "QR Box", icon: QrCode },
                     { label: "Hiệu ứng phong bì thư", icon: Mail },
-                    { label: "Album ảnh", icon: Images },
+                    { label: "Album ảnh", icon: Images, kind: "album" as const },
+                    { label: "Sổ lưu bút", icon: ClipboardCheck, kind: "wishes" as const },
+                    { label: "Hộp quà mừng", icon: Mail, kind: "gift" as const },
                     { label: "Carousel ảnh", icon: GalleryHorizontal },
                     { label: "Video YouTube", icon: Youtube },
                     { label: "Hiệu ứng hạt", icon: Sparkles },
@@ -310,7 +426,36 @@ function Workspace() {
                 />
               </>
             )}
-            {["stock", "shapes", "music", "presets", "templates", "effects"].includes(category) && (
+            {category === "templates" && (
+              <>
+                <h2>Mẫu thiết kế</h2>
+                <div className={styles.templateCard}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/template-studio/minimalism-brown/photo-1.webp"
+                    alt="Minimalism Nâu"
+                  />
+                  <h3>Minimalism · Nâu</h3>
+                  <p>
+                    Giấy kem, ảnh Polaroid và hoa khô. Dùng lịch, bản đồ, album và RSVP của
+                    InviteMe.
+                  </p>
+                  <button
+                    disabled={preview}
+                    onClick={() => {
+                      importJson(JSON.stringify(brownTemplate));
+                      setMessage(
+                        "Đã áp dụng mẫu Minimalism Nâu. Dùng Undo để quay lại thiết kế trước.",
+                      );
+                      stage.current?.parentElement?.scrollTo({ top: 0 });
+                    }}
+                  >
+                    Dùng mẫu Minimalism Nâu
+                  </button>
+                </div>
+              </>
+            )}
+            {["stock", "shapes", "music", "presets", "effects"].includes(category) && (
               <>
                 <h2>
                   {
@@ -395,6 +540,17 @@ function Workspace() {
           ) : (
             <fieldset disabled={preview}>
               <div className={styles.layerControls}>
+                <button
+                  title="Delete / Backspace · Ctrl+Z để khôi phục"
+                  aria-keyshortcuts="Delete Backspace"
+                  className={styles.deleteButton}
+                  onClick={() => {
+                    actions.delete(selection);
+                    setTarget(null);
+                  }}
+                >
+                  Xóa item
+                </button>
                 <span>
                   Thứ tự lớp · {layerIndex + 1}/{items.length} (lớp trên có số lớn hơn)
                 </span>
@@ -407,6 +563,141 @@ function Workspace() {
                   </button>
                 </div>
               </div>
+              {selected?.node?.data.name === "StudioImage" && (
+                <>
+                  <label>
+                    Thay ảnh
+                    <select
+                      value={props.src ?? "/images/templates/invite-portrait.png"}
+                      onChange={(event) => update({ src: event.target.value })}
+                    >
+                      <option value={props.src ?? "/images/templates/invite-portrait.png"}>
+                        Ảnh hiện tại
+                      </option>
+                      {Array.from({ length: 8 }, (_, index) => (
+                        <option
+                          key={index}
+                          value={`/images/template-studio/minimalism-brown/photo-${index + 1}.webp`}
+                        >
+                          Ảnh cưới {index + 1}
+                        </option>
+                      ))}
+                      <option value="/images/templates/invite-portrait.png">
+                        Ảnh demo InviteMe
+                      </option>
+                    </select>
+                  </label>
+                  <label>
+                    Hiển thị ảnh
+                    <select
+                      value={props.objectFit ?? "cover"}
+                      onChange={(event) =>
+                        update({ objectFit: event.target.value as ItemProps["objectFit"] })
+                      }
+                    >
+                      <option value="cover">Lấp đầy / crop</option>
+                      <option value="contain">Giữ nguyên ảnh</option>
+                    </select>
+                  </label>
+                  <label>
+                    Bo góc
+                    <input
+                      type="number"
+                      min={0}
+                      max={1000}
+                      value={props.borderRadius ?? 0}
+                      onChange={(event) => update({ borderRadius: Number(event.target.value) })}
+                    />
+                  </label>
+                </>
+              )}
+              {["StudioMap", "StudioAction", "StudioAlbum", "StudioWishes"].includes(
+                selected?.node?.data.name ?? "",
+              ) && (
+                <>
+                  <label>
+                    Tiêu đề tiện ích
+                    <input
+                      maxLength={150}
+                      value={props.title ?? ""}
+                      onChange={(event) => update({ title: event.target.value })}
+                    />
+                  </label>
+                  {selected?.node?.data.name === "StudioMap" && (
+                    <label>
+                      Địa điểm
+                      <textarea
+                        maxLength={500}
+                        value={props.address ?? ""}
+                        onChange={(event) => update({ address: event.target.value })}
+                      />
+                    </label>
+                  )}
+                  {selected?.node?.data.name === "StudioAction" && (
+                    <>
+                      <label>
+                        Hành động
+                        <select
+                          value={props.action ?? "rsvp"}
+                          onChange={(event) =>
+                            update({ action: event.target.value as ItemProps["action"] })
+                          }
+                        >
+                          <option value="rsvp">Xác nhận tham dự</option>
+                          <option value="calendar">Thêm vào lịch</option>
+                          <option value="gift">Hộp quà mừng</option>
+                        </select>
+                      </label>
+                      <label>
+                        Nội dung
+                        <textarea
+                          maxLength={2000}
+                          value={props.message ?? ""}
+                          onChange={(event) => update({ message: event.target.value })}
+                        />
+                      </label>
+                      {props.action === "calendar" && (
+                        <>
+                          <label>
+                            Ngày sự kiện
+                            <input
+                              type="date"
+                              value={props.eventDate ?? "2027-01-03"}
+                              onChange={(event) => {
+                                if (isValidEventDate(event.target.value))
+                                  update({ eventDate: event.target.value });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            Giờ sự kiện
+                            <input
+                              type="time"
+                              value={props.eventTime ?? "18:00"}
+                              onChange={(event) => {
+                                if (/^([01]\d|2[0-3]):[0-5]\d$/.test(event.target.value))
+                                  update({ eventTime: event.target.value });
+                              }}
+                            />
+                          </label>
+                        </>
+                      )}
+                    </>
+                  )}
+                  <ColorControl
+                    key={`${selection}-widget-bg-${props.background}`}
+                    label="Nền tiện ích"
+                    value={props.background ?? "#faf4ec"}
+                    onChange={(background) => update({ background })}
+                  />
+                  <ColorControl
+                    key={`${selection}-widget-accent-${props.accent}`}
+                    label="Màu tiện ích"
+                    value={props.accent ?? "#7c6a60"}
+                    onChange={(accent) => update({ accent })}
+                  />
+                </>
+              )}
               {(selected?.node?.data.name === "StudioCalendar" ||
                 selected?.node?.data.name === "StudioCountdown") && (
                 <>
@@ -466,6 +757,7 @@ function Workspace() {
                     >
                       <option value="Georgia">Georgia · có chân</option>
                       <option value="Arial">Arial · không chân</option>
+                      <option value="EB Garamond">EB Garamond</option>
                     </select>
                   </label>
                   <label>
@@ -567,6 +859,7 @@ function Workspace() {
                       >
                         <option value="Arial">Arial</option>
                         <option value="Georgia">Georgia</option>
+                        <option value="EB Garamond">EB Garamond</option>
                       </select>
                     </label>
                     <ColorControl
@@ -670,14 +963,6 @@ function Workspace() {
                   />
                 </label>
               ))}
-              <button
-                onClick={() => {
-                  actions.delete(selection);
-                  setTarget(null);
-                }}
-              >
-                Xóa item
-              </button>
             </fieldset>
           )}
           <h2>Document JSON</h2>
@@ -784,10 +1069,22 @@ function ColorControl({
   );
 }
 
-export function TemplateStudio() {
+export function TemplateStudio({ initialTemplate = false }: { initialTemplate?: boolean }) {
   return (
-    <Editor resolver={{ StudioFrame, StudioText, StudioImage, StudioCalendar, StudioCountdown }}>
-      <Workspace />
+    <Editor
+      resolver={{
+        StudioFrame,
+        StudioText,
+        StudioImage,
+        StudioCalendar,
+        StudioCountdown,
+        StudioAlbum,
+        StudioMap,
+        StudioAction,
+        StudioWishes,
+      }}
+    >
+      <Workspace initialTemplate={initialTemplate} />
     </Editor>
   );
 }

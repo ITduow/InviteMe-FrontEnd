@@ -57,6 +57,25 @@
   padding: 20px;
   border-right: 1px solid #dce2db;
 }
+.templateCard {
+  background: #faf4ec;
+  border: 1px solid #e5d9cc;
+  border-radius: 8px;
+  padding: 12px;
+}
+.templateCard img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border: 8px solid white;
+  transform: rotate(-2deg);
+  margin-bottom: 15px;
+}
+.templateCard h3 {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 24px;
+  color: #7c6a60;
+}
 .typography {
   border: 1px solid #e0e4e8;
   border-radius: 7px;
@@ -166,6 +185,13 @@
 }
 .layerControls {
   margin-bottom: 18px;
+}
+.studio .deleteButton {
+  width: 100%;
+  margin-bottom: 12px;
+  color: #af3945;
+  border-color: #ecd0d4;
+  background: #fff8f8;
 }
 .layerControls > span {
   display: block;

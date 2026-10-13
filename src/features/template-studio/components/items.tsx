@@ -17,7 +17,7 @@ export type ItemProps = {
   eventDate?: string;
   eventTime?: string;
   timezone?: "Asia/Ho_Chi_Minh" | "UTC";
-  fontFamily?: "Arial" | "Georgia";
+  fontFamily?: "Arial" | "Georgia" | "EB Garamond";
   background?: string;
   accent?: string;
   title?: string;
@@ -29,6 +29,13 @@ export type ItemProps = {
   textAlign?: "left" | "center" | "right" | "justify";
   lineHeight?: number;
   opacity?: number;
+  objectFit?: "cover" | "contain";
+  borderRadius?: number;
+  flipX?: boolean;
+  address?: string;
+  images?: string[];
+  action?: "rsvp" | "calendar" | "gift";
+  message?: string;
 };
 
 export function itemStyle(props: ItemProps, selected: boolean): CSSProperties {
@@ -92,6 +99,7 @@ export function StudioText(props: ItemProps) {
         textTransform: props.uppercase ? "uppercase" : "none",
         textAlign: props.textAlign ?? "left",
         background: props.background ?? "transparent",
+        borderRadius: props.borderRadius ?? 0,
         opacity: props.opacity ?? 1,
         cursor: editing ? "text" : "pointer",
       }}
@@ -126,7 +134,12 @@ export function StudioImage(props: ItemProps) {
         if (element) connect(element);
       }}
       data-studio-node={id}
-      style={itemStyle(props, selected)}
+      style={{
+        ...itemStyle(props, selected),
+        opacity: props.opacity ?? 1,
+        borderRadius: props.borderRadius ?? 0,
+        overflow: "hidden",
+      }}
     >
       {/* Editor needs the actual DOM image inside a freely transformed item. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -134,7 +147,13 @@ export function StudioImage(props: ItemProps) {
         src={props.src ?? "/images/templates/invite-portrait.png"}
         alt="Ảnh minh họa"
         draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: props.objectFit ?? "cover",
+          pointerEvents: "none",
+          transform: props.flipX ? "scaleX(-1)" : undefined,
+        }}
       />
     </div>
   );
@@ -154,9 +173,15 @@ StudioImage.craft = {
 export function StudioFrame({
   children,
   background = "#fffaf1",
+  width = 480,
+  height = 760,
+  src,
 }: {
   children?: ReactNode;
   background?: string;
+  width?: number;
+  height?: number;
+  src?: string;
 }) {
   const {
     connectors: { connect },
@@ -169,9 +194,12 @@ export function StudioFrame({
       data-studio-frame
       style={{
         position: "relative",
-        width: 480,
-        height: 760,
+        width,
+        height,
         background,
+        backgroundImage: src ? `url(${src})` : undefined,
+        backgroundSize: "100% auto",
+        backgroundBlendMode: "multiply",
         boxShadow: "0 12px 50px #00000012",
         flexShrink: 0,
       }}

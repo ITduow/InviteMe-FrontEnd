@@ -19,7 +19,7 @@ const defaults = {
   accent: "#873b46",
 };
 
-function WidgetBox({
+export function WidgetBox({
   children,
   baseHeight,
   ...props
