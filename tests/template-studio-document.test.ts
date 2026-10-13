@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { parseStudioDocument } from "../src/features/template-studio/schemas/document";
+import {
+  calendarMonth,
+  countdownParts,
+  eventTimestamp,
+  isValidEventDate,
+} from "../src/features/template-studio/components/date-utils";
 
 function document() {
   return {
@@ -59,4 +65,58 @@ test("studio document rejects invalid sizes and unsupported schema versions", ()
   invalid.nodes.text.props.width = -10;
   assert.throws(() => parseStudioDocument(JSON.stringify(invalid)));
   assert.throws(() => parseStudioDocument(JSON.stringify({ ...document(), schemaVersion: 2 })));
+});
+
+test("calendar rejects nonexistent dates and aligns a leap month starting on Monday", () => {
+  assert.equal(isValidEventDate("2027-02-29"), false);
+  assert.equal(isValidEventDate("2028-02-29"), true);
+  assert.deepEqual(calendarMonth("2024-02-29"), {
+    year: 2024,
+    month: 2,
+    day: 29,
+    offset: 3,
+    days: 29,
+  });
+  assert.equal(calendarMonth("2027-02-30"), null);
+});
+
+test("countdown uses the selected timezone rather than the browser timezone", () => {
+  assert.equal(
+    eventTimestamp("2027-04-18", "17:00", "Asia/Ho_Chi_Minh"),
+    Date.parse("2027-04-18T10:00:00Z"),
+  );
+  assert.equal(eventTimestamp("2027-04-18", "17:00", "UTC"), Date.parse("2027-04-18T17:00:00Z"));
+  assert.equal(Number.isNaN(eventTimestamp("2027-04-18", "25:00", "UTC")), true);
+  assert.deepEqual(countdownParts(90061000, 0), {
+    days: 1,
+    hours: 1,
+    minutes: 1,
+    seconds: 1,
+    ended: false,
+  });
+  assert.deepEqual(countdownParts(1000, 2000), {
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    ended: true,
+  });
+});
+
+test("calendar and countdown widget settings survive a document round-trip", () => {
+  for (const resolvedName of ["StudioCalendar", "StudioCountdown"]) {
+    const input = document();
+    input.nodes.text.type.resolvedName = resolvedName;
+    const props = {
+      eventDate: "2028-02-29",
+      eventTime: "17:00",
+      timezone: "Asia/Ho_Chi_Minh",
+      fontFamily: "Georgia",
+      accent: "#873b46",
+    };
+    Object.assign(input.nodes.text.props, props);
+    assert.deepEqual(parseStudioDocument(JSON.stringify(input)), input);
+    Object.assign(input.nodes.text.props, { eventDate: "2027-02-29" });
+    assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+  }
 });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidEventDate } from "../components/date-utils";
 
 const props = z
   .object({
@@ -8,6 +9,26 @@ const props = z
     height: z.number().min(20).max(10000).optional(),
     rotation: z.number().min(-3600).max(3600).optional(),
     text: z.string().max(10000).optional(),
+    bold: z.boolean().optional(),
+    italic: z.boolean().optional(),
+    underline: z.boolean().optional(),
+    strike: z.boolean().optional(),
+    uppercase: z.boolean().optional(),
+    textAlign: z.enum(["left", "center", "right", "justify"]).optional(),
+    lineHeight: z.number().min(0.8).max(3).optional(),
+    opacity: z.number().min(0).max(1).optional(),
+    eventDate: z.string().refine(isValidEventDate).optional(),
+    eventTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .optional(),
+    timezone: z.enum(["Asia/Ho_Chi_Minh", "UTC"]).optional(),
+    fontFamily: z.enum(["Arial", "Georgia"]).optional(),
+    title: z.string().max(150).optional(),
+    accent: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/i)
+      .optional(),
     fontSize: z.number().min(8).max(200).optional(),
     color: z
       .string()
@@ -25,7 +46,17 @@ const props = z
 
 const node = z
   .object({
-    type: z.object({ resolvedName: z.enum(["StudioFrame", "StudioText", "StudioImage"]) }).strict(),
+    type: z
+      .object({
+        resolvedName: z.enum([
+          "StudioFrame",
+          "StudioText",
+          "StudioImage",
+          "StudioCalendar",
+          "StudioCountdown",
+        ]),
+      })
+      .strict(),
     isCanvas: z.boolean(),
     props,
     displayName: z.string(),

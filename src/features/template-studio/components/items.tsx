@@ -1,7 +1,8 @@
 "use client";
 
-import { useNode } from "@craftjs/core";
+import { useEditor, useNode } from "@craftjs/core";
 import type { CSSProperties, ReactNode } from "react";
+import { useState } from "react";
 
 export type ItemProps = {
   x?: number;
@@ -13,9 +14,24 @@ export type ItemProps = {
   fontSize?: number;
   color?: string;
   src?: string;
+  eventDate?: string;
+  eventTime?: string;
+  timezone?: "Asia/Ho_Chi_Minh" | "UTC";
+  fontFamily?: "Arial" | "Georgia";
+  background?: string;
+  accent?: string;
+  title?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
+  uppercase?: boolean;
+  textAlign?: "left" | "center" | "right" | "justify";
+  lineHeight?: number;
+  opacity?: number;
 };
 
-function itemStyle(props: ItemProps, selected: boolean): CSSProperties {
+export function itemStyle(props: ItemProps, selected: boolean): CSSProperties {
   return {
     position: "absolute",
     left: props.x ?? 40,
@@ -30,24 +46,54 @@ function itemStyle(props: ItemProps, selected: boolean): CSSProperties {
 }
 
 export function StudioText(props: ItemProps) {
+  const { enabled } = useEditor((state) => ({ enabled: state.options.enabled }));
+  const [editing, setEditing] = useState(false);
   const {
     id,
     connectors: { connect },
     selected,
+    actions: { setProp },
   } = useNode((node) => ({ selected: node.events.selected }));
   return (
     <div
       ref={(element) => {
         if (element) connect(element);
+        if (element && editing) element.focus();
       }}
       data-studio-node={id}
+      contentEditable={editing}
+      suppressContentEditableWarning
+      onDoubleClick={() => {
+        if (enabled) setEditing(true);
+      }}
+      onBlur={(event) => {
+        if (editing) {
+          const text = event.currentTarget.innerText.slice(0, 10000);
+          setProp((value: ItemProps) => {
+            value.text = text;
+          });
+          setEditing(false);
+        }
+      }}
       style={{
         ...itemStyle(props, selected),
         fontSize: props.fontSize ?? 32,
         color: props.color ?? "#493a34",
         whiteSpace: "pre-wrap",
         overflowWrap: "anywhere",
-        lineHeight: 1.2,
+        lineHeight: props.lineHeight ?? 1.2,
+        fontFamily: props.fontFamily ?? "Arial",
+        fontWeight: props.bold ? 700 : 400,
+        fontStyle: props.italic ? "italic" : "normal",
+        textDecoration:
+          [props.underline ? "underline" : "", props.strike ? "line-through" : ""]
+            .filter(Boolean)
+            .join(" ") || "none",
+        textTransform: props.uppercase ? "uppercase" : "none",
+        textAlign: props.textAlign ?? "left",
+        background: props.background ?? "transparent",
+        opacity: props.opacity ?? 1,
+        cursor: editing ? "text" : "pointer",
       }}
     >
       {props.text ?? "Viết lời của bạn"}

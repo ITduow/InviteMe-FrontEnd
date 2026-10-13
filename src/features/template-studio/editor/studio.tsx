@@ -4,7 +4,33 @@ import { Editor, Element, Frame, useEditor } from "@craftjs/core";
 import Moveable from "react-moveable";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react";
+import {
+  Type,
+  ImageIcon,
+  Library,
+  Shapes,
+  Paintbrush,
+  Music,
+  CalendarDays,
+  LayoutTemplate,
+  WandSparkles,
+  Layers,
+  Timer,
+  MapPin,
+  Phone,
+  Bell,
+  ClipboardCheck,
+  QrCode,
+  Mail,
+  Images,
+  GalleryHorizontal,
+  Youtube,
+  Sparkles,
+} from "lucide-react";
 import { StudioFrame, StudioImage, StudioText, type ItemProps } from "../components/items";
+import { StudioCalendar, StudioCountdown } from "../components/date-widgets";
+import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
 import styles from "./studio.module.css";
 
@@ -25,6 +51,7 @@ function Workspace() {
   const [json, setJson] = useState("");
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
   const [preview, setPreview] = useState(false);
+  const [category, setCategory] = useState("utilities");
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
   const moveable = useRef<Moveable>(null);
@@ -68,6 +95,8 @@ function Workspace() {
       height: [20, 10000],
       rotation: [-3600, 3600],
       fontSize: [8, 200],
+      opacity: [0, 1],
+      lineHeight: [0.8, 3],
     } as const;
     for (const key of Object.keys(bounds) as (keyof typeof bounds)[]) {
       const value = values[key];
@@ -77,7 +106,7 @@ function Workspace() {
     if (selection)
       actions.setProp(selection, (current: ItemProps) => Object.assign(current, values));
   }
-  function add(kind: "text" | "image") {
+  function add(kind: "text" | "image" | "calendar" | "countdown") {
     if (items.length >= 100) {
       setMessage("Bản thử hỗ trợ tối đa 100 item.");
       return;
@@ -85,8 +114,12 @@ function Workspace() {
     const component =
       kind === "text" ? (
         <StudioText x={65} y={100 + items.length * 18} />
-      ) : (
+      ) : kind === "image" ? (
         <StudioImage x={70} y={200} width={260} height={300} />
+      ) : kind === "calendar" ? (
+        <StudioCalendar />
+      ) : (
+        <StudioCountdown />
       );
     const node = query.parseReactElement(component).toNodeTree();
     actions.addNodeTree(node, "ROOT");
@@ -163,41 +196,140 @@ function Workspace() {
         {message}
       </p>
       <div className={styles.layout}>
-        <aside className={styles.panel}>
-          <h2>Thêm item</h2>
-          <p>Craft giữ dữ liệu, Moveable điều khiển vị trí.</p>
-          <div className={styles.buttons}>
-            <button disabled={preview} onClick={() => add("text")}>
-              + Chữ
-            </button>
-            <button disabled={preview} onClick={() => add("image")}>
-              + Ảnh
-            </button>
+        <aside className={styles.library} aria-label="Thư viện thiết kế">
+          <nav className={styles.rail} aria-label="Danh mục thiết kế">
+            {[
+              { id: "text", label: "Văn bản", icon: Type },
+              { id: "image", label: "Hình ảnh", icon: ImageIcon },
+              { id: "stock", label: "Stock", icon: Library },
+              { id: "shapes", label: "Hình dạng", icon: Shapes },
+              { id: "background", label: "Nền", icon: Paintbrush },
+              { id: "music", label: "Âm nhạc", icon: Music },
+              { id: "utilities", label: "Tiện ích", icon: CalendarDays },
+              { id: "presets", label: "Preset", icon: LayoutTemplate },
+              { id: "templates", label: "Mẫu", icon: LayoutTemplate },
+              { id: "effects", label: "Hiệu ứng", icon: WandSparkles },
+              { id: "layers", label: "Các lớp", icon: Layers },
+            ].map(({ id, label, icon: Icon }) => (
+              <button key={id} aria-pressed={category === id} onClick={() => setCategory(id)}>
+                <Icon size={22} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className={styles.libraryContent}>
+            {category === "utilities" && (
+              <>
+                <h2>Tiện ích</h2>
+                <p>Chọn tiện ích để thêm vào thiết kế.</p>
+                <div className={styles.utilityGrid}>
+                  {[
+                    { label: "Lịch", icon: CalendarDays, kind: "calendar" as const },
+                    { label: "Đếm ngược", icon: Timer, kind: "countdown" as const },
+                    { label: "Bản đồ", icon: MapPin },
+                    { label: "Nút gọi", icon: Phone },
+                    { label: "Thêm lời nhắc", icon: Bell },
+                    { label: "Form xác nhận tham dự", icon: ClipboardCheck },
+                    { label: "Form tùy chỉnh", icon: ClipboardCheck },
+                    { label: "Tên khách tự động", icon: Type },
+                    { label: "QR Box", icon: QrCode },
+                    { label: "Hiệu ứng phong bì thư", icon: Mail },
+                    { label: "Album ảnh", icon: Images },
+                    { label: "Carousel ảnh", icon: GalleryHorizontal },
+                    { label: "Video YouTube", icon: Youtube },
+                    { label: "Hiệu ứng hạt", icon: Sparkles },
+                  ].map(({ label, icon: Icon, ...item }) => {
+                    const kind = "kind" in item ? item.kind : undefined;
+                    return (
+                      <button
+                        key={label}
+                        disabled={preview || !kind}
+                        onClick={() => {
+                          if (kind) add(kind);
+                        }}
+                      >
+                        <Icon size={32} />
+                        <span>{label}</span>
+                        {!kind && <small>Sắp có</small>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            {category === "text" && (
+              <>
+                <h2>Văn bản</h2>
+                <p>Thêm chữ, sau đó chỉnh nội dung ở Thuộc tính.</p>
+                <button className={styles.addCard} disabled={preview} onClick={() => add("text")}>
+                  <Type size={30} />
+                  Thêm văn bản
+                </button>
+              </>
+            )}
+            {category === "image" && (
+              <>
+                <h2>Hình ảnh</h2>
+                <p>Ảnh minh họa có sẵn. Upload ảnh sẽ được bổ sung sau.</p>
+                <button className={styles.addCard} disabled={preview} onClick={() => add("image")}>
+                  <ImageIcon size={30} />
+                  Thêm ảnh
+                </button>
+              </>
+            )}
+            {category === "layers" && (
+              <>
+                <h2>Các lớp</h2>
+                <p>Lớp trên cùng nằm đầu danh sách.</p>
+                {[...items].reverse().map((id) => (
+                  <button
+                    key={id}
+                    disabled={preview}
+                    className={styles.layer}
+                    aria-pressed={id === selection}
+                    onClick={() => actions.selectNode(id)}
+                  >
+                    {query.node(id).get().data.displayName}
+                  </button>
+                ))}
+              </>
+            )}
+            {category === "background" && (
+              <>
+                <h2>Nền thiết kế</h2>
+                <ColorControl
+                  key={`background-${background}`}
+                  label="Nền khung"
+                  value={background}
+                  disabled={preview}
+                  onChange={(color) =>
+                    actions.setProp("ROOT", (value) => {
+                      value.background = color;
+                    })
+                  }
+                />
+              </>
+            )}
+            {["stock", "shapes", "music", "presets", "templates", "effects"].includes(category) && (
+              <>
+                <h2>
+                  {
+                    (
+                      {
+                        stock: "Stock",
+                        shapes: "Hình dạng",
+                        music: "Âm nhạc",
+                        presets: "Preset",
+                        templates: "Mẫu",
+                        effects: "Hiệu ứng",
+                      } as Record<string, string>
+                    )[category]
+                  }
+                </h2>
+                <p>Mục này sẽ được bổ sung ở bước tiếp theo.</p>
+              </>
+            )}
           </div>
-          <h2>Các lớp</h2>
-          {items.map((id) => (
-            <button
-              key={id}
-              disabled={preview}
-              className={styles.layer}
-              aria-pressed={id === selection}
-              onClick={() => actions.selectNode(id)}
-            >
-              {query.node(id).get().data.displayName}
-            </button>
-          ))}
-          <ColorControl
-            key={`background-${background}`}
-            label="Nền khung"
-            value={background}
-            disabled={preview}
-            onChange={(color) =>
-              actions.setProp("ROOT", (value) => {
-                value.background = color;
-              })
-            }
-          />
-          <p>Khung 480 × 760. Đây là bộ thử thao tác, chưa phải template hoàn chỉnh.</p>
         </aside>
         <section className={styles.workspace} aria-label="Khung thiết kế">
           <div ref={stage} onClick={synchronizeTarget} onPointerUp={synchronizeTarget}>
@@ -210,6 +342,7 @@ function Workspace() {
               draggable
               resizable
               rotatable
+              checkInput
               origin={false}
               flushSync={flushSync}
               onDragStart={(event) => event.set([props.x ?? 0, props.y ?? 0])}
@@ -258,7 +391,7 @@ function Workspace() {
         <aside className={styles.panel}>
           <h2>Thuộc tính</h2>
           {!selection ? (
-            <p>Chọn chữ hoặc ảnh trong khung để chỉnh.</p>
+            <p>Chọn một item trong khung để chỉnh thuộc tính.</p>
           ) : (
             <fieldset disabled={preview}>
               <div className={styles.layerControls}>
@@ -274,8 +407,102 @@ function Workspace() {
                   </button>
                 </div>
               </div>
+              {(selected?.node?.data.name === "StudioCalendar" ||
+                selected?.node?.data.name === "StudioCountdown") && (
+                <>
+                  <label>
+                    Tiêu đề
+                    <input
+                      maxLength={150}
+                      value={props.title ?? ""}
+                      onChange={(event) => update({ title: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Ngày sự kiện
+                    <input
+                      type="date"
+                      value={props.eventDate ?? "2027-04-18"}
+                      onChange={(event) => {
+                        if (isValidEventDate(event.target.value))
+                          update({ eventDate: event.target.value });
+                      }}
+                    />
+                  </label>
+                  {selected.node.data.name === "StudioCountdown" && (
+                    <>
+                      <label>
+                        Giờ sự kiện
+                        <input
+                          type="time"
+                          value={props.eventTime ?? "17:00"}
+                          onChange={(event) => {
+                            if (/^([01]\d|2[0-3]):[0-5]\d$/.test(event.target.value))
+                              update({ eventTime: event.target.value });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Múi giờ
+                        <select
+                          value={props.timezone ?? "Asia/Ho_Chi_Minh"}
+                          onChange={(event) =>
+                            update({ timezone: event.target.value as ItemProps["timezone"] })
+                          }
+                        >
+                          <option value="Asia/Ho_Chi_Minh">Việt Nam (GMT+7)</option>
+                          <option value="UTC">UTC (GMT+0)</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  <label>
+                    Kiểu chữ
+                    <select
+                      value={props.fontFamily ?? "Georgia"}
+                      onChange={(event) =>
+                        update({ fontFamily: event.target.value as ItemProps["fontFamily"] })
+                      }
+                    >
+                      <option value="Georgia">Georgia · có chân</option>
+                      <option value="Arial">Arial · không chân</option>
+                    </select>
+                  </label>
+                  <label>
+                    Cỡ chữ tiện ích
+                    <input
+                      type="number"
+                      min={8}
+                      max={200}
+                      value={props.fontSize ?? 16}
+                      onChange={(event) => update({ fontSize: Number(event.target.value) })}
+                    />
+                  </label>
+                  <ColorControl
+                    key={`${selection}-text-${props.color}`}
+                    label="Màu chữ tiện ích"
+                    value={props.color ?? "#493a34"}
+                    onChange={(color) => update({ color })}
+                  />
+                  <ColorControl
+                    key={`${selection}-accent-${props.accent}`}
+                    label="Màu nhấn"
+                    value={props.accent ?? "#873b46"}
+                    onChange={(accent) => update({ accent })}
+                  />
+                  <ColorControl
+                    key={`${selection}-bg-${props.background}`}
+                    label="Nền tiện ích"
+                    value={props.background ?? "#fffaf1"}
+                    onChange={(background) => update({ background })}
+                  />
+                </>
+              )}
               {selected?.node?.data.name === "StudioText" && (
                 <>
+                  <p>
+                    <i>Kích đúp vào văn bản để chỉnh sửa.</i>
+                  </p>
                   <label>
                     Nội dung
                     <textarea
@@ -284,24 +511,146 @@ function Workspace() {
                       onChange={(event) => update({ text: event.target.value })}
                     />
                   </label>
-                  <ColorControl
-                    key={`${selection}-${props.color}`}
-                    label="Màu chữ"
-                    value={props.color ?? "#493a34"}
-                    onChange={(color) => update({ color })}
-                  />
-                  <label>
-                    Cỡ chữ
-                    <input
-                      type="number"
-                      min={8}
-                      max={200}
-                      value={props.fontSize ?? 32}
-                      onChange={(event) =>
-                        update({ fontSize: Math.max(8, Math.min(200, Number(event.target.value))) })
-                      }
+                  <details className={styles.typography} open>
+                    <summary>Kiểu chữ</summary>
+                    <div className={styles.textTools}>
+                      {(
+                        [
+                          { key: "bold", label: "In đậm", symbol: "B" },
+                          { key: "italic", label: "In nghiêng", symbol: "I" },
+                          { key: "strike", label: "Gạch ngang", symbol: "S̶" },
+                          { key: "underline", label: "Gạch chân", symbol: "U̲" },
+                          { key: "uppercase", label: "Chữ hoa", symbol: "Aa" },
+                        ] as const
+                      ).map(({ key, label, symbol }) => (
+                        <button
+                          key={key}
+                          aria-label={label}
+                          aria-pressed={props[key] ?? false}
+                          title={label}
+                          onClick={() => update({ [key]: !props[key] })}
+                        >
+                          {symbol}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.textRow}>
+                      <span>Căn chỉnh</span>
+                      <div className={styles.textTools}>
+                        {(
+                          [
+                            { key: "left", label: "Căn trái", icon: AlignLeft },
+                            { key: "center", label: "Căn giữa", icon: AlignCenter },
+                            { key: "right", label: "Căn phải", icon: AlignRight },
+                            { key: "justify", label: "Căn đều", icon: AlignJustify },
+                          ] as const
+                        ).map(({ key, label, icon: Icon }) => (
+                          <button
+                            key={key}
+                            aria-label={label}
+                            title={label}
+                            aria-pressed={(props.textAlign ?? "left") === key}
+                            onClick={() => update({ textAlign: key })}
+                          >
+                            <Icon size={15} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label>
+                      Font
+                      <select
+                        value={props.fontFamily ?? "Arial"}
+                        onChange={(event) =>
+                          update({ fontFamily: event.target.value as ItemProps["fontFamily"] })
+                        }
+                      >
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                      </select>
+                    </label>
+                    <ColorControl
+                      key={`${selection}-${props.color}`}
+                      label="Màu chữ"
+                      value={props.color ?? "#493a34"}
+                      onChange={(color) => update({ color })}
                     />
-                  </label>
+                    <label>
+                      Cỡ chữ
+                      <div className={styles.sizeRow}>
+                        <button
+                          aria-label="Giảm cỡ chữ"
+                          onClick={() => update({ fontSize: (props.fontSize ?? 32) - 1 })}
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          min={8}
+                          max={200}
+                          value={props.fontSize ?? 32}
+                          onChange={(event) =>
+                            update({
+                              fontSize: Math.max(8, Math.min(200, Number(event.target.value))),
+                            })
+                          }
+                        />
+                        <button
+                          aria-label="Tăng cỡ chữ"
+                          onClick={() => update({ fontSize: (props.fontSize ?? 32) + 1 })}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </label>
+                    <ColorControl
+                      key={`${selection}-text-bg-${props.background}`}
+                      label="Màu nền chữ"
+                      value={props.background ?? "#ffffff"}
+                      onChange={(background) => update({ background })}
+                    />
+                    <button
+                      onClick={() => {
+                        if (selection)
+                          actions.setProp(selection, (value: ItemProps) => {
+                            delete value.background;
+                          });
+                      }}
+                    >
+                      Bỏ nền chữ
+                    </button>
+                    <label>
+                      Giãn dòng
+                      <input
+                        type="number"
+                        min={0.8}
+                        max={3}
+                        step={0.1}
+                        value={props.lineHeight ?? 1.2}
+                        onChange={(event) => update({ lineHeight: Number(event.target.value) })}
+                      />
+                    </label>
+                    <label>
+                      Trong suốt
+                      <input
+                        type="number"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={props.opacity ?? 1}
+                        onChange={(event) => update({ opacity: Number(event.target.value) })}
+                      />
+                    </label>
+                    <input
+                      aria-label="Thanh độ trong suốt"
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      value={props.opacity ?? 1}
+                      onChange={(event) => update({ opacity: Number(event.target.value) })}
+                    />
+                  </details>
                 </>
               )}
               {(["x", "y", "width", "height", "rotation"] as const).map((key) => (
@@ -437,7 +786,7 @@ function ColorControl({
 
 export function TemplateStudio() {
   return (
-    <Editor resolver={{ StudioFrame, StudioText, StudioImage }}>
+    <Editor resolver={{ StudioFrame, StudioText, StudioImage, StudioCalendar, StudioCountdown }}>
       <Workspace />
     </Editor>
   );
