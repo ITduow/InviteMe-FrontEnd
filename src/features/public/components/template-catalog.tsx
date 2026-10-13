@@ -32,7 +32,7 @@ export function TemplateCatalog({
   }
   const visible = designs.filter((t) => !category || t.id === category);
   return (
-    <div className="template-catalog">
+    <div className={`template-catalog ${category === "invite" ? "template-catalog--invite" : ""}`}>
       <Link href="/#templates" className="template-catalog__back">
         ← Về trang chủ
       </Link>
@@ -61,17 +61,23 @@ export function TemplateCatalog({
       <p className="template-catalog__note">
         Mẫu minh họa cho bản MVP · ảnh tạo bằng AI · demo không lưu phản hồi.
       </p>
-      <div className="landing-template-grid">
+      <div className="invite-template-grid">
         {category !== "story" &&
           inviteTemplates.map((template) => (
-            <article className="landing-template" key={template.id}>
-              <div className="landing-template__preview">
-                <span className="landing-demo-label">Wedding Invite</span>
+            <article className="invite-template-card" key={template.id}>
+              <Link
+                className="invite-template-card__preview"
+                aria-label={`Xem mẫu ${template.name}`}
+                href={`/template-studio?template=${template.id}&preview=1`}
+              >
                 {template.preview}
-              </div>
-              <div className="landing-template__body">
+              </Link>
+              <div className="invite-template-card__overlay">
                 <h2>{template.name}</h2>
-                <p>{template.description}</p>
+                <p className="invite-template-card__tags">
+                  <span>Tùy chỉnh</span>
+                  <span>Bìa mở thiệp</span>
+                </p>
                 <div className="landing-actions">
                   <Link
                     className="landing-button landing-button--outline"
@@ -89,6 +95,8 @@ export function TemplateCatalog({
               </div>
             </article>
           ))}
+      </div>
+      <div className="landing-template-grid">
         {visible.map((t) => (
           <article className="landing-template" key={t.id}>
             <div className="landing-template__preview">

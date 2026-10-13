@@ -1,24 +1,41 @@
 "use client";
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { templateCatalog } from "../templates/catalog";
 import { imageShapeStyle } from "./items";
 export function TemplateThumbnail({
   document,
   scale = 0.43,
   height = 230,
+  fluid = false,
 }: {
   document: (typeof templateCatalog)[number]["document"];
   scale?: number;
   height?: number;
+  fluid?: boolean;
 }) {
+  const host = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(240);
+  useEffect(() => {
+    if (!fluid || !host.current) return;
+    const observer = new ResizeObserver((entries) => {
+      const value = entries[0]?.contentRect.width;
+      if (value) setWidth(value);
+    });
+    observer.observe(host.current);
+    return () => observer.disconnect();
+  }, [fluid]);
+  const effectiveScale = fluid ? width / 480 : scale;
   const root = document.nodes.ROOT;
   if (!root) return null;
   return (
     <div
+      ref={host}
+      className={fluid ? "invite-thumbnail" : undefined}
       aria-hidden="true"
       style={{
-        height,
-        width: 480 * scale,
+        height: fluid ? undefined : height,
+        aspectRatio: fluid ? "9 / 16" : undefined,
+        width: fluid ? "100%" : 480 * scale,
         maxWidth: "100%",
         marginInline: "auto",
         overflow: "hidden",
@@ -26,15 +43,15 @@ export function TemplateThumbnail({
         background: root.props.background,
         backgroundImage: root.props.src ? `url(${root.props.src})` : undefined,
         backgroundSize: "100% auto",
-        marginBottom: 12,
+        marginBottom: fluid ? 0 : 12,
       }}
     >
       <div
         style={{
           width: 480,
-          height: 700,
+          height: fluid ? 1400 : 700,
           position: "relative",
-          transform: `scale(${scale})`,
+          transform: `scale(${effectiveScale})`,
           transformOrigin: "top left",
           pointerEvents: "none",
         }}
@@ -43,7 +60,7 @@ export function TemplateThumbnail({
           const node = document.nodes[id];
           if (!node) return null;
           const p = node.props;
-          if ((p.y ?? 0) > 650) return null;
+          if ((p.y ?? 0) > (fluid ? 1300 : 650)) return null;
           const style: CSSProperties = {
             position: "absolute",
             left: p.x,

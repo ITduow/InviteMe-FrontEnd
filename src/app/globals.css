@@ -2381,3 +2381,164 @@ body:has(.landing-dialog[open]) {
     font-size: 8px;
   }
 }
+
+/* Compact invitation gallery; story cards retain their existing layout. */
+.invite-template-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.invite-template-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f8f1e6;
+  isolation: isolate;
+  box-shadow: 0 2px 12px #5b263110;
+}
+.invite-template-card__preview {
+  display: block;
+  outline-offset: -3px;
+}
+.invite-thumbnail > div {
+  transition: translate 2s ease;
+}
+.invite-template-card:hover .invite-thumbnail > div,
+.invite-template-card:focus-within .invite-thumbnail > div {
+  translate: 0 -65px;
+}
+.invite-template-card__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 65px 12px 12px;
+  background: linear-gradient(transparent, #1c1016dc);
+  color: white;
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 0.2s,
+    translate 0.2s;
+  pointer-events: none;
+}
+.invite-template-card:hover .invite-template-card__overlay,
+.invite-template-card:focus-within .invite-template-card__overlay {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+.invite-template-card__overlay h2 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 6px;
+}
+.invite-template-card__tags {
+  display: flex;
+  gap: 5px;
+  margin: 0 0 10px;
+  font-size: 10px;
+}
+.invite-template-card__tags span {
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: #ffffff24;
+}
+.invite-template-card__overlay .landing-actions {
+  display: flex;
+  gap: 6px;
+}
+.invite-template-card__overlay .landing-button {
+  font-size: 10px;
+  padding: 7px 9px;
+  min-height: 0;
+  border-radius: 5px;
+  gap: 3px;
+}
+.invite-template-card__overlay .landing-button--outline {
+  color: white;
+  border-color: #ffffff70;
+  background: transparent;
+}
+.invite-template-card__overlay .landing-button svg {
+  width: 12px;
+  height: 12px;
+}
+.template-catalog--invite .landing-heading {
+  margin-bottom: 20px;
+}
+.template-catalog--invite .landing-heading h1 {
+  font-size: clamp(25px, 3vw, 36px);
+}
+@media (max-width: 1100px) {
+  .invite-template-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 850px) {
+  .invite-template-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .invite-template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .invite-template-card__overlay {
+    opacity: 1;
+    translate: 0 0;
+    pointer-events: auto;
+    padding: 45px 8px 8px;
+  }
+  .invite-template-card__overlay h2 {
+    font-size: 11px;
+  }
+  .invite-template-card__tags {
+    display: none;
+  }
+  .invite-template-card__overlay .landing-button {
+    font-size: 9px;
+    padding: 6px;
+  }
+}
+@media (hover: none) {
+  .invite-template-card__overlay {
+    opacity: 1;
+    translate: 0 0;
+    pointer-events: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .invite-thumbnail > div,
+  .invite-template-card__overlay {
+    transition: none;
+  }
+  .invite-template-card:hover .invite-thumbnail > div,
+  .invite-template-card:focus-within .invite-thumbnail > div {
+    translate: none;
+  }
+}
+.template-catalog--invite .template-catalog__back {
+  margin-bottom: 16px;
+}
+.template-catalog--invite .landing-eyebrow {
+  display: none;
+}
+.template-catalog--invite .landing-heading p {
+  font-size: 12px;
+  margin-top: 8px;
+}
+.template-catalog--invite .template-catalog__tabs {
+  margin-bottom: 12px;
+}
+.template-catalog--invite .template-catalog__tabs a {
+  padding: 7px 15px;
+}
+.template-catalog--invite .template-catalog__note {
+  margin-bottom: 18px;
+}
