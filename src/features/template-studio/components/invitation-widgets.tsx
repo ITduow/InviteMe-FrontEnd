@@ -1,8 +1,9 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Album images are DOM targets inside the scaled editor widget. */
 
-import { useEditor } from "@craftjs/core";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEditor, useNode } from "@craftjs/core";
+import { useContext, useState, type CSSProperties, type ReactNode } from "react";
+import { PhotoFocusContext } from "./photo-focus";
 import { createPortal } from "react-dom";
 import { WidgetBox } from "./date-widgets";
 import { eventTimestamp } from "./date-utils";
@@ -82,10 +83,19 @@ function Popup({
 }
 
 export function StudioAlbum(props: ItemProps) {
-  const { enabled } = useEditor((state) => ({ enabled: state.options.enabled }));
+  const { enabled, actions } = useEditor((state) => ({ enabled: state.options.enabled }));
+  const { id } = useNode();
+  const { focus, select } = useContext(PhotoFocusContext);
   const [index, setIndex] = useState(0);
   const photos = props.images?.length ? props.images : ["/images/templates/invite-portrait.png"];
-  const current = index % photos.length;
+  const current = (enabled && focus?.nodeId === id ? focus.index : index) % photos.length;
+  function choosePhoto(next: number) {
+    const normalized = (next + photos.length) % photos.length;
+    if (enabled) {
+      actions.selectNode(id);
+      select(id, normalized);
+    } else setIndex(normalized);
+  }
   return (
     <WidgetBox {...props} baseHeight={430}>
       <strong style={{ fontSize: 20 }}>{props.title ?? "ALBUM ẢNH"}</strong>
@@ -95,6 +105,13 @@ export function StudioAlbum(props: ItemProps) {
             key={offset}
             src={photos[(current + offset + photos.length) % photos.length]}
             alt={`Ảnh album ${((current + offset + photos.length) % photos.length) + 1}`}
+            data-album-photo={(current + offset + photos.length) % photos.length}
+            onPointerDown={(event) => {
+              if (enabled) event.stopPropagation();
+            }}
+            onClick={() => {
+              if (enabled) choosePhoto(current + offset);
+            }}
             style={{
               position: "absolute",
               top: offset === 0 ? 0 : 40,
@@ -106,16 +123,19 @@ export function StudioAlbum(props: ItemProps) {
               opacity: offset === 0 ? 1 : 0.55,
               transform: offset === 0 ? undefined : `rotate(${offset * 8}deg)`,
               zIndex: offset === 0 ? 1 : 0,
-              pointerEvents: "none",
+              pointerEvents: enabled ? "auto" : "none",
+              cursor: enabled ? "pointer" : undefined,
+              outline:
+                enabled && focus?.nodeId === id && offset === 0 ? "2px solid #368cff" : undefined,
             }}
           />
         ))}
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 20, alignItems: "center" }}>
         <button
-          disabled={enabled}
           aria-label="Ảnh trước"
-          onClick={() => setIndex((value) => (value + photos.length - 1) % photos.length)}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => choosePhoto(current - 1)}
           style={buttonStyle}
         >
           ‹
@@ -124,9 +144,9 @@ export function StudioAlbum(props: ItemProps) {
           {current + 1} / {photos.length}
         </span>
         <button
-          disabled={enabled}
           aria-label="Ảnh sau"
-          onClick={() => setIndex((value) => value + 1)}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => choosePhoto(current + 1)}
           style={buttonStyle}
         >
           ›

@@ -1,10 +1,16 @@
 .studio {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
   background: #f2f3f0;
   color: #273c32;
   font-family: Arial, sans-serif;
+  padding-bottom: var(--photo-dock-height, 112px);
 }
 .header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -43,12 +49,15 @@
   background: #e7efe7;
 }
 .status {
+  flex-shrink: 0;
   padding: 10px 28px;
   margin: 0;
   background: #e4ece4;
   font-size: 12px;
 }
 .layout {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 350px minmax(520px, 1fr) 290px;
 }
@@ -165,13 +174,14 @@
   border-color: #477565;
 }
 .workspace {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   overflow: auto;
   padding: 36px 20px;
-  height: calc(100vh - 125px);
-  min-height: 600px;
+  height: 100%;
+  min-height: 0;
   background: #e6e6e6;
 }
 .json {
@@ -240,8 +250,8 @@
   grid-template-columns: 72px minmax(0, 1fr);
   background: white;
   border-right: 1px solid #e3e6eb;
-  height: calc(100vh - 125px);
-  min-height: 600px;
+  height: 100%;
+  min-height: 0;
 }
 .rail {
   overflow-y: auto;
@@ -328,7 +338,139 @@
   height: 38px;
 }
 .panel {
-  height: calc(100vh - 125px);
-  min-height: 600px;
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
+}
+.photoDock {
+  position: fixed;
+  bottom: 0;
+  left: 72px;
+  right: 290px;
+  z-index: 40;
+  background: white;
+  border-top: 1px solid #dfe5ed;
+}
+.studio .dockToggle {
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+  padding: 8px 12px;
+  height: 36px;
+}
+.dockToggle small {
+  color: #85909a;
+}
+.photoStrip {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 12px 4px;
+  height: 92px;
+}
+.studio .photoStrip button {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  width: 60px;
+  height: 64px;
+  background: #ececec;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+.photoStrip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photoStrip span {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 9px;
+  background: #0008;
+  color: white;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.studio .photoStrip button[aria-pressed="true"],
+.studio .albumSlots button[aria-pressed="true"] {
+  border-color: #368cff;
+}
+.albumSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.studio .albumSlots button {
+  position: relative;
+  padding: 0;
+  width: 44px;
+  height: 52px;
+  border: 2px solid transparent;
+  overflow: hidden;
+}
+.albumSlots img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.albumSlots span {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 9px;
+  padding: 0 3px;
+  background: #0008;
+  color: white;
+}
+@media (max-width: 1000px) {
+  .photoDock {
+    right: 270px;
+  }
+}
+
+.uploadBox {
+  border: 1px dashed #bcc9d7;
+  border-radius: 12px;
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  color: #287bea;
+  cursor: pointer;
+}
+.uploadBox input {
+  max-width: 100%;
+  font-size: 11px;
+}
+.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.uploadGrid button {
+  padding: 3px;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+}
+.uploadGrid img {
+  width: 100%;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.imagePreview {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  margin: 12px auto;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
 }

@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { isValidEventDate } from "../components/date-utils";
 
+const assetSource = z
+  .string()
+  .regex(
+    /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
+  );
 const props = z
   .object({
     x: z.number().min(-3000).max(3000).optional(),
@@ -30,10 +35,7 @@ const props = z
     address: z.string().max(500).optional(),
     action: z.enum(["rsvp", "calendar", "gift"]).optional(),
     message: z.string().max(2000).optional(),
-    images: z
-      .array(z.string().regex(/^\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp$/))
-      .max(20)
-      .optional(),
+    images: z.array(assetSource).min(1).max(100).optional(),
     title: z.string().max(150).optional(),
     accent: z
       .string()
@@ -48,12 +50,7 @@ const props = z
       .string()
       .regex(/^#[0-9a-f]{6}$/i)
       .optional(),
-    src: z
-      .union([
-        z.enum(["/images/templates/invite-portrait.png", "/images/templates/story-meadow.png"]),
-        z.string().regex(/^\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp$/),
-      ])
-      .optional(),
+    src: assetSource.optional(),
   })
   .strict();
 

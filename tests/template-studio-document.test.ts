@@ -140,3 +140,20 @@ test("Minimalism Brown loads as an editable document using InviteMe widgets and 
     }
   }
 });
+
+test("album supports uploaded asset references and variable image counts", () => {
+  const input = structuredClone(brownTemplate);
+  const album = Object.values(input.nodes).find(
+    (node) => node.type.resolvedName === "StudioAlbum",
+  )!;
+  const uploaded = "/api/template-studio/assets?id=12345678-1234-1234-1234-123456789abc";
+  Object.assign(album.props, { images: Array(25).fill(uploaded) });
+  const result = parseStudioDocument(JSON.stringify(input));
+  assert.equal(
+    Object.values(result.nodes).find((node) => node.type.resolvedName === "StudioAlbum")!.props
+      .images!.length,
+    25,
+  );
+  Object.assign(album.props, { images: ["javascript:alert(1)"] });
+  assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+});

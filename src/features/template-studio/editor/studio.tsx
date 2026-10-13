@@ -2,7 +2,7 @@
 
 import { Editor, Element, Frame, useEditor } from "@craftjs/core";
 import Moveable from "react-moveable";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react";
 import {
@@ -39,6 +39,7 @@ import {
 import brownTemplate from "../templates/minimalism-brown.json";
 import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
+import { PhotoFocusContext, type PhotoFocus } from "../components/photo-focus";
 import styles from "./studio.module.css";
 
 function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
@@ -59,12 +60,114 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
   const [preview, setPreview] = useState(false);
   const [category, setCategory] = useState(initialTemplate ? "templates" : "utilities");
+  const [uploads, setUploads] = useState<{ src: string; name: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [replacement, setReplacement] = useState<{
+    id: string;
+    index: number;
+    append: boolean;
+  } | null>(null);
+  function openImages(append = false) {
+    if (!selection) return;
+    setReplacement({
+      id: selection,
+      index: selected?.node?.data.name === "StudioAlbum" ? albumIndex : -1,
+      append,
+    });
+    setCategory("image");
+    void fetch("/api/template-studio/assets")
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setUploads)
+      .catch(() => setMessage("Không tải được thư viện ảnh."));
+  }
+  function chooseImage(src: string) {
+    if (!replacement || !query.getNodes()[replacement.id]) return;
+    actions.setProp(replacement.id, (value: ItemProps) => {
+      if (replacement.index < 0) value.src = src;
+      else {
+        const images = [
+          ...(value.images?.length ? value.images : ["/images/templates/invite-portrait.png"]),
+        ];
+        if (replacement.append) {
+          if (images.length < 100) images.push(src);
+        } else images[replacement.index] = src;
+        value.images = images;
+      }
+    });
+    setMessage(replacement.append ? "Đã thêm ảnh vào album." : "Đã thay ảnh.");
+  }
+  async function uploadImages(files: FileList | File[]) {
+    setUploading(true);
+    try {
+      for (const file of Array.from(files).slice(0, 15)) {
+        const data = new FormData();
+        data.append("file", file);
+        const response = await fetch("/api/template-studio/assets", { method: "POST", body: data });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không tải được ảnh.");
+        setUploads((current) => [...current, { src: result.src, name: file.name }]);
+      }
+      setMessage("Đã tải ảnh. Nhấp ảnh để thay thế hoặc thêm vào album.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Lỗi tải ảnh.");
+    } finally {
+      setUploading(false);
+    }
+  }
+  const [quickPhotosOpen, setQuickPhotosOpen] = useState(true);
+  const { focus: photoFocus, select: selectPhoto } = useContext(PhotoFocusContext);
+  const propertyPanel = useRef<HTMLElement>(null);
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
   const moveable = useRef<Moveable>(null);
   const props = (selected?.node?.data.props ?? {}) as ItemProps;
   const selection = selected?.id;
   const layerIndex = selection ? items.indexOf(selection) : -1;
+  const photoEntries = items.flatMap((id) => {
+    const node = query.getNodes()[id];
+    if (!node) return [];
+    const value = node.data.props as ItemProps;
+    const isDecoration = /^\/images\/template-studio\/minimalism-brown\/(?!photo-\d+\.webp$)/.test(
+      value.src ?? "",
+    );
+    if (node.data.name === "StudioImage" && !isDecoration) {
+      return [
+        {
+          nodeId: id,
+          index: -1,
+          src: value.src ?? "/images/templates/invite-portrait.png",
+          label: node.data.displayName,
+        },
+      ];
+    }
+    if (node.data.name === "StudioAlbum")
+      return (value.images?.length ? value.images : ["/images/templates/invite-portrait.png"]).map(
+        (src, index) => ({
+          nodeId: id,
+          index,
+          src,
+          label: `${node.data.displayName} · ${index + 1}`,
+        }),
+      );
+    return [];
+  });
+  const albumImages = props.images?.length
+    ? props.images
+    : ["/images/templates/invite-portrait.png"];
+  const albumIndex = Math.min(
+    photoFocus && photoFocus.nodeId === selection ? photoFocus.index : 0,
+    albumImages.length - 1,
+  );
+
+  function goToPhoto(nodeId: string, index: number) {
+    actions.selectNode(nodeId);
+    selectPhoto(nodeId, Math.max(0, index));
+    const element = Array.from(
+      stage.current?.querySelectorAll<HTMLElement>("[data-studio-node]") ?? [],
+    ).find((item) => item.dataset.studioNode === nodeId);
+    element?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    propertyPanel.current?.scrollTo({ top: 0 });
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -269,7 +372,15 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
   }
 
   return (
-    <main id="main-content" className={styles.studio}>
+    <main
+      id="main-content"
+      className={styles.studio}
+      style={
+        {
+          "--photo-dock-height": preview ? "0px" : quickPhotosOpen ? "128px" : "36px",
+        } as CSSProperties
+      }
+    >
       <header className={styles.header}>
         <div>
           <small>INVITEME / TEMPLATE STUDIO</small>
@@ -386,10 +497,59 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
             {category === "image" && (
               <>
                 <h2>Hình ảnh</h2>
-                <p>Ảnh minh họa có sẵn. Upload ảnh sẽ được bổ sung sau.</p>
+                <label
+                  className={styles.uploadBox}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (!uploading) void uploadImages(event.dataTransfer.files);
+                  }}
+                >
+                  <ImageIcon size={36} />
+                  <strong>{uploading ? "Đang tải ảnh…" : "Kéo thả hoặc nhấn để tải ảnh"}</strong>
+                  <small>PNG, JPG, WebP · tối đa 10 MB/ảnh · 15 ảnh/lượt</small>
+                  <input
+                    aria-label="Tải ảnh lên"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    multiple
+                    disabled={uploading}
+                    onChange={(event) => {
+                      if (event.target.files) void uploadImages(event.target.files);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+                <p>
+                  {replacement
+                    ? replacement.append
+                      ? "Chọn ảnh để thêm vào album"
+                      : "Hãy chọn ảnh bạn muốn thay thế"
+                    : "Chọn ảnh trên thiệp rồi bấm Đổi ảnh"}
+                </p>
+                <h3>Tệp đã tải lên ({uploads.length})</h3>
+                <div className={styles.uploadGrid}>
+                  {uploads.map((image) => (
+                    <button key={image.src} onClick={() => chooseImage(image.src)}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={image.src} alt={image.name} />
+                    </button>
+                  ))}
+                </div>
+                <h3>Ảnh có sẵn</h3>
+                <div className={styles.uploadGrid}>
+                  {Array.from({ length: 8 }, (_, index) => {
+                    const src = `/images/template-studio/minimalism-brown/photo-${index + 1}.webp`;
+                    return (
+                      <button key={src} onClick={() => chooseImage(src)}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`Ảnh mẫu ${index + 1}`} />
+                      </button>
+                    );
+                  })}
+                </div>
                 <button className={styles.addCard} disabled={preview} onClick={() => add("image")}>
-                  <ImageIcon size={30} />
-                  Thêm ảnh
+                  Thêm item ảnh
                 </button>
               </>
             )}
@@ -533,7 +693,7 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
             />
           )}
         </section>
-        <aside className={styles.panel}>
+        <aside ref={propertyPanel} className={styles.panel}>
           <h2>Thuộc tính</h2>
           {!selection ? (
             <p>Chọn một item trong khung để chỉnh thuộc tính.</p>
@@ -563,30 +723,49 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
                   </button>
                 </div>
               </div>
+              {selected?.node?.data.name === "StudioAlbum" && (
+                <>
+                  <h2>
+                    Ảnh trong album · {albumIndex + 1}/{albumImages.length}
+                  </h2>
+                  <div className={styles.albumSlots}>
+                    {albumImages.map((src, index) => (
+                      <button
+                        key={index}
+                        aria-label={`Chọn ảnh album ${index + 1}`}
+                        aria-pressed={albumIndex === index}
+                        onClick={() => selectPhoto(selection, index)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`Album ${index + 1}`} />
+                        <span>{index + 1}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => openImages()}>Đổi ảnh đang chọn</button>
+                  <button disabled={albumImages.length >= 100} onClick={() => openImages(true)}>
+                    + Thêm ảnh vào album
+                  </button>
+                  <button
+                    disabled={albumImages.length <= 1}
+                    onClick={() => {
+                      update({ images: albumImages.filter((_, index) => index !== albumIndex) });
+                      selectPhoto(selection, Math.max(0, albumIndex - 1));
+                    }}
+                  >
+                    Xóa ảnh đang chọn
+                  </button>
+                </>
+              )}
               {selected?.node?.data.name === "StudioImage" && (
                 <>
-                  <label>
-                    Thay ảnh
-                    <select
-                      value={props.src ?? "/images/templates/invite-portrait.png"}
-                      onChange={(event) => update({ src: event.target.value })}
-                    >
-                      <option value={props.src ?? "/images/templates/invite-portrait.png"}>
-                        Ảnh hiện tại
-                      </option>
-                      {Array.from({ length: 8 }, (_, index) => (
-                        <option
-                          key={index}
-                          value={`/images/template-studio/minimalism-brown/photo-${index + 1}.webp`}
-                        >
-                          Ảnh cưới {index + 1}
-                        </option>
-                      ))}
-                      <option value="/images/templates/invite-portrait.png">
-                        Ảnh demo InviteMe
-                      </option>
-                    </select>
-                  </label>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className={styles.imagePreview}
+                    src={props.src ?? "/images/templates/invite-portrait.png"}
+                    alt="Ảnh đang chọn"
+                  />
+                  <button onClick={() => openImages()}>Đổi ảnh</button>
                   <label>
                     Hiển thị ảnh
                     <select
@@ -994,6 +1173,38 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
           </label>
         </aside>
       </div>
+      {!preview && (
+        <section className={styles.photoDock} aria-label="Thay ảnh nhanh">
+          <button
+            className={styles.dockToggle}
+            aria-expanded={quickPhotosOpen}
+            onClick={() => setQuickPhotosOpen(!quickPhotosOpen)}
+          >
+            Thay ảnh nhanh {quickPhotosOpen ? "⌄" : "⌃"} <small>({photoEntries.length} ảnh)</small>
+          </button>
+          {quickPhotosOpen && (
+            <div className={styles.photoStrip}>
+              {photoEntries.map((photo, index) => (
+                <button
+                  key={`${photo.nodeId}-${photo.index}`}
+                  aria-label={`Đến ảnh ${index + 1}`}
+                  title={photo.label}
+                  aria-pressed={
+                    selection === photo.nodeId &&
+                    (photo.index < 0 || photoFocus?.index === photo.index)
+                  }
+                  onClick={() => goToPhoto(photo.nodeId, photo.index)}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.src} alt={photo.label} />
+                  <span>{index + 1}</span>
+                </button>
+              ))}
+              {!photoEntries.length && <p>Thêm ảnh hoặc album để dùng thay ảnh nhanh.</p>}
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }
@@ -1070,21 +1281,26 @@ function ColorControl({
 }
 
 export function TemplateStudio({ initialTemplate = false }: { initialTemplate?: boolean }) {
+  const [focus, setFocus] = useState<PhotoFocus>(null);
   return (
-    <Editor
-      resolver={{
-        StudioFrame,
-        StudioText,
-        StudioImage,
-        StudioCalendar,
-        StudioCountdown,
-        StudioAlbum,
-        StudioMap,
-        StudioAction,
-        StudioWishes,
-      }}
+    <PhotoFocusContext.Provider
+      value={{ focus, select: (nodeId, index) => setFocus({ nodeId, index }) }}
     >
-      <Workspace initialTemplate={initialTemplate} />
-    </Editor>
+      <Editor
+        resolver={{
+          StudioFrame,
+          StudioText,
+          StudioImage,
+          StudioCalendar,
+          StudioCountdown,
+          StudioAlbum,
+          StudioMap,
+          StudioAction,
+          StudioWishes,
+        }}
+      >
+        <Workspace initialTemplate={initialTemplate} />
+      </Editor>
+    </PhotoFocusContext.Provider>
   );
 }
