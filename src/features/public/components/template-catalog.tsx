@@ -1,17 +1,13 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import "@fontsource/eb-garamond/400.css";
+import "@fontsource/eb-garamond/400-italic.css";
 import { SampleSite } from "./sample-site";
 
 type Layout = "invite" | "story";
 const designs = [
-  {
-    id: "invite" as const,
-    title: "Lời hẹn dịu dàng",
-    type: "Wedding Invite",
-    description: "Thiệp mời gọn gàng với ảnh cưới, ngày giờ, địa điểm và RSVP.",
-  },
   {
     id: "story" as const,
     title: "Cùng nhau đi tiếp",
@@ -19,7 +15,13 @@ const designs = [
     description: "Trang cưới có ảnh mở đầu, hành trình tình yêu, album và RSVP.",
   },
 ];
-export function TemplateCatalog({ category }: { category?: Layout }) {
+export function TemplateCatalog({
+  category,
+  inviteTemplates = [],
+}: {
+  category?: Layout;
+  inviteTemplates?: { id: string; name: string; description: string; preview: ReactNode }[];
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState<Layout>("invite");
   const [sent, setSent] = useState(false);
@@ -60,6 +62,33 @@ export function TemplateCatalog({ category }: { category?: Layout }) {
         Mẫu minh họa cho bản MVP · ảnh tạo bằng AI · demo không lưu phản hồi.
       </p>
       <div className="landing-template-grid">
+        {category !== "story" &&
+          inviteTemplates.map((template) => (
+            <article className="landing-template" key={template.id}>
+              <div className="landing-template__preview">
+                <span className="landing-demo-label">Wedding Invite</span>
+                {template.preview}
+              </div>
+              <div className="landing-template__body">
+                <h2>{template.name}</h2>
+                <p>{template.description}</p>
+                <div className="landing-actions">
+                  <Link
+                    className="landing-button landing-button--outline"
+                    href={`/template-studio?template=${template.id}&preview=1`}
+                  >
+                    Xem demo
+                  </Link>
+                  <Link
+                    className="landing-button"
+                    href={`/template-studio?template=${template.id}`}
+                  >
+                    Dùng mẫu <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))}
         {visible.map((t) => (
           <article className="landing-template" key={t.id}>
             <div className="landing-template__preview">
@@ -88,8 +117,7 @@ export function TemplateCatalog({ category }: { category?: Layout }) {
         ))}
       </div>
       <p className="landing-caption">
-        Mỗi nhóm hiện có một mẫu minh họa. Đăng nhập để bắt đầu; việc áp dụng mẫu vào trang cưới
-        chưa được kết nối.
+        15 mẫu thiệp mời có thể chỉnh trong editor. Lưu thiết kế vào tài khoản chưa được kết nối.
       </p>
       <dialog
         aria-labelledby="demo-title"

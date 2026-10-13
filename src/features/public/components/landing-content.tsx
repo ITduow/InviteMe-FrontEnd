@@ -20,7 +20,7 @@ const templates = [
   {
     id: "invite" as const,
     title: "Wedding Invite",
-    text: "Lời mời gọn gàng, đầy đủ thông tin ngày vui và xác nhận tham dự.",
+    text: "15 mẫu thiệp với bìa mở, ảnh thay được, lịch, bản đồ và xác nhận tham dự.",
   },
   {
     id: "story" as const,
@@ -100,7 +100,7 @@ export function LandingContent() {
                     <Image
                       src={
                         t.id === "invite"
-                          ? "/images/templates/invite-portrait.png"
+                          ? "/images/template-studio/collection/photo-garden.webp"
                           : "/images/templates/story-meadow.png"
                       }
                       alt={

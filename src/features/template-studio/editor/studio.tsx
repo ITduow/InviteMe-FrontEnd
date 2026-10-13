@@ -28,13 +28,7 @@ import {
   Youtube,
   Sparkles,
 } from "lucide-react";
-import {
-  StudioFrame,
-  StudioImage,
-  StudioText,
-  imageShapeStyle,
-  type ItemProps,
-} from "../components/items";
+import { StudioFrame, StudioImage, StudioText, type ItemProps } from "../components/items";
 import { StudioCalendar, StudioCountdown } from "../components/date-widgets";
 import {
   StudioAlbum,
@@ -43,6 +37,7 @@ import {
   StudioWishes,
 } from "../components/invitation-widgets";
 import { InvitationCover } from "../components/invitation-cover";
+import { TemplateThumbnail } from "../components/template-thumbnail";
 import { templateCatalog, findTemplate } from "../templates/catalog";
 import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
@@ -55,7 +50,13 @@ import {
   type RevealPreset,
 } from "../components/reveal";
 
-function Workspace({ initialTemplate = false }: { initialTemplate?: boolean | string }) {
+function Workspace({
+  initialTemplate = false,
+  initialPreview = false,
+}: {
+  initialTemplate?: boolean | string;
+  initialPreview?: boolean;
+}) {
   const {
     actions,
     query,
@@ -84,7 +85,7 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean | st
   const [json, setJson] = useState("");
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
   const [coverOpen, setCoverOpen] = useState(false);
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview] = useState(initialPreview);
   const [category, setCategory] = useState(initialTemplate ? "templates" : "utilities");
   const [uploads, setUploads] = useState<{ src: string; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -1554,82 +1555,12 @@ function ColorControl({
   );
 }
 
-function TemplateThumbnail({
-  document,
-}: {
-  document: (typeof templateCatalog)[number]["document"];
-}) {
-  const root = document.nodes.ROOT;
-  if (!root) return null;
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        height: 230,
-        overflow: "hidden",
-        position: "relative",
-        background: root.props.background,
-        backgroundImage: root.props.src ? `url(${root.props.src})` : undefined,
-        backgroundSize: "100% auto",
-        marginBottom: 12,
-      }}
-    >
-      <div
-        style={{
-          width: 480,
-          height: 700,
-          position: "relative",
-          transform: "scale(.43)",
-          transformOrigin: "top left",
-          pointerEvents: "none",
-        }}
-      >
-        {root.nodes.map((id) => {
-          const node = document.nodes[id];
-          if (!node) return null;
-          const p = node.props;
-          if ((p.y ?? 0) > 650) return null;
-          const style: CSSProperties = {
-            position: "absolute",
-            left: p.x,
-            top: p.y,
-            width: p.width,
-            height: p.height,
-            transform: `rotate(${p.rotation ?? 0}deg)`,
-            color: p.color,
-            background: p.background,
-            fontSize: p.fontSize,
-            fontFamily: p.fontFamily,
-            textAlign: p.textAlign,
-            fontStyle: p.italic ? "italic" : undefined,
-            whiteSpace: "pre-wrap",
-            opacity: p.opacity,
-            ...imageShapeStyle(p),
-            overflow: "hidden",
-          };
-          return node.type.resolvedName === "StudioText" ? (
-            <div key={id} style={style}>
-              {p.text}
-            </div>
-          ) : node.type.resolvedName === "StudioImage" ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={id}
-              alt=""
-              src={p.src}
-              style={{ ...style, objectFit: p.objectFit, margin: 0, border: 0 }}
-            />
-          ) : null;
-        })}
-      </div>
-    </div>
-  );
-}
-
 export function TemplateStudio({
   initialTemplate = false,
+  initialPreview = false,
 }: {
   initialTemplate?: boolean | string;
+  initialPreview?: boolean;
 }) {
   const [focus, setFocus] = useState<PhotoFocus>(null);
   const [revision, setRevision] = useState(0);
@@ -1641,6 +1572,7 @@ export function TemplateStudio({
         value={{ revision, replay: () => setRevision((value) => value + 1) }}
       >
         <Editor
+          enabled={!initialPreview}
           onRender={StudioReveal}
           resolver={{
             StudioFrame,
@@ -1654,7 +1586,7 @@ export function TemplateStudio({
             StudioWishes,
           }}
         >
-          <Workspace initialTemplate={initialTemplate} />
+          <Workspace initialTemplate={initialTemplate} initialPreview={initialPreview} />
         </Editor>
       </RevealReplayContext.Provider>
     </PhotoFocusContext.Provider>
