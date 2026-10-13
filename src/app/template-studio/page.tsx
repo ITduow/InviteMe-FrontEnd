@@ -8,5 +8,5 @@ export default async function Page({
 }) {
   if (process.env.NODE_ENV === "production") notFound();
   const params = await searchParams;
-  return <TemplateStudio initialTemplate={params.template === "minimalism-brown"} />;
+  return <TemplateStudio initialTemplate={params.template ?? false} />;
 }

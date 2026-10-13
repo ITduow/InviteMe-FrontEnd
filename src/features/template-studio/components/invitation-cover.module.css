@@ -1,0 +1,158 @@
+.cover {
+  isolation: isolate;
+}
+.card {
+  z-index: 1;
+}
+.seal {
+  position: relative;
+  animation: pulse 3s ease-in-out infinite;
+}
+.button {
+  position: relative;
+  overflow: hidden;
+}
+.button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, #ffffff60, transparent);
+  animation: shine 3s ease-in-out infinite;
+}
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: #d4b776;
+}
+.particles span {
+  position: absolute;
+  top: -12%;
+  font-size: 18px;
+  animation: drift 10s linear infinite;
+  opacity: 0;
+}
+.symbolLeft,
+.symbolRight {
+  position: absolute;
+  font-size: 200px;
+  opacity: 0.12;
+  pointer-events: none;
+  line-height: 1;
+}
+.symbolLeft {
+  left: -30px;
+  top: -30px;
+  rotate: 25deg;
+}
+.symbolRight {
+  right: -30px;
+  bottom: -30px;
+  rotate: 25deg;
+}
+.opening[data-mode="seal"] .seal {
+  animation: sealBreak 0.65s ease-out forwards;
+}
+.ring {
+  position: absolute;
+  inset: -5px;
+  border: 2px solid #d8b875;
+  border-radius: 50%;
+  animation: ring 0.7s ease-out forwards;
+}
+.opening[data-mode="seal"],
+.opening[data-mode="fly"] {
+  animation: fly 1.35s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+}
+.opening[data-mode="fade"] {
+  animation: fade 1s ease-in forwards;
+}
+@keyframes pulse {
+  50% {
+    scale: 1.06;
+    box-shadow: 0 0 24px #c5a06855;
+  }
+}
+@keyframes shine {
+  0% {
+    translate: -400% 0;
+  }
+  55%,
+  100% {
+    translate: 400% 0;
+  }
+}
+@keyframes drift {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    translate: var(--drift) 650px;
+    rotate: 160deg;
+    opacity: 0;
+  }
+}
+@keyframes sealBreak {
+  30% {
+    scale: 1.2;
+    rotate: 8deg;
+  }
+  100% {
+    scale: 0;
+    rotate: 25deg;
+    opacity: 0;
+  }
+}
+@keyframes ring {
+  to {
+    scale: 2.7;
+    opacity: 0;
+  }
+}
+@keyframes fly {
+  0%,
+  40% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(10px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(-110vh) rotate(-3deg);
+    opacity: 0;
+  }
+}
+@keyframes fade {
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .particles,
+  .button::after {
+    display: none;
+  }
+  .seal {
+    animation: none;
+  }
+  .opening[data-mode] {
+    animation: fade 0.15s linear forwards;
+  }
+  .opening .seal,
+  .ring {
+    animation: none;
+  }
+}
+.card[data-style="botanical"] img {
+  filter: hue-rotate(75deg) saturate(0.65);
+  opacity: 0.45 !important;
+}

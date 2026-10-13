@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import burgundyTemplate from "../src/features/template-studio/templates/minimalism-burgundy.json";
 import brownTemplate from "../src/features/template-studio/templates/minimalism-brown.json";
+import { templateCatalog, findTemplate } from "../src/features/template-studio/templates/catalog";
 import { parseStudioDocument } from "../src/features/template-studio/schemas/document";
 import {
   calendarMonth,
@@ -175,5 +177,114 @@ test("reveal presets round-trip with per-item overrides and reject invalid motio
   Object.assign(input.nodes.ROOT.props, { revealDuration: -1 });
   assert.throws(() => parseStudioDocument(JSON.stringify(input)));
   Object.assign(input.nodes.ROOT.props, { revealDuration: 800, revealPreset: "unknown" });
+  assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+});
+
+test("burgundy template uses shared widgets and original local assets", () => {
+  const value = parseStudioDocument(JSON.stringify(burgundyTemplate));
+  assert.equal(value.nodes.ROOT!.props.revealPreset, "fade");
+  const names = Object.values(value.nodes).map((node) => node.type.resolvedName);
+  for (const name of ["StudioAlbum", "StudioCalendar", "StudioMap", "StudioAction", "StudioWishes"])
+    assert.ok(names.includes(name as (typeof names)[number]));
+  for (const node of Object.values(value.nodes)) {
+    for (const src of [node.props.src, ...(node.props.images ?? [])].filter(
+      (src): src is string => !!src,
+    )) {
+      assert.ok(src.startsWith("/images/template-studio/minimalism-burgundy/"));
+      assert.ok(existsSync(path.join(process.cwd(), "public", src)));
+    }
+  }
+});
+
+test("cover is optional and preserves template node positions", () => {
+  const value = parseStudioDocument(JSON.stringify(burgundyTemplate));
+  assert.equal(value.nodes.ROOT!.props.cover!.enabled, true);
+  const positions = Object.values(value.nodes).map((node) => [
+    node.props.x,
+    node.props.y,
+    node.props.width,
+    node.props.height,
+  ]);
+  delete value.nodes.ROOT!.props.cover;
+  const without = parseStudioDocument(JSON.stringify(value));
+  assert.deepEqual(
+    Object.values(without.nodes).map((node) => [
+      node.props.x,
+      node.props.y,
+      node.props.width,
+      node.props.height,
+    ]),
+    positions,
+  );
+  const invalid = structuredClone(burgundyTemplate);
+  Object.assign(invalid.nodes.ROOT.props.cover, { background: "url(javascript:alert(1))" });
+  assert.throws(() => parseStudioDocument(JSON.stringify(invalid)));
+});
+
+test("cover appearance, particles and opening animation survive JSON round-trip", () => {
+  const input = structuredClone(burgundyTemplate);
+  Object.assign(input.nodes.ROOT.props.cover, {
+    style: "traditional",
+    particles: "happiness",
+    opening: "fly",
+  });
+  const saved = parseStudioDocument(JSON.stringify(input));
+  assert.equal(saved.nodes.ROOT!.props.cover!.opening, "fly");
+  assert.equal(saved.nodes.ROOT!.props.cover!.particles, "happiness");
+  Object.assign(input.nodes.ROOT.props.cover, { opening: "invalid" });
+  assert.throws(() => parseStudioDocument(JSON.stringify(input)));
+});
+
+test("all 15 catalog templates round-trip, use shared widgets and resolve original assets", () => {
+  assert.equal(templateCatalog.length, 15);
+  assert.equal(new Set(templateCatalog.map((item) => item.id)).size, 15);
+  for (const template of templateCatalog) {
+    const doc = parseStudioDocument(JSON.stringify(template.document));
+    assert.equal(findTemplate(template.id)?.name, template.name);
+    const kinds = Object.values(doc.nodes).map((node) => node.type.resolvedName);
+    for (const kind of [
+      "StudioAlbum",
+      "StudioCalendar",
+      "StudioMap",
+      "StudioAction",
+      "StudioWishes",
+    ])
+      assert.ok(kinds.includes(kind as (typeof kinds)[number]), `${template.id}: ${kind}`);
+    for (const node of Object.values(doc.nodes)) {
+      for (const src of [
+        node.props.src,
+        node.props.cover?.decoration,
+        ...(node.props.images ?? []),
+      ]) {
+        if (!src) continue;
+        assert.ok(!src.includes("minimalism-brown/"), `${template.id}: copied asset ${src}`);
+        assert.ok(
+          existsSync(path.join(process.cwd(), "public", src)),
+          `${template.id}: missing ${src}`,
+        );
+      }
+      if (!["StudioImage", "StudioText", "StudioFrame"].includes(node.type.resolvedName)) {
+        assert.ok((node.props.x ?? 0) >= 0);
+        assert.ok((node.props.x ?? 0) + (node.props.width ?? 0) <= doc.nodes.ROOT!.props.width!);
+        assert.ok((node.props.y ?? 0) + (node.props.height ?? 0) <= doc.nodes.ROOT!.props.height!);
+      }
+    }
+  }
+  assert.equal(findTemplate("unknown"), undefined);
+});
+
+test("optional image shapes preserve older documents and reject unsupported shapes", () => {
+  const input = structuredClone(brownTemplate);
+  const photo = Object.values(input.nodes).find(
+    (node) => node.type.resolvedName === "StudioImage",
+  )!;
+  Object.assign(photo.props, { imageShape: "arch" });
+  assert.equal(
+    Object.values(parseStudioDocument(JSON.stringify(input)).nodes).find(
+      (node) => node.type.resolvedName === "StudioImage",
+    )!.props.imageShape,
+    "arch",
+  );
+  Object.assign(photo.props, { imageShape: "arbitrary-css" });
   assert.throws(() => parseStudioDocument(JSON.stringify(input)));
 });

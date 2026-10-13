@@ -9,9 +9,11 @@ import {
   type ReactElement,
 } from "react";
 import styles from "./reveal.module.css";
+export const RevealPausedContext = createContext(false);
 export type RevealPreset = "none" | "fade" | "slide-up" | "scale-in";
 export const RevealReplayContext = createContext({ revision: 0, replay: () => {} });
 export function StudioReveal({ render }: { render: ReactElement }) {
+  const paused = useContext(RevealPausedContext);
   const { revision } = useContext(RevealReplayContext);
   const wrapper = useRef<HTMLDivElement>(null);
   const { id, props } = useNode((node) => ({ props: node.data.props }));
@@ -21,7 +23,7 @@ export function StudioReveal({ render }: { render: ReactElement }) {
     duration: state.nodes.ROOT?.data.props.revealDuration ?? 800,
   }));
   const preset = props.revealPreset ?? globalPreset;
-  const active = (!enabled || revision > 0) && id !== "ROOT" && preset !== "none";
+  const active = !paused && (!enabled || revision > 0) && id !== "ROOT" && preset !== "none";
   useEffect(() => {
     const element = wrapper.current;
     const target = element?.firstElementChild;

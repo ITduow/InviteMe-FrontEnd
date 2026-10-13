@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 export type ItemProps = {
+  cover?: import("./invitation-cover").CoverConfig;
   revealPreset?: "none" | "fade" | "slide-up" | "scale-in";
   revealDuration?: number;
   revealDelay?: number;
@@ -34,6 +35,7 @@ export type ItemProps = {
   opacity?: number;
   objectFit?: "cover" | "contain";
   borderRadius?: number;
+  imageShape?: "rectangle" | "arch" | "oval" | "scallop";
   flipX?: boolean;
   address?: string;
   images?: string[];
@@ -52,6 +54,25 @@ export function itemStyle(props: ItemProps, selected: boolean): CSSProperties {
     outline: selected ? "1px solid #477565" : undefined,
     cursor: "pointer",
     touchAction: "none",
+  };
+}
+
+export function imageShapeStyle(props: ItemProps): CSSProperties {
+  const scallop =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20 0H80Q90 0 90 10Q100 10 100 20V80Q100 90 90 90Q90 100 80 100H20Q10 100 10 90Q0 90 0 80V20Q0 10 10 10Q10 0 20 0Z"/></svg>';
+  return {
+    borderRadius:
+      props.imageShape === "arch"
+        ? "50% 50% 0 0"
+        : props.imageShape === "oval"
+          ? "50%"
+          : (props.borderRadius ?? 0),
+    maskImage:
+      props.imageShape === "scallop"
+        ? `url("data:image/svg+xml,${encodeURIComponent(scallop)}")`
+        : undefined,
+    maskSize: "100% 100%",
+    maskRepeat: "no-repeat",
   };
 }
 
@@ -140,7 +161,7 @@ export function StudioImage(props: ItemProps) {
       style={{
         ...itemStyle(props, selected),
         opacity: props.opacity ?? 1,
-        borderRadius: props.borderRadius ?? 0,
+        ...imageShapeStyle(props),
         overflow: "hidden",
       }}
     >

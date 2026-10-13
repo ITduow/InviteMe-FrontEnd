@@ -4,10 +4,23 @@ import { isValidEventDate } from "../components/date-utils";
 const assetSource = z
   .string()
   .regex(
-    /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
+    /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/images\/template-studio\/minimalism-burgundy\/(?:photo\.png|(?:envelope|paper|botanical)\.svg)|\/images\/template-studio\/collection\/[a-z0-9-]+\.(?:webp|svg)|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
   );
 const props = z
   .object({
+    cover: z
+      .object({
+        enabled: z.boolean(),
+        style: z.enum(["floral", "traditional", "botanical"]).optional(),
+        particles: z.enum(["none", "hearts", "leaves", "happiness"]).optional(),
+        opening: z.enum(["seal", "fly", "fade"]).optional(),
+        names: z.string().max(150),
+        date: z.string().max(100),
+        background: z.string().regex(/^#[0-9a-f]{6}$/i),
+        decoration: assetSource.optional(),
+      })
+      .strict()
+      .optional(),
     revealPreset: z.enum(["none", "fade", "slide-up", "scale-in"]).optional(),
     revealDuration: z.number().min(100).max(3000).optional(),
     revealDelay: z.number().min(0).max(3000).optional(),
@@ -34,6 +47,7 @@ const props = z
     fontFamily: z.enum(["Arial", "Georgia", "EB Garamond"]).optional(),
     objectFit: z.enum(["cover", "contain"]).optional(),
     borderRadius: z.number().min(0).max(1000).optional(),
+    imageShape: z.enum(["rectangle", "arch", "oval", "scallop"]).optional(),
     flipX: z.boolean().optional(),
     address: z.string().max(500).optional(),
     action: z.enum(["rsvp", "calendar", "gift"]).optional(),

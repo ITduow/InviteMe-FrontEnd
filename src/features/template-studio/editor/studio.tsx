@@ -28,7 +28,13 @@ import {
   Youtube,
   Sparkles,
 } from "lucide-react";
-import { StudioFrame, StudioImage, StudioText, type ItemProps } from "../components/items";
+import {
+  StudioFrame,
+  StudioImage,
+  StudioText,
+  imageShapeStyle,
+  type ItemProps,
+} from "../components/items";
 import { StudioCalendar, StudioCountdown } from "../components/date-widgets";
 import {
   StudioAlbum,
@@ -36,14 +42,20 @@ import {
   StudioAction,
   StudioWishes,
 } from "../components/invitation-widgets";
-import brownTemplate from "../templates/minimalism-brown.json";
+import { InvitationCover } from "../components/invitation-cover";
+import { templateCatalog, findTemplate } from "../templates/catalog";
 import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
 import { PhotoFocusContext, type PhotoFocus } from "../components/photo-focus";
 import styles from "./studio.module.css";
-import { StudioReveal, RevealReplayContext, type RevealPreset } from "../components/reveal";
+import {
+  StudioReveal,
+  RevealReplayContext,
+  RevealPausedContext,
+  type RevealPreset,
+} from "../components/reveal";
 
-function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
+function Workspace({ initialTemplate = false }: { initialTemplate?: boolean | string }) {
   const {
     actions,
     query,
@@ -71,6 +83,7 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
   const { replay } = useContext(RevealReplayContext);
   const [json, setJson] = useState("");
   const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
+  const [coverOpen, setCoverOpen] = useState(false);
   const [preview, setPreview] = useState(false);
   const [category, setCategory] = useState(initialTemplate ? "templates" : "utilities");
   const [uploads, setUploads] = useState<{ src: string; name: string }[]>([]);
@@ -132,7 +145,18 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
   const propertyPanel = useRef<HTMLElement>(null);
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const workspace = useRef<HTMLElement>(null);
+  const [previewWidth, setPreviewWidth] = useState(480);
+  useEffect(() => {
+    const element = workspace.current;
+    if (!element) return;
+    const observer = new ResizeObserver(() => setPreviewWidth(element.clientWidth));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const moveable = useRef<Moveable>(null);
+  const cover = query.getNodes().ROOT?.data.props.cover as ItemProps["cover"];
+  const showingCover = preview && !!cover?.enabled && !coverOpen;
   const props = (selected?.node?.data.props ?? {}) as ItemProps;
   const selection = selected?.id;
   const layerIndex = selection ? items.indexOf(selection) : -1;
@@ -143,7 +167,18 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
     const isDecoration = /^\/images\/template-studio\/minimalism-brown\/(?!photo-\d+\.webp$)/.test(
       value.src ?? "",
     );
-    if (node.data.name === "StudioImage" && !isDecoration) {
+    const isBurgundyDecoration = /^\/images\/template-studio\/minimalism-burgundy\/.*\.svg$/.test(
+      value.src ?? "",
+    );
+    const isCollectionDecoration = /^\/images\/template-studio\/collection\/(?!photo-)/.test(
+      value.src ?? "",
+    );
+    if (
+      node.data.name === "StudioImage" &&
+      !isDecoration &&
+      !isBurgundyDecoration &&
+      !isCollectionDecoration
+    ) {
       return [
         {
           nodeId: id,
@@ -218,10 +253,11 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
 
   useEffect(() => {
     if (query.getNodes().ROOT) return;
-    if (initialTemplate) {
+    const template = findTemplate(initialTemplate);
+    if (template) {
       actions.history
         .ignore()
-        .deserialize(JSON.stringify(parseStudioDocument(JSON.stringify(brownTemplate)).nodes));
+        .deserialize(JSON.stringify(parseStudioDocument(JSON.stringify(template.document)).nodes));
       return;
     }
     const root = (
@@ -388,6 +424,7 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
     <main
       id="main-content"
       className={styles.studio}
+      data-preview={preview}
       style={
         {
           "--photo-dock-height": preview ? "0px" : quickPhotosOpen ? "128px" : "36px",
@@ -422,6 +459,8 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
               actions.setOptions((options) => {
                 options.enabled = preview;
               });
+              setCoverOpen(false);
+              stage.current?.parentElement?.scrollTo({ top: 0 });
               setPreview(!preview);
             }}
           >
@@ -552,7 +591,7 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
                 <h3>Ảnh có sẵn</h3>
                 <div className={styles.uploadGrid}>
                   {Array.from({ length: 8 }, (_, index) => {
-                    const src = `/images/template-studio/minimalism-brown/photo-${index + 1}.webp`;
+                    const src = `/images/template-studio/collection/${index % 2 ? "photo-traditional" : "photo-garden"}.webp`;
                     return (
                       <button key={src} onClick={() => chooseImage(src)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -601,32 +640,144 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
             )}
             {category === "templates" && (
               <>
-                <h2>Mẫu thiết kế</h2>
-                <div className={styles.templateCard}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/template-studio/minimalism-brown/photo-1.webp"
-                    alt="Minimalism Nâu"
-                  />
-                  <h3>Minimalism · Nâu</h3>
-                  <p>
-                    Giấy kem, ảnh Polaroid và hoa khô. Dùng lịch, bản đồ, album và RSVP của
-                    InviteMe.
-                  </p>
-                  <button
-                    disabled={preview}
-                    onClick={() => {
-                      importJson(JSON.stringify(brownTemplate));
-                      setMessage(
-                        "Đã áp dụng mẫu Minimalism Nâu. Dùng Undo để quay lại thiết kế trước.",
-                      );
-                      stage.current?.parentElement?.scrollTo({ top: 0 });
-                    }}
-                  >
-                    Dùng mẫu Minimalism Nâu
-                  </button>
-                </div>
+                <h2>Mẫu thiết kế · 15 mẫu</h2>
+                <p>Ảnh người hư cấu và họa tiết riêng. Widget InviteMe dùng chung.</p>
+                {templateCatalog.map((template) => (
+                  <div className={styles.templateCard} key={template.id}>
+                    <TemplateThumbnail document={template.document} />
+                    <h3>{template.name}</h3>
+                    <p>{template.description}</p>
+                    <button
+                      disabled={preview}
+                      onClick={() => {
+                        importJson(JSON.stringify(template.document));
+                        setCoverOpen(false);
+                        setMessage("Đã mở mẫu " + template.name + ". Undo để quay lại.");
+                        stage.current?.parentElement?.scrollTo({ top: 0 });
+                      }}
+                    >
+                      Dùng mẫu {template.name.replace(" · ", " ")}
+                    </button>
+                  </div>
+                ))}
               </>
+            )}
+            {category === "templates" && (
+              <fieldset disabled={preview}>
+                <h3>Bìa mở thiệp</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={cover?.enabled ?? false}
+                    onChange={(event) =>
+                      actions.setProp("ROOT", (value: ItemProps) => {
+                        value.cover = {
+                          names: "Minh Quân\n& An Nhiên",
+                          date: "3 tháng 1, 2026",
+                          background: "#681f30",
+                          ...value.cover,
+                          enabled: event.target.checked,
+                        };
+                      })
+                    }
+                  />{" "}
+                  Dùng bìa trước nội dung
+                </label>
+                {cover?.enabled && (
+                  <>
+                    <label>
+                      Tên trên bìa
+                      <textarea
+                        value={cover.names}
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover) value.cover.names = event.target.value.slice(0, 150);
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Kiểu bìa
+                      <select
+                        value={cover.style ?? "floral"}
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover)
+                              value.cover.style = event.target.value as NonNullable<
+                                ItemProps["cover"]
+                              >["style"];
+                          })
+                        }
+                      >
+                        <option value="floral">Hoa trên giấy kem</option>
+                        <option value="traditional">Chữ hỷ truyền thống</option>
+                        <option value="botanical">Hoa lá</option>
+                      </select>
+                    </label>
+                    <label>
+                      Hiệu ứng nền
+                      <select
+                        value={cover.particles ?? "hearts"}
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover)
+                              value.cover.particles = event.target.value as NonNullable<
+                                ItemProps["cover"]
+                              >["particles"];
+                          })
+                        }
+                      >
+                        <option value="none">Không</option>
+                        <option value="hearts">Tim</option>
+                        <option value="leaves">Lá</option>
+                        <option value="happiness">Chữ hỷ</option>
+                      </select>
+                    </label>
+                    <label>
+                      Animation mở
+                      <select
+                        value={cover.opening ?? "seal"}
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover)
+                              value.cover.opening = event.target.value as NonNullable<
+                                ItemProps["cover"]
+                              >["opening"];
+                          })
+                        }
+                      >
+                        <option value="seal">Con dấu bung rồi bìa bay lên</option>
+                        <option value="fly">Bìa bay lên</option>
+                        <option value="fade">Tan dần</option>
+                      </select>
+                    </label>
+                    <label>
+                      Ngày trên bìa
+                      <input
+                        value={cover.date}
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover) value.cover.date = event.target.value.slice(0, 100);
+                          })
+                        }
+                      />
+                    </label>
+                    <button
+                      onClick={() => {
+                        setCoverOpen(false);
+                        actions.selectNode();
+                        actions.setOptions((options) => {
+                          options.enabled = false;
+                        });
+                        stage.current?.parentElement?.scrollTo({ top: 0 });
+                        setPreview(true);
+                      }}
+                    >
+                      Xem bìa
+                    </button>
+                  </>
+                )}
+              </fieldset>
             )}
             {category === "effects" && (
               <>
@@ -701,10 +852,37 @@ function Workspace({ initialTemplate = false }: { initialTemplate?: boolean }) {
             )}
           </div>
         </aside>
-        <section className={styles.workspace} aria-label="Khung thiết kế">
-          <div ref={stage} onClick={synchronizeTarget} onPointerUp={synchronizeTarget}>
-            <Frame />
-          </div>
+        <section ref={workspace} className={styles.workspace} aria-label="Khung thiết kế">
+          <RevealPausedContext.Provider value={showingCover}>
+            <div
+              ref={stage}
+              style={{
+                display: showingCover ? "none" : undefined,
+                zoom: preview
+                  ? Math.min(
+                      1,
+                      Math.max(
+                        0.2,
+                        (previewWidth - 24) / (query.getNodes().ROOT?.data.props.width ?? 480),
+                      ),
+                    )
+                  : 1,
+              }}
+              onClick={synchronizeTarget}
+              onPointerUp={synchronizeTarget}
+            >
+              <Frame />
+            </div>
+          </RevealPausedContext.Provider>
+          {showingCover && cover && (
+            <InvitationCover
+              config={cover}
+              onOpen={() => {
+                setCoverOpen(true);
+                stage.current?.parentElement?.scrollTo({ top: 0 });
+              }}
+            />
+          )}
           {!preview && (
             <Moveable
               ref={moveable}
@@ -1376,7 +1554,83 @@ function ColorControl({
   );
 }
 
-export function TemplateStudio({ initialTemplate = false }: { initialTemplate?: boolean }) {
+function TemplateThumbnail({
+  document,
+}: {
+  document: (typeof templateCatalog)[number]["document"];
+}) {
+  const root = document.nodes.ROOT;
+  if (!root) return null;
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        height: 230,
+        overflow: "hidden",
+        position: "relative",
+        background: root.props.background,
+        backgroundImage: root.props.src ? `url(${root.props.src})` : undefined,
+        backgroundSize: "100% auto",
+        marginBottom: 12,
+      }}
+    >
+      <div
+        style={{
+          width: 480,
+          height: 700,
+          position: "relative",
+          transform: "scale(.43)",
+          transformOrigin: "top left",
+          pointerEvents: "none",
+        }}
+      >
+        {root.nodes.map((id) => {
+          const node = document.nodes[id];
+          if (!node) return null;
+          const p = node.props;
+          if ((p.y ?? 0) > 650) return null;
+          const style: CSSProperties = {
+            position: "absolute",
+            left: p.x,
+            top: p.y,
+            width: p.width,
+            height: p.height,
+            transform: `rotate(${p.rotation ?? 0}deg)`,
+            color: p.color,
+            background: p.background,
+            fontSize: p.fontSize,
+            fontFamily: p.fontFamily,
+            textAlign: p.textAlign,
+            fontStyle: p.italic ? "italic" : undefined,
+            whiteSpace: "pre-wrap",
+            opacity: p.opacity,
+            ...imageShapeStyle(p),
+            overflow: "hidden",
+          };
+          return node.type.resolvedName === "StudioText" ? (
+            <div key={id} style={style}>
+              {p.text}
+            </div>
+          ) : node.type.resolvedName === "StudioImage" ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={id}
+              alt=""
+              src={p.src}
+              style={{ ...style, objectFit: p.objectFit, margin: 0, border: 0 }}
+            />
+          ) : null;
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function TemplateStudio({
+  initialTemplate = false,
+}: {
+  initialTemplate?: boolean | string;
+}) {
   const [focus, setFocus] = useState<PhotoFocus>(null);
   const [revision, setRevision] = useState(0);
   return (

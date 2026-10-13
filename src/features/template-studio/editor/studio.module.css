@@ -71,6 +71,18 @@
   border: 1px solid #e5d9cc;
   border-radius: 8px;
   padding: 12px;
+  margin-bottom: 16px;
+}
+.studio[data-preview="true"] .layout {
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+.studio[data-preview="true"] .layout > aside {
+  display: none;
+}
+.studio[data-preview="true"] .workspace {
+  padding: 12px;
+  width: 100%;
 }
 .templateCard img {
   width: 100%;
