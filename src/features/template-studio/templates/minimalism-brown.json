@@ -1,0 +1,1951 @@
+{
+  "schemaVersion": 1,
+  "nodes": {
+    "ROOT": {
+      "type": {
+        "resolvedName": "StudioFrame"
+      },
+      "isCanvas": true,
+      "props": {
+        "background": "#faf4ec",
+        "width": 480,
+        "height": 3680,
+        "src": "/images/template-studio/collection/paper.svg",
+        "cover": {
+          "enabled": true,
+          "names": "Hoàng Long\n&\nBảo Ngọc",
+          "date": "03 / 01 / 2026",
+          "background": "#79604c",
+          "style": "botanical",
+          "particles": "leaves",
+          "opening": "seal",
+          "decoration": "/images/template-studio/collection/magnolia.webp"
+        }
+      },
+      "displayName": "Minimalism · Nâu",
+      "custom": {},
+      "hidden": false,
+      "nodes": [
+        "brown-001",
+        "brown-002",
+        "brown-003",
+        "brown-004",
+        "brown-005",
+        "brown-006",
+        "brown-007",
+        "brown-008",
+        "brown-009",
+        "brown-010",
+        "brown-011",
+        "brown-012",
+        "brown-013",
+        "brown-014",
+        "brown-015",
+        "brown-016",
+        "brown-017",
+        "brown-018",
+        "brown-019",
+        "brown-020",
+        "brown-021",
+        "brown-022",
+        "brown-023",
+        "brown-024",
+        "brown-025",
+        "brown-026",
+        "brown-027",
+        "brown-028",
+        "brown-029",
+        "brown-030",
+        "brown-031",
+        "brown-032",
+        "brown-033",
+        "brown-034",
+        "brown-035",
+        "brown-036",
+        "brown-037",
+        "brown-038",
+        "brown-039",
+        "brown-040",
+        "brown-041",
+        "brown-042",
+        "brown-043",
+        "brown-044",
+        "brown-045",
+        "brown-046",
+        "brown-047",
+        "brown-048",
+        "brown-049",
+        "brown-050",
+        "brown-051",
+        "brown-052",
+        "brown-053",
+        "brown-054",
+        "brown-055",
+        "brown-056",
+        "brown-057",
+        "brown-058",
+        "brown-059",
+        "brown-060",
+        "brown-061",
+        "brown-062",
+        "brown-063",
+        "brown-064",
+        "brown-065",
+        "brown-066",
+        "brown-067",
+        "brown-068",
+        "brown-069",
+        "brown-070",
+        "brown-071",
+        "brown-072",
+        "brown-073",
+        "brown-074",
+        "brown-075"
+      ],
+      "linkedNodes": {}
+    },
+    "brown-001": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 0,
+        "y": 160,
+        "width": 480,
+        "height": 480,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/envelope-brown.svg",
+        "objectFit": "contain",
+        "opacity": 0.12
+      },
+      "displayName": "Trang trí · house-background",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-002": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": -30,
+        "y": 32,
+        "width": 210,
+        "height": 500,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain",
+        "opacity": 0.3
+      },
+      "displayName": "Trang trí · leaf-background",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-003": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 100,
+        "y": 28,
+        "width": 280,
+        "height": 22,
+        "rotation": 0,
+        "text": "THE WEDDING OF",
+        "fontSize": 10,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "uppercase": true
+      },
+      "displayName": "THE WEDDING OF",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-004": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 35,
+        "y": 65,
+        "width": 410,
+        "height": 52,
+        "rotation": 0,
+        "text": "Hoàng Nam & Thảo Vy",
+        "fontSize": 31,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "italic": true
+      },
+      "displayName": "Hoàng Nam & Thảo Vy",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-005": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 123,
+        "y": 136,
+        "width": 227,
+        "height": 327,
+        "rotation": -3,
+        "src": "/images/template-studio/collection/photo-garden.webp",
+        "objectFit": "cover"
+      },
+      "displayName": "Ảnh cưới",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-006": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 101,
+        "y": 102,
+        "width": 278,
+        "height": 395,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/polaroid.svg",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · frame-avatar",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-007": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 65,
+        "y": 322,
+        "width": 95,
+        "height": 225,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · flower2-decoration",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-008": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 90,
+        "y": 565,
+        "width": 300,
+        "height": 520,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/paper.svg",
+        "objectFit": "cover"
+      },
+      "displayName": "Trang trí · paper",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-009": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 24,
+        "y": 613,
+        "width": 112,
+        "height": 365,
+        "rotation": -10,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · leaf-background",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-010": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 333,
+        "y": 860,
+        "width": 98,
+        "height": 230,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · flower2-decoration",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-011": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 120,
+        "y": 590,
+        "width": 240,
+        "height": 24,
+        "rotation": 0,
+        "text": "THÔNG TIN LỄ CƯỚI",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "bold": true
+      },
+      "displayName": "THÔNG TIN LỄ CƯỚI",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-012": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 102,
+        "y": 633,
+        "width": 132,
+        "height": 64,
+        "rotation": 0,
+        "text": "Ông Bà\nTrần Quốc Hưng\nNguyễn Thị Hồng\nQuận 1, TP. Hồ Chí Minh",
+        "fontSize": 10,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Ông Bà\nTrần Quốc Hưng\nNguyễn Thị",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-013": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 246,
+        "y": 633,
+        "width": 132,
+        "height": 64,
+        "rotation": 0,
+        "text": "Ông Bà\nLê Văn Thành\nPhạm Thị Lan\nQuận 3, TP. Hồ Chí Minh",
+        "fontSize": 10,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Ông Bà\nLê Văn Thành\nPhạm Thị Lan",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-014": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 113,
+        "y": 711,
+        "width": 254,
+        "height": 30,
+        "rotation": 0,
+        "text": "TRÂN TRỌNG BÁO TIN LỄ THÀNH HÔN\nCỦA CON CHÚNG TÔI",
+        "fontSize": 9,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "TRÂN TRỌNG BÁO TIN LỄ THÀNH HÔN\n",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-015": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 110,
+        "y": 755,
+        "width": 260,
+        "height": 40,
+        "rotation": 0,
+        "text": "Nguyễn Hoàng Nam",
+        "fontSize": 27,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Nguyễn Hoàng Nam",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-016": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 150,
+        "y": 799,
+        "width": 180,
+        "height": 20,
+        "rotation": 0,
+        "text": "TRƯỞNG NAM",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "TRƯỞNG NAM",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-017": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 180,
+        "y": 825,
+        "width": 120,
+        "height": 34,
+        "rotation": 0,
+        "text": "&",
+        "fontSize": 24,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "italic": true
+      },
+      "displayName": "&",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-018": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 110,
+        "y": 866,
+        "width": 260,
+        "height": 40,
+        "rotation": 0,
+        "text": "Trần Thảo Vy",
+        "fontSize": 27,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Trần Thảo Vy",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-019": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 150,
+        "y": 909,
+        "width": 180,
+        "height": 20,
+        "rotation": 0,
+        "text": "ÚT NỮ",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "ÚT NỮ",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-020": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 120,
+        "y": 939,
+        "width": 240,
+        "height": 31,
+        "rotation": 0,
+        "text": "LỄ THÀNH HÔN ĐƯỢC CỬ HÀNH TẠI\nTƯ GIA",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "LỄ THÀNH HÔN ĐƯỢC CỬ HÀNH TẠI\nTƯ",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-021": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 170,
+        "y": 975,
+        "width": 140,
+        "height": 20,
+        "rotation": 0,
+        "text": "VÀO LÚC",
+        "fontSize": 10,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "VÀO LÚC",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-022": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 170,
+        "y": 994,
+        "width": 140,
+        "height": 30,
+        "rotation": 0,
+        "text": "09:00",
+        "fontSize": 20,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "09:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-023": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 118,
+        "y": 1027,
+        "width": 244,
+        "height": 26,
+        "rotation": 0,
+        "text": "THỨ BẢY   |   03   |   THÁNG 01",
+        "fontSize": 12,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "THỨ BẢY   |   03   |   THÁNG 01",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-024": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 180,
+        "y": 1054,
+        "width": 120,
+        "height": 26,
+        "rotation": 0,
+        "text": "2026",
+        "fontSize": 18,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "2026",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-025": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 110,
+        "y": 1086,
+        "width": 260,
+        "height": 20,
+        "rotation": 0,
+        "text": "(Tức ngày 15 tháng 11 năm Ất Tỵ)",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "(Tức ngày 15 tháng 11 năm Ất Tỵ)",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-026": {
+      "type": {
+        "resolvedName": "StudioAlbum"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 20,
+        "y": 1135,
+        "width": 440,
+        "height": 330,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "title": "ALBUM ẢNH",
+        "images": [
+          "/images/template-studio/collection/photo-garden.webp",
+          "/images/template-studio/collection/photo-traditional.webp",
+          "/images/template-studio/collection/photo-garden.webp",
+          "/images/template-studio/collection/photo-traditional.webp",
+          "/images/template-studio/collection/photo-garden.webp",
+          "/images/template-studio/collection/photo-traditional.webp",
+          "/images/template-studio/collection/photo-garden.webp",
+          "/images/template-studio/collection/photo-traditional.webp"
+        ]
+      },
+      "displayName": "Album ảnh",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-027": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 90,
+        "y": 1510,
+        "width": 300,
+        "height": 550,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/paper.svg",
+        "objectFit": "cover"
+      },
+      "displayName": "Trang trí · paper",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-028": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 332,
+        "y": 1530,
+        "width": 118,
+        "height": 320,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain",
+        "flipX": true
+      },
+      "displayName": "Trang trí · leaf-background",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-029": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 40,
+        "y": 1790,
+        "width": 100,
+        "height": 260,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · flower2-decoration",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-030": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 120,
+        "y": 1535,
+        "width": 240,
+        "height": 25,
+        "rotation": 0,
+        "text": "THÔNG TIN TIỆC CƯỚI",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "bold": true
+      },
+      "displayName": "THÔNG TIN TIỆC CƯỚI",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-031": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 110,
+        "y": 1572,
+        "width": 260,
+        "height": 26,
+        "rotation": 0,
+        "text": "Tiệc cưới sẽ diễn ra vào lúc:",
+        "fontSize": 15,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Tiệc cưới sẽ diễn ra vào lúc:",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-032": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 170,
+        "y": 1610,
+        "width": 140,
+        "height": 32,
+        "rotation": 0,
+        "text": "18:00",
+        "fontSize": 22,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "18:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-033": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 115,
+        "y": 1654,
+        "width": 250,
+        "height": 25,
+        "rotation": 0,
+        "text": "THỨ BẢY   |   03   |   THÁNG 01",
+        "fontSize": 13,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "THỨ BẢY   |   03   |   THÁNG 01",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-034": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 180,
+        "y": 1691,
+        "width": 120,
+        "height": 30,
+        "rotation": 0,
+        "text": "2026",
+        "fontSize": 19,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "2026",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-035": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 110,
+        "y": 1724,
+        "width": 260,
+        "height": 20,
+        "rotation": 0,
+        "text": "(Tức ngày 15 tháng 11 năm Ất Tỵ)",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "(Tức ngày 15 tháng 11 năm Ất Tỵ)",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-036": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 125,
+        "y": 1762,
+        "width": 230,
+        "height": 20,
+        "rotation": 0,
+        "text": "ĐÓN KHÁCH       KHAI TIỆC",
+        "fontSize": 9,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "ĐÓN KHÁCH       KHAI TIỆC",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-037": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 125,
+        "y": 1784,
+        "width": 230,
+        "height": 25,
+        "rotation": 0,
+        "text": "17:30             18:00",
+        "fontSize": 13,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "17:30             18:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-038": {
+      "type": {
+        "resolvedName": "StudioCalendar"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 135,
+        "y": 1835,
+        "width": 210,
+        "height": 176,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#f7efe4",
+        "background": "#7c6a60",
+        "accent": "#ae9683",
+        "eventDate": "2026-01-03",
+        "title": ""
+      },
+      "displayName": "Lịch ngày cưới",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-039": {
+      "type": {
+        "resolvedName": "StudioAction"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 140,
+        "y": 2018,
+        "width": 200,
+        "height": 36,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "action": "calendar",
+        "title": "Thêm vào lịch",
+        "eventDate": "2026-01-03",
+        "eventTime": "18:00",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "message": "Đám cưới Hoàng Nam & Thảo Vy"
+      },
+      "displayName": "Thêm vào lịch",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-040": {
+      "type": {
+        "resolvedName": "StudioAction"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 140,
+        "y": 2070,
+        "width": 200,
+        "height": 42,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "action": "rsvp",
+        "title": "XÁC NHẬN THAM DỰ"
+      },
+      "displayName": "Xác nhận tham dự",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-041": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 0,
+        "y": 2180,
+        "width": 480,
+        "height": 440,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/envelope-brown.svg",
+        "objectFit": "contain",
+        "opacity": 0.15
+      },
+      "displayName": "Trang trí · house-background",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-042": {
+      "type": {
+        "resolvedName": "StudioMap"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 20,
+        "y": 2160,
+        "width": 440,
+        "height": 315,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "title": "Tiệc cưới sẽ tổ chức tại",
+        "address": "Trung Tâm Hội Nghị White Palace, 194 Hoàng Văn Thụ, Phường 9, Quận Phú Nhuận, TP. Hồ Chí Minh"
+      },
+      "displayName": "Bản đồ địa điểm",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-043": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 130,
+        "y": 2510,
+        "width": 220,
+        "height": 26,
+        "rotation": 0,
+        "text": "DRESS CODE",
+        "fontSize": 14,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "bold": true
+      },
+      "displayName": "DRESS CODE",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-044": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 130,
+        "y": 2538,
+        "width": 220,
+        "height": 20,
+        "rotation": 0,
+        "text": "Trang phục dự tiệc",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Trang phục dự tiệc",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-045": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 132,
+        "y": 2575,
+        "width": 34,
+        "height": 34,
+        "rotation": 0,
+        "text": "",
+        "fontSize": 12,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "background": "#002e14",
+        "borderRadius": 100
+      },
+      "displayName": "Màu trang phục",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-046": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 187,
+        "y": 2575,
+        "width": 34,
+        "height": 34,
+        "rotation": 0,
+        "text": "",
+        "fontSize": 12,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "background": "#dab770",
+        "borderRadius": 100
+      },
+      "displayName": "Màu trang phục",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-047": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 242,
+        "y": 2575,
+        "width": 34,
+        "height": 34,
+        "rotation": 0,
+        "text": "",
+        "fontSize": 12,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "background": "#34583a",
+        "borderRadius": 100
+      },
+      "displayName": "Màu trang phục",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-048": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 297,
+        "y": 2575,
+        "width": 34,
+        "height": 34,
+        "rotation": 0,
+        "text": "",
+        "fontSize": 12,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "background": "#f3e7c7",
+        "borderRadius": 100
+      },
+      "displayName": "Màu trang phục",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-049": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 90,
+        "y": 2650,
+        "width": 300,
+        "height": 275,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/paper.svg",
+        "objectFit": "cover"
+      },
+      "displayName": "Trang trí · paper",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-050": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 336,
+        "y": 2618,
+        "width": 100,
+        "height": 235,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/magnolia.webp",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · flower2-decoration",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-051": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 115,
+        "y": 2675,
+        "width": 250,
+        "height": 25,
+        "rotation": 0,
+        "text": "LỊCH TRÌNH NGÀY CƯỚI",
+        "fontSize": 13,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "bold": true
+      },
+      "displayName": "LỊCH TRÌNH NGÀY CƯỚI",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-052": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 148,
+        "y": 2720,
+        "width": 58,
+        "height": 23,
+        "rotation": 0,
+        "text": "17:00",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "17:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-053": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 226,
+        "y": 2723,
+        "width": 25,
+        "height": 20,
+        "rotation": 0,
+        "text": "●",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "●",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-054": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 266,
+        "y": 2720,
+        "width": 112,
+        "height": 23,
+        "rotation": 0,
+        "text": "Đón khách",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "left",
+        "lineHeight": 1.3
+      },
+      "displayName": "Đón khách",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-055": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 148,
+        "y": 2754,
+        "width": 58,
+        "height": 23,
+        "rotation": 0,
+        "text": "18:00",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "18:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-056": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 226,
+        "y": 2757,
+        "width": 25,
+        "height": 20,
+        "rotation": 0,
+        "text": "●",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "●",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-057": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 266,
+        "y": 2754,
+        "width": 112,
+        "height": 23,
+        "rotation": 0,
+        "text": "Khai tiệc",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "left",
+        "lineHeight": 1.3
+      },
+      "displayName": "Khai tiệc",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-058": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 148,
+        "y": 2788,
+        "width": 58,
+        "height": 23,
+        "rotation": 0,
+        "text": "18:30",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "18:30",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-059": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 226,
+        "y": 2791,
+        "width": 25,
+        "height": 20,
+        "rotation": 0,
+        "text": "●",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "●",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-060": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 266,
+        "y": 2788,
+        "width": 112,
+        "height": 23,
+        "rotation": 0,
+        "text": "Nghi thức cưới",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "left",
+        "lineHeight": 1.3
+      },
+      "displayName": "Nghi thức cưới",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-061": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 148,
+        "y": 2822,
+        "width": 58,
+        "height": 23,
+        "rotation": 0,
+        "text": "19:00",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "19:00",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-062": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 226,
+        "y": 2825,
+        "width": 25,
+        "height": 20,
+        "rotation": 0,
+        "text": "●",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "●",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-063": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 266,
+        "y": 2822,
+        "width": 112,
+        "height": 23,
+        "rotation": 0,
+        "text": "Cắt bánh & nâng ly",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "left",
+        "lineHeight": 1.3
+      },
+      "displayName": "Cắt bánh & nâng ly",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-064": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 148,
+        "y": 2856,
+        "width": 58,
+        "height": 23,
+        "rotation": 0,
+        "text": "20:30",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "20:30",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-065": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 226,
+        "y": 2859,
+        "width": 25,
+        "height": 20,
+        "rotation": 0,
+        "text": "●",
+        "fontSize": 8,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "●",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-066": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 266,
+        "y": 2856,
+        "width": 112,
+        "height": 23,
+        "rotation": 0,
+        "text": "Kết thúc tiệc",
+        "fontSize": 11,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "left",
+        "lineHeight": 1.3
+      },
+      "displayName": "Kết thúc tiệc",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-067": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 126,
+        "y": 2751,
+        "width": 20,
+        "height": 20,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/gate.svg",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · gate",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-068": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 126,
+        "y": 2785,
+        "width": 20,
+        "height": 20,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/cake.svg",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · cake",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-069": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 126,
+        "y": 2819,
+        "width": 20,
+        "height": 20,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/water.svg",
+        "objectFit": "contain"
+      },
+      "displayName": "Trang trí · water",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-070": {
+      "type": {
+        "resolvedName": "StudioImage"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 45,
+        "y": 2980,
+        "width": 390,
+        "height": 440,
+        "rotation": 0,
+        "src": "/images/template-studio/collection/paper.svg",
+        "objectFit": "cover"
+      },
+      "displayName": "Trang trí · paper-note",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-071": {
+      "type": {
+        "resolvedName": "StudioWishes"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 55,
+        "y": 2990,
+        "width": 370,
+        "height": 420,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "title": "Sổ lưu bút"
+      },
+      "displayName": "Sổ lưu bút",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-072": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 100,
+        "y": 3450,
+        "width": 280,
+        "height": 30,
+        "rotation": 0,
+        "text": "Hộp Quà Mừng",
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3,
+        "bold": true
+      },
+      "displayName": "Hộp Quà Mừng",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-073": {
+      "type": {
+        "resolvedName": "StudioAction"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 130,
+        "y": 3505,
+        "width": 220,
+        "height": 55,
+        "rotation": 0,
+        "fontSize": 16,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "background": "#faf4ec",
+        "accent": "#7c6a60",
+        "action": "gift",
+        "title": "🎁 Mở hộp mừng cưới",
+        "message": "Sự hiện diện và lời chúc của bạn là món quà quý giá nhất dành cho chúng mình."
+      },
+      "displayName": "Hộp quà mừng",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-074": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 50,
+        "y": 3590,
+        "width": 380,
+        "height": 45,
+        "rotation": 0,
+        "text": "Sự hiện diện của quý khách là niềm vinh hạnh\ncủa gia đình chúng tôi!",
+        "fontSize": 13,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "Sự hiện diện của quý khách là ni",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "brown-075": {
+      "type": {
+        "resolvedName": "StudioText"
+      },
+      "isCanvas": false,
+      "props": {
+        "x": 150,
+        "y": 3640,
+        "width": 180,
+        "height": 22,
+        "rotation": 0,
+        "text": "♡ InviteMe",
+        "fontSize": 10,
+        "fontFamily": "EB Garamond",
+        "color": "#7c6a60",
+        "textAlign": "center",
+        "lineHeight": 1.3
+      },
+      "displayName": "♡ InviteMe",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    }
+  }
+}

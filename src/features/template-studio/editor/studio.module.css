@@ -1,0 +1,574 @@
+.studio {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #f2f3f0;
+  color: #273c32;
+  font-family: Arial, sans-serif;
+  padding-bottom: var(--photo-dock-height, 112px);
+}
+.header {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 18px;
+  background: white;
+  border-bottom: 1px solid #dce2db;
+  gap: 18px;
+}
+.header h1 {
+  font-size: 16px;
+  margin: 0;
+  white-space: nowrap;
+}
+.studio .historyButton {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+.buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.studio button {
+  padding: 9px 13px;
+  border: 1px solid #cdd7ce;
+  border-radius: 7px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+.studio button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.studio button:hover:not(:disabled) {
+  background: #e7efe7;
+}
+.status {
+  min-width: 0;
+  margin: 0;
+  color: #718277;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .header {
+    gap: 8px;
+    padding: 8px 12px;
+    grid-template-columns: 1fr auto;
+  }
+  .status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+  }
+}
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 350px minmax(520px, 1fr) 290px;
+}
+.panel {
+  background: white;
+  padding: 20px;
+  border-right: 1px solid #dce2db;
+}
+.templateCard {
+  background: #faf4ec;
+  border: 1px solid #e5d9cc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.studio[data-preview="true"] .layout {
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+.studio[data-preview="true"] .layout > aside {
+  display: none;
+}
+.studio[data-preview="true"] .workspace {
+  padding: 12px;
+  width: 100%;
+}
+.templateCard img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border: 8px solid white;
+  transform: rotate(-2deg);
+  margin-bottom: 15px;
+}
+.templateCard h3 {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 24px;
+  color: #7c6a60;
+}
+.typography {
+  border: 1px solid #e0e4e8;
+  border-radius: 7px;
+  padding: 14px;
+  margin: 14px 0;
+}
+.typography summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+.textTools {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+.studio .textTools button {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+}
+.studio .textTools button[aria-pressed="true"] {
+  background: #368cff;
+  color: white;
+}
+.textRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 12px;
+}
+.sizeRow {
+  display: flex;
+  gap: 4px;
+}
+.sizeRow input {
+  min-width: 0;
+  text-align: center;
+}
+.panel h2 {
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+.panel h2:not(:first-child) {
+  margin-top: 26px;
+}
+.panel p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #728074;
+}
+.panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  margin: 13px 0;
+}
+.panel input,
+.panel select,
+.panel textarea {
+  border: 1px solid #dce2db;
+  border-radius: 5px;
+  padding: 7px;
+  width: 100%;
+  background: white;
+  color: #273c32;
+}
+.panel input[type="color"] {
+  height: 38px;
+}
+.panel fieldset {
+  border: 0;
+  padding: 0;
+}
+.layer {
+  display: block;
+  margin: 8px 0;
+  width: 100%;
+  text-align: left;
+}
+.layer[aria-pressed="true"] {
+  background: #e4ece4;
+  border-color: #477565;
+}
+.workspace {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  padding: 36px 20px;
+  height: 100%;
+  min-height: 0;
+  background: #e6e6e6;
+}
+.json {
+  height: 160px;
+  font-family: monospace;
+  font-size: 11px;
+  margin: 12px 0;
+}
+.file input {
+  font-size: 11px;
+}
+.layerControls {
+  margin-bottom: 18px;
+}
+.studio .deleteButton {
+  width: 100%;
+  margin-bottom: 12px;
+  color: #af3945;
+  border-color: #ecd0d4;
+  background: #fff8f8;
+}
+.layerControls > span {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 9px;
+  color: #728074;
+}
+.colorControl {
+  font-size: 12px;
+  margin: 13px 0;
+}
+.colorInputs {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.colorInputs input[type="color"] {
+  width: 46px;
+  flex-shrink: 0;
+  padding: 3px;
+}
+.colorInputs input[type="text"] {
+  min-width: 0;
+  font-family: monospace;
+}
+.colorInputs input[aria-invalid="true"] {
+  border-color: #ad3b3b;
+}
+.colorControl small {
+  display: block;
+  margin-top: 6px;
+  color: #ad3b3b;
+}
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 320px minmax(520px, 1fr) 270px;
+    overflow: auto;
+  }
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.library {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  background: white;
+  border-right: 1px solid #e3e6eb;
+  height: 100%;
+  min-height: 0;
+}
+.rail {
+  overflow-y: auto;
+  border-right: 1px solid #e3e6eb;
+  padding: 8px 0;
+}
+.studio .rail button {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #525960;
+}
+.studio .rail button[aria-pressed="true"] {
+  color: #368cff;
+  background: #f1f7ff;
+}
+.libraryContent {
+  padding: 18px 12px;
+  overflow-y: auto;
+}
+.libraryContent h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.libraryContent p {
+  font-size: 12px;
+  color: #87919b;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.utilityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.studio .utilityGrid button {
+  min-height: 98px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 6px;
+  font-size: 11px;
+  border-color: #dfe5ed;
+  color: #233d63;
+  background: #fff;
+}
+.utilityGrid svg {
+  color: #ee7196;
+  stroke-width: 1.7;
+}
+.studio .utilityGrid button:disabled {
+  opacity: 0.65;
+}
+.utilityGrid small {
+  font-size: 9px;
+  color: #8a939c;
+}
+.studio .addCard {
+  width: 100%;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.libraryContent .colorControl input {
+  width: 100%;
+  border: 1px solid #dfe5ed;
+  padding: 7px;
+  border-radius: 5px;
+}
+.libraryContent .colorInputs input[type="color"] {
+  width: 46px;
+  height: 38px;
+}
+.panel {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+.photoDock {
+  position: fixed;
+  bottom: 0;
+  left: 72px;
+  right: 290px;
+  z-index: 40;
+  background: white;
+  border-top: 1px solid #dfe5ed;
+}
+.studio .dockToggle {
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+  padding: 8px 12px;
+  height: 36px;
+}
+.dockToggle small {
+  color: #85909a;
+}
+.photoStrip {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 12px 4px;
+  height: 92px;
+}
+.studio .photoStrip button {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  width: 60px;
+  height: 64px;
+  background: #ececec;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+.photoStrip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photoStrip span {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 9px;
+  background: #0008;
+  color: white;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.studio .photoStrip button[aria-pressed="true"],
+.studio .albumSlots button[aria-pressed="true"] {
+  border-color: #368cff;
+}
+.albumSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.studio .albumSlots button {
+  position: relative;
+  padding: 0;
+  width: 44px;
+  height: 52px;
+  border: 2px solid transparent;
+  overflow: hidden;
+}
+.albumSlots img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.albumSlots span {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 9px;
+  padding: 0 3px;
+  background: #0008;
+  color: white;
+}
+@media (max-width: 1000px) {
+  .photoDock {
+    right: 270px;
+  }
+}
+
+.uploadBox {
+  border: 1px dashed #bcc9d7;
+  border-radius: 12px;
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  color: #287bea;
+  cursor: pointer;
+}
+.uploadBox input {
+  max-width: 100%;
+  font-size: 11px;
+}
+.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.uploadGrid button {
+  padding: 3px;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+}
+.uploadGrid img {
+  width: 100%;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.imagePreview {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  margin: 12px auto;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+}
+.uploadGrid button[aria-pressed="true"] {
+  border: 2px solid #287bea;
+  background: #edf5ff;
+  color: #1769c5;
+}
+.demoEdit {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid #dce2db;
+  border-radius: 999px;
+  background: #fffffff2;
+  color: #273c32;
+  box-shadow: 0 3px 14px #00000012;
+  cursor: pointer;
+  font:
+    13px Arial,
+    sans-serif;
+}
+.demoEdit:focus-visible {
+  outline: 2px solid #477565;
+  outline-offset: 3px;
+}
+.studio[data-preview="true"] .workspace {
+  padding: 0;
+}
+
+.studio[data-cover-editor="true"] .layout {
+  grid-template-columns: 350px minmax(0, 1fr);
+}
+.coverControls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.coverControls label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 16px 0;
+  font-size: 13px;
+}
+.coverControls input:not([type="checkbox"]),
+.coverControls select,
+.coverControls textarea {
+  width: 100%;
+  border: 1px solid #dce2db;
+  border-radius: 6px;
+  padding: 8px;
+  background: white;
+  color: #273c32;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.coverControls label:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+}
+.coverControls textarea {
+  min-height: 85px;
+  resize: vertical;
+}
