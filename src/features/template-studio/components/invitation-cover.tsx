@@ -4,6 +4,7 @@ import styles from "./invitation-cover.module.css";
 export type CoverConfig = {
   enabled: boolean;
   names: string;
+  greeting?: string;
   date: string;
   background: string;
   style?: "floral" | "traditional" | "botanical";
@@ -11,7 +12,15 @@ export type CoverConfig = {
   opening?: "seal" | "fly" | "fade";
   decoration?: string;
 };
-export function InvitationCover({ config, onOpen }: { config: CoverConfig; onOpen: () => void }) {
+export function InvitationCover({
+  config,
+  onOpen,
+  editing = false,
+}: {
+  config: CoverConfig;
+  onOpen: () => void;
+  editing?: boolean;
+}) {
   const [opening, setOpening] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completed = useRef(false);
@@ -28,7 +37,7 @@ export function InvitationCover({ config, onOpen }: { config: CoverConfig; onOpe
     onOpen();
   }
   function start() {
-    if (opening) return;
+    if (opening || editing) return;
     setOpening(true);
     timer.current = setTimeout(finish, 1500);
   }
@@ -157,10 +166,19 @@ export function InvitationCover({ config, onOpen }: { config: CoverConfig; onOpe
             {config.names}
           </h2>
           <p style={{ fontSize: 18 }}>{config.date}</p>
-          <p style={{ fontSize: 20, margin: "22px 0" }}>Thân mời</p>
+          <p
+            style={{
+              fontSize: 20,
+              margin: "22px 0",
+              whiteSpace: "pre-wrap",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {config.greeting ?? "Thân mời"}
+          </p>
           <button
             onClick={start}
-            disabled={opening}
+            disabled={opening || editing}
             aria-busy={opening}
             className={styles.button}
             style={{

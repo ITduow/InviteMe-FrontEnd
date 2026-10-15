@@ -4,7 +4,15 @@ import { Editor, Element, Frame, useEditor } from "@craftjs/core";
 import Moveable from "react-moveable";
 import { useCallback, useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react";
+import {
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Pencil,
+  Undo2,
+  Redo2,
+} from "lucide-react";
 import {
   Type,
   ImageIcon,
@@ -31,6 +39,12 @@ import {
 import { StudioFrame, StudioImage, StudioText, type ItemProps } from "../components/items";
 import { StudioCalendar, StudioCountdown } from "../components/date-widgets";
 import {
+  StudioInterview,
+  StudioTimeline,
+  defaultQuestions,
+  defaultMilestones,
+} from "../components/story-widgets";
+import {
   StudioAlbum,
   StudioMap,
   StudioAction,
@@ -38,7 +52,7 @@ import {
 } from "../components/invitation-widgets";
 import { InvitationCover } from "../components/invitation-cover";
 import { TemplateThumbnail } from "../components/template-thumbnail";
-import { templateCatalog, findTemplate } from "../templates/catalog";
+import { studioTemplates as templateCatalog, findTemplate } from "../templates/catalog";
 import { isValidEventDate } from "../components/date-utils";
 import { parseStudioDocument } from "../schemas/document";
 import { PhotoFocusContext, type PhotoFocus } from "../components/photo-focus";
@@ -157,7 +171,8 @@ function Workspace({
   }, []);
   const moveable = useRef<Moveable>(null);
   const cover = query.getNodes().ROOT?.data.props.cover as ItemProps["cover"];
-  const showingCover = preview && !!cover?.enabled && !coverOpen;
+  const editingCover = !preview && category === "cover";
+  const showingCover = editingCover || (preview && !!cover?.enabled && !coverOpen);
   const props = (selected?.node?.data.props ?? {}) as ItemProps;
   const selection = selected?.id;
   const layerIndex = selection ? items.indexOf(selection) : -1;
@@ -318,7 +333,10 @@ function Workspace({
       | "album"
       | "wishes"
       | "reminder"
-      | "gift",
+      | "gift"
+      | "interview"
+      | "timeline",
+    // Story widgets use the same Craft document and placement logic.
   ) {
     if (items.length >= 100) {
       setMessage("Bản thử hỗ trợ tối đa 100 item.");
@@ -339,6 +357,10 @@ function Workspace({
         <StudioAlbum />
       ) : kind === "wishes" ? (
         <StudioWishes />
+      ) : kind === "interview" ? (
+        <StudioInterview />
+      ) : kind === "timeline" ? (
+        <StudioTimeline />
       ) : (
         <StudioAction
           action={kind === "reminder" ? "calendar" : kind === "gift" ? "gift" : "rsvp"}
@@ -398,16 +420,8 @@ function Workspace({
       2,
     );
     setJson(value);
-    setMessage("Đã lấy JSON hiện tại. Bạn có thể tải file hoặc nhập lại.");
+    setMessage("Đã lấy JSON hiện tại. Bạn có thể sao chép hoặc nhập lại.");
     return value;
-  }
-  function download() {
-    const url = URL.createObjectURL(new Blob([exportJson()], { type: "application/json" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "inviteme-studio.json";
-    link.click();
-    URL.revokeObjectURL(url);
   }
   function importJson(value: string) {
     try {
@@ -426,57 +440,79 @@ function Workspace({
       id="main-content"
       className={styles.studio}
       data-preview={preview}
+      data-cover-editor={editingCover}
       style={
         {
-          "--photo-dock-height": preview ? "0px" : quickPhotosOpen ? "128px" : "36px",
+          "--photo-dock-height":
+            preview || editingCover ? "0px" : quickPhotosOpen ? "128px" : "36px",
         } as CSSProperties
       }
     >
-      <header className={styles.header}>
-        <div>
-          <small>INVITEME / TEMPLATE STUDIO</small>
-          <h1>Template Studio</h1>
-        </div>
-        <div className={styles.buttons}>
-          <button
-            title="Undo · Ctrl+Z"
-            aria-keyshortcuts="Control+Z Meta+Z"
-            disabled={!canUndo}
-            onClick={() => actions.history.undo()}
-          >
-            Undo
-          </button>
-          <button
-            title="Redo · Ctrl+Shift+Z / Ctrl+Y"
-            aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
-            disabled={!canRedo}
-            onClick={() => actions.history.redo()}
-          >
-            Redo
-          </button>
-          <button
-            onClick={() => {
-              actions.selectNode();
-              actions.setOptions((options) => {
-                options.enabled = preview;
-              });
-              setCoverOpen(false);
-              stage.current?.parentElement?.scrollTo({ top: 0 });
-              setPreview(!preview);
-            }}
-          >
-            {preview ? "Về editor" : "Xem trước"}
-          </button>
-          <button onClick={download}>Tải JSON</button>
-        </div>
-      </header>
-      <p className={styles.status} role="status">
-        {preview ? "Đang xem trước. Bấm Về editor để thêm hoặc chỉnh item." : message}
-      </p>
+      {!preview && (
+        <>
+          <header className={styles.header}>
+            <h1>Template Studio</h1>
+            <p className={styles.status} role="status">
+              {message}
+            </p>
+            <div className={styles.buttons}>
+              <button
+                className={styles.historyButton}
+                aria-label="Undo"
+                title="Undo · Ctrl+Z"
+                aria-keyshortcuts="Control+Z Meta+Z"
+                disabled={!canUndo}
+                onClick={() => actions.history.undo()}
+              >
+                <Undo2 size={18} aria-hidden="true" />
+              </button>
+              <button
+                className={styles.historyButton}
+                aria-label="Redo"
+                title="Redo · Ctrl+Shift+Z / Ctrl+Y"
+                aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
+                disabled={!canRedo}
+                onClick={() => actions.history.redo()}
+              >
+                <Redo2 size={18} aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => {
+                  actions.selectNode();
+                  actions.setOptions((options) => {
+                    options.enabled = preview;
+                  });
+                  if (!preview) replay();
+                  setCoverOpen(false);
+                  stage.current?.parentElement?.scrollTo({ top: 0 });
+                  setPreview(!preview);
+                }}
+              >
+                {preview ? "Về editor" : "Xem trước"}
+              </button>
+            </div>
+          </header>
+        </>
+      )}
+      {preview && (
+        <button
+          className={styles.demoEdit}
+          onClick={() => {
+            actions.setOptions((options) => {
+              options.enabled = true;
+            });
+            setCoverOpen(false);
+            setPreview(false);
+          }}
+        >
+          <Pencil size={15} aria-hidden="true" /> Edit
+        </button>
+      )}
       <div className={styles.layout}>
         <aside className={styles.library} aria-label="Thư viện thiết kế">
           <nav className={styles.rail} aria-label="Danh mục thiết kế">
             {[
+              { id: "cover", label: "Bìa thiệp", icon: Mail },
               { id: "text", label: "Văn bản", icon: Type },
               { id: "image", label: "Hình ảnh", icon: ImageIcon },
               { id: "stock", label: "Stock", icon: Library },
@@ -489,7 +525,16 @@ function Workspace({
               { id: "effects", label: "Hiệu ứng", icon: WandSparkles },
               { id: "layers", label: "Các lớp", icon: Layers },
             ].map(({ id, label, icon: Icon }) => (
-              <button key={id} aria-pressed={category === id} onClick={() => setCategory(id)}>
+              <button
+                key={id}
+                aria-pressed={category === id}
+                onClick={() => {
+                  actions.selectNode();
+                  setTarget(null);
+                  setCategory(id);
+                  workspace.current?.scrollTo({ top: 0 });
+                }}
+              >
                 <Icon size={22} />
                 <span>{label}</span>
               </button>
@@ -507,13 +552,19 @@ function Workspace({
                     { label: "Bản đồ", icon: MapPin, kind: "map" as const },
                     { label: "Nút gọi", icon: Phone },
                     { label: "Thêm lời nhắc", icon: Bell, kind: "reminder" as const },
-                    { label: "Form xác nhận tham dự", icon: ClipboardCheck, kind: "rsvp" as const },
+                    {
+                      label: "Form xác nhận tham dự",
+                      icon: ClipboardCheck,
+                      kind: "rsvp" as const,
+                    },
                     { label: "Form tùy chỉnh", icon: ClipboardCheck },
                     { label: "Tên khách tự động", icon: Type },
                     { label: "QR Box", icon: QrCode },
                     { label: "Hiệu ứng phong bì thư", icon: Mail },
                     { label: "Album ảnh", icon: Images, kind: "album" as const },
                     { label: "Sổ lưu bút", icon: ClipboardCheck, kind: "wishes" as const },
+                    { label: "Interview", icon: ClipboardCheck, kind: "interview" as const },
+                    { label: "Timeline", icon: Timer, kind: "timeline" as const },
                     { label: "Hộp quà mừng", icon: Mail, kind: "gift" as const },
                     { label: "Carousel ảnh", icon: GalleryHorizontal },
                     { label: "Video YouTube", icon: Youtube },
@@ -641,7 +692,7 @@ function Workspace({
             )}
             {category === "templates" && (
               <>
-                <h2>Mẫu thiết kế · 15 mẫu</h2>
+                <h2>Mẫu thiết kế · {templateCatalog.length} mẫu</h2>
                 <p>Ảnh người hư cấu và họa tiết riêng. Widget InviteMe dùng chung.</p>
                 {templateCatalog.map((template) => (
                   <div className={styles.templateCard} key={template.id}>
@@ -663,9 +714,12 @@ function Workspace({
                 ))}
               </>
             )}
-            {category === "templates" && (
-              <fieldset disabled={preview}>
-                <h3>Bìa mở thiệp</h3>
+            {category === "cover" && (
+              <fieldset className={styles.coverControls} disabled={preview}>
+                <h2>Bìa thiệp</h2>
+                <p>
+                  Đang chỉnh bìa và nền. Chọn Văn bản hoặc mục khác để quay lại nội dung bên trong.
+                </p>
                 <label>
                   <input
                     type="checkbox"
@@ -686,6 +740,15 @@ function Workspace({
                 </label>
                 {cover?.enabled && (
                   <>
+                    <ColorControl
+                      label="Màu nền bìa"
+                      value={cover.background}
+                      onChange={(background) =>
+                        actions.setProp("ROOT", (value: ItemProps) => {
+                          if (value.cover) value.cover.background = background;
+                        })
+                      }
+                    />
                     <label>
                       Tên trên bìa
                       <textarea
@@ -693,6 +756,19 @@ function Workspace({
                         onChange={(event) =>
                           actions.setProp("ROOT", (value: ItemProps) => {
                             if (value.cover) value.cover.names = event.target.value.slice(0, 150);
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Lời mời trên bìa
+                      <textarea
+                        maxLength={300}
+                        value={cover.greeting ?? "Thân mời"}
+                        placeholder="Ví dụ: Trân trọng kính mời"
+                        onChange={(event) =>
+                          actions.setProp("ROOT", (value: ItemProps) => {
+                            if (value.cover) value.cover.greeting = event.target.value;
                           })
                         }
                       />
@@ -864,7 +940,7 @@ function Workspace({
                       1,
                       Math.max(
                         0.2,
-                        (previewWidth - 24) / (query.getNodes().ROOT?.data.props.width ?? 480),
+                        previewWidth / (query.getNodes().ROOT?.data.props.width ?? 480),
                       ),
                     )
                   : 1,
@@ -875,16 +951,25 @@ function Workspace({
               <Frame />
             </div>
           </RevealPausedContext.Provider>
-          {showingCover && cover && (
+          {showingCover && (
             <InvitationCover
-              config={cover}
+              key={editingCover ? "cover-editor" : "cover-preview"}
+              editing={editingCover}
+              config={
+                cover ?? {
+                  enabled: false,
+                  names: "Minh Quân\n& An Nhiên",
+                  date: "3 tháng 1, 2026",
+                  background: "#681f30",
+                }
+              }
               onOpen={() => {
                 setCoverOpen(true);
                 stage.current?.parentElement?.scrollTo({ top: 0 });
               }}
             />
           )}
-          {!preview && (
+          {!preview && !editingCover && (
             <Moveable
               ref={moveable}
               target={target}
@@ -937,7 +1022,7 @@ function Workspace({
             />
           )}
         </section>
-        <aside ref={propertyPanel} className={styles.panel}>
+        <aside ref={propertyPanel} className={styles.panel} hidden={editingCover}>
           <h2>Thuộc tính</h2>
           {!selection ? (
             <p>Chọn một item trong khung để chỉnh thuộc tính.</p>
@@ -994,7 +1079,9 @@ function Workspace({
                   max={3000}
                   value={props.revealDelay ?? 0}
                   onChange={(event) =>
-                    update({ revealDelay: Math.max(0, Math.min(3000, Number(event.target.value))) })
+                    update({
+                      revealDelay: Math.max(0, Math.min(3000, Number(event.target.value))),
+                    })
                   }
                 />
               </label>
@@ -1065,9 +1152,14 @@ function Workspace({
                   </label>
                 </>
               )}
-              {["StudioMap", "StudioAction", "StudioAlbum", "StudioWishes"].includes(
-                selected?.node?.data.name ?? "",
-              ) && (
+              {[
+                "StudioMap",
+                "StudioAction",
+                "StudioAlbum",
+                "StudioWishes",
+                "StudioInterview",
+                "StudioTimeline",
+              ].includes(selected?.node?.data.name ?? "") && (
                 <>
                   <label>
                     Tiêu đề tiện ích
@@ -1077,6 +1169,162 @@ function Workspace({
                       onChange={(event) => update({ title: event.target.value })}
                     />
                   </label>
+                  {selected?.node?.data.name === "StudioInterview" && (
+                    <>
+                      {(props.questions ?? defaultQuestions).map((entry, index, entries) => (
+                        <fieldset key={index}>
+                          <legend>Câu hỏi {index + 1}</legend>
+                          <label>
+                            Câu hỏi
+                            <input
+                              maxLength={150}
+                              value={entry.question}
+                              onChange={(event) =>
+                                update({
+                                  questions: entries.map((item, i) =>
+                                    i === index ? { ...item, question: event.target.value } : item,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Trả lời
+                            <textarea
+                              maxLength={600}
+                              value={entry.answer}
+                              onChange={(event) =>
+                                update({
+                                  questions: entries.map((item, i) =>
+                                    i === index ? { ...item, answer: event.target.value } : item,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <button
+                            disabled={index === 0}
+                            onClick={() => {
+                              const next = entries.filter((_, i) => i !== index);
+                              next.splice(index - 1, 0, entry);
+                              update({ questions: next });
+                            }}
+                          >
+                            Lên trước
+                          </button>
+                          <button
+                            disabled={entries.length < 2}
+                            onClick={() =>
+                              update({ questions: entries.filter((_, i) => i !== index) })
+                            }
+                          >
+                            Xóa câu hỏi
+                          </button>
+                        </fieldset>
+                      ))}
+                      <button
+                        disabled={(props.questions ?? defaultQuestions).length >= 8}
+                        onClick={() =>
+                          update({
+                            questions: [
+                              ...(props.questions ?? defaultQuestions),
+                              { question: "Câu hỏi mới", answer: "Viết câu trả lời của bạn." },
+                            ],
+                          })
+                        }
+                      >
+                        Thêm câu hỏi
+                      </button>
+                    </>
+                  )}
+                  {selected?.node?.data.name === "StudioTimeline" && (
+                    <>
+                      {(props.milestones ?? defaultMilestones).map((entry, index, entries) => (
+                        <fieldset key={index}>
+                          <legend>Mốc {index + 1}</legend>
+                          <label>
+                            Thời gian
+                            <input
+                              maxLength={40}
+                              value={entry.time}
+                              onChange={(event) =>
+                                update({
+                                  milestones: entries.map((item, i) =>
+                                    i === index ? { ...item, time: event.target.value } : item,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Tên mốc
+                            <input
+                              maxLength={120}
+                              value={entry.title}
+                              onChange={(event) =>
+                                update({
+                                  milestones: entries.map((item, i) =>
+                                    i === index ? { ...item, title: event.target.value } : item,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Mô tả
+                            <textarea
+                              maxLength={220}
+                              value={entry.description}
+                              onChange={(event) =>
+                                update({
+                                  milestones: entries.map((item, i) =>
+                                    i === index
+                                      ? { ...item, description: event.target.value }
+                                      : item,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <button
+                            disabled={index === 0}
+                            onClick={() => {
+                              const next = entries.filter((_, i) => i !== index);
+                              next.splice(index - 1, 0, entry);
+                              update({ milestones: next });
+                            }}
+                          >
+                            Lên trước
+                          </button>
+                          <button
+                            disabled={entries.length < 2}
+                            onClick={() =>
+                              update({ milestones: entries.filter((_, i) => i !== index) })
+                            }
+                          >
+                            Xóa mốc
+                          </button>
+                        </fieldset>
+                      ))}
+                      <button
+                        disabled={(props.milestones ?? defaultMilestones).length >= 8}
+                        onClick={() =>
+                          update({
+                            milestones: [
+                              ...(props.milestones ?? defaultMilestones),
+                              {
+                                time: "19:00",
+                                title: "Mốc mới",
+                                description: "Nội dung của bạn.",
+                              },
+                            ],
+                          })
+                        }
+                      >
+                        Thêm mốc
+                      </button>
+                    </>
+                  )}
                   {selected?.node?.data.name === "StudioMap" && (
                     <label>
                       Địa điểm
@@ -1448,7 +1696,7 @@ function Workspace({
           </label>
         </aside>
       </div>
-      {!preview && (
+      {!preview && !editingCover && (
         <section className={styles.photoDock} aria-label="Thay ảnh nhanh">
           <button
             className={styles.dockToggle}
@@ -1563,7 +1811,7 @@ export function TemplateStudio({
   initialPreview?: boolean;
 }) {
   const [focus, setFocus] = useState<PhotoFocus>(null);
-  const [revision, setRevision] = useState(0);
+  const [revision, setRevision] = useState(initialPreview ? 1 : 0);
   return (
     <PhotoFocusContext.Provider
       value={{ focus, select: (nodeId, index) => setFocus({ nodeId, index }) }}
@@ -1584,6 +1832,8 @@ export function TemplateStudio({
             StudioMap,
             StudioAction,
             StudioWishes,
+            StudioInterview,
+            StudioTimeline,
           }}
         >
           <Workspace initialTemplate={initialTemplate} initialPreview={initialPreview} />

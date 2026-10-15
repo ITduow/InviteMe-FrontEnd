@@ -30,7 +30,7 @@ export function StudioReveal({ render }: { render: ReactElement }) {
     if (!element || !target || !active) return;
     if (
       !("IntersectionObserver" in window) ||
-      (!enabled && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      (!enabled && revision === 0 && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     ) {
       element.dataset.visible = "true";
       element.dataset.revealFallback = !("IntersectionObserver" in window)
@@ -60,7 +60,7 @@ export function StudioReveal({ render }: { render: ReactElement }) {
       ref={wrapper}
       className={styles.wrapper}
       data-reveal={active ? preset : "none"}
-      data-explicit={enabled && revision > 0 ? "true" : "false"}
+      data-explicit={revision > 0 ? "true" : "false"}
       style={
         {
           "--reveal-duration": `${props.revealDuration ?? duration}ms`,

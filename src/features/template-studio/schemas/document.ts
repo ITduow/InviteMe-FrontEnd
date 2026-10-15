@@ -4,7 +4,7 @@ import { isValidEventDate } from "../components/date-utils";
 const assetSource = z
   .string()
   .regex(
-    /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/images\/template-studio\/minimalism-burgundy\/(?:photo\.png|(?:envelope|paper|botanical)\.svg)|\/images\/template-studio\/collection\/[a-z0-9-]+\.(?:webp|svg)|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
+    /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/images\/template-studio\/minimalism-burgundy\/(?:photo\.png|(?:envelope|paper|botanical)\.svg)|\/images\/template-studio\/collection\/[a-z0-9-]+\.(?:webp|svg)|\/images\/template-studio\/story-collection\/[a-z0-9-]+\.(?:webp|svg)|\/images\/template-studio\/story-red-velvet\/photo\.png|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
   );
 const props = z
   .object({
@@ -15,6 +15,7 @@ const props = z
         particles: z.enum(["none", "hearts", "leaves", "happiness"]).optional(),
         opening: z.enum(["seal", "fly", "fade"]).optional(),
         names: z.string().max(150),
+        greeting: z.string().max(300).optional(),
         date: z.string().max(100),
         background: z.string().regex(/^#[0-9a-f]{6}$/i),
         decoration: assetSource.optional(),
@@ -52,6 +53,24 @@ const props = z
     address: z.string().max(500).optional(),
     action: z.enum(["rsvp", "calendar", "gift"]).optional(),
     message: z.string().max(2000).optional(),
+    questions: z
+      .array(z.object({ question: z.string().max(150), answer: z.string().max(600) }).strict())
+      .min(1)
+      .max(8)
+      .optional(),
+    milestones: z
+      .array(
+        z
+          .object({
+            time: z.string().max(40),
+            title: z.string().max(120),
+            description: z.string().max(220),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(8)
+      .optional(),
     images: z.array(assetSource).min(1).max(100).optional(),
     title: z.string().max(150).optional(),
     accent: z
@@ -85,6 +104,8 @@ const node = z
           "StudioMap",
           "StudioAction",
           "StudioWishes",
+          "StudioInterview",
+          "StudioTimeline",
         ]),
       })
       .strict(),

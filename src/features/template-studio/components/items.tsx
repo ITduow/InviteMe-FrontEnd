@@ -41,6 +41,8 @@ export type ItemProps = {
   images?: string[];
   action?: "rsvp" | "calendar" | "gift";
   message?: string;
+  questions?: { question: string; answer: string }[];
+  milestones?: { time: string; title: string; description: string }[];
 };
 
 export function itemStyle(props: ItemProps, selected: boolean): CSSProperties {

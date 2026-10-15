@@ -8,6 +8,7 @@ export default async function Page({
   const params = await searchParams;
   return (
     <TemplateStudio
+      key={`${params.template ?? "blank"}:${params.preview === "1" ? "preview" : "edit"}`}
       initialTemplate={params.template ?? false}
       initialPreview={params.preview === "1"}
     />
