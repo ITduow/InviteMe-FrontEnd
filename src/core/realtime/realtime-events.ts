@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Proposed event names. Align with the ASP.NET hub before integration.
+// Legacy named events plus the backend's minimal weddingChanged invalidations.
 export const REALTIME_EVENTS = {
   rsvp: "RsvpUpdated",
   capacity: "CapacityUpdated",
@@ -15,3 +15,8 @@ export const weddingEventSchema = z.object({
   version: z.number().int().nonnegative(),
 });
 export type WeddingEvent = z.infer<typeof weddingEventSchema>;
+export const planningChangeSchema = z.object({
+  type: z.enum(["PlanningSeatingChanged", "PlanningGuestsImported"]),
+  entityId: z.string(),
+  version: z.number().int().nonnegative().nullable().optional(),
+});

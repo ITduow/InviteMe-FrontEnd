@@ -46,6 +46,31 @@ export function normalizeHttpError(status: number, body: unknown): ApiError {
     body.errors &&
     typeof body.errors === "object"
   ) {
+    if (Array.isArray(body.errors)) {
+      const allowed = [
+        "recipientName",
+        "honorific",
+        "invitationKind",
+        "expectedPeople",
+        "side",
+        "group",
+        "phone",
+        "note",
+        "rowNumber",
+        "rows",
+      ];
+      for (const issue of body.errors) {
+        if (
+          issue &&
+          typeof issue === "object" &&
+          Number.isSafeInteger(issue.rowNumber) &&
+          issue.rowNumber >= 0 &&
+          allowed.includes(issue.field)
+        )
+          fieldErrors[`rows.${issue.rowNumber}.${issue.field}`] = ["Please check this value."];
+      }
+      return new ApiError(status, code, message, fieldErrors);
+    }
     for (const key of Object.keys(body.errors)) fieldErrors[key] = ["Please check this value."];
   }
   return new ApiError(status, code, message, fieldErrors);

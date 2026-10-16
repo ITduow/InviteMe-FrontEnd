@@ -7,6 +7,7 @@ import {
 import {
   REALTIME_EVENTS,
   weddingEventSchema,
+  planningChangeSchema,
   type RealtimeEvent,
   type WeddingEvent,
 } from "./realtime-events";
@@ -80,6 +81,21 @@ export class RealtimeClient {
           this.handlers.get(event)?.forEach((handler) => handler(parsed.data));
       });
     }
+    connection.on("weddingChanged", (payload: unknown) => {
+      const parsed = planningChangeSchema.safeParse(payload);
+      if (
+        this.connection !== connection ||
+        !parsed.success ||
+        parsed.data.entityId !== this.activeWedding
+      )
+        return;
+      this.handlers.get(REALTIME_EVENTS.seating)?.forEach((handler) =>
+        handler({
+          weddingId: parsed.data.entityId,
+          version: parsed.data.version ?? 0,
+        }),
+      );
+    });
     connection.onreconnecting(() => {
       if (this.connection === connection) this.setStatus("reconnecting");
     });
