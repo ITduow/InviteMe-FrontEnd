@@ -52,7 +52,7 @@ export class SessionManager implements ApiSession {
       // Proactively refresh if less than 60s remain.
       // If refresh fails temporarily, return the unexpired token so the current request can proceed.
       const refreshed = await this.refresh();
-      return refreshed ?? this.token.accessToken;
+      return refreshed ?? this.token?.accessToken ?? null;
     }
     return this.token.accessToken;
   }
@@ -76,7 +76,7 @@ export class SessionManager implements ApiSession {
   // ── Public helpers ────────────────────────────────────────────────────────
 
   /**
-   * Store a new access token after a successful login or refresh.
+   * Store a new access token after a successful login.
    * Increments generation so stale request chains abort.
    */
   setToken(raw: { accessToken: string; expiresIn: number }): void {
@@ -136,13 +136,14 @@ export class SessionManager implements ApiSession {
   private refresh(): Promise<string | null> {
     if (!REFRESH_ENABLED) return Promise.resolve(null);
     if (this.refreshPromise) return this.refreshPromise;
-    this.refreshPromise = this.doRefresh().finally(() => {
-      this.refreshPromise = null;
+    const pending = this.doRefresh(this.generation).finally(() => {
+      if (this.refreshPromise === pending) this.refreshPromise = null;
     });
-    return this.refreshPromise;
+    this.refreshPromise = pending;
+    return pending;
   }
 
-  private async doRefresh(): Promise<string | null> {
+  private async doRefresh(generation: number): Promise<string | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) return null;
     try {
@@ -152,12 +153,10 @@ export class SessionManager implements ApiSession {
         cache: "no-store",
         headers: { Accept: "application/json" },
       });
+      if (this.generation !== generation) return null;
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          this.token = null;
-          this.generation++;
-          this.refreshPromise = null;
-          this.emit();
+          this.clear();
         }
         return null;
       }
@@ -165,13 +164,13 @@ export class SessionManager implements ApiSession {
         accessToken?: string;
         expiresIn?: number;
       };
+      if (this.generation !== generation) return null;
       if (!data.accessToken || typeof data.expiresIn !== "number") return null;
       this.token = {
         accessToken: data.accessToken,
         expiresIn: data.expiresIn,
         issuedAt: Date.now(),
       };
-      this.generation++;
       this.emit();
       return this.token.accessToken;
     } catch {

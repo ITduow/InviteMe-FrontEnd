@@ -15,6 +15,7 @@ import { FormField } from "@/shared/forms/form-field";
 import { loginSchema, type LoginInput } from "../schemas/login.schema";
 import { authApi } from "../api/auth.api";
 import { useCurrentUser } from "../hooks/use-current-user";
+import { safeReturnTo } from "@/core/auth/safe-return-to";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ export function LoginForm() {
 
   // Safe redirect — only allow internal paths.
   const redirect = useCallback(() => {
-    const target = returnTo.startsWith("/") ? returnTo : "/dashboard";
+    const target = safeReturnTo(returnTo);
     router.push(target);
   }, [returnTo, router]);
 
