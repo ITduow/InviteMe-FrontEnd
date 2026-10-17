@@ -1,6 +1,6 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import type { Metadata } from "next";
+import { RegisterForm } from "@/features/auth";
+export const metadata: Metadata = { title: "Đăng ký" };
 export default function Page() {
-  return (
-    <FeaturePlaceholder title="Create an account" description="Start planning your celebration." />
-  );
+  return <RegisterForm />;
 }

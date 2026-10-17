@@ -8,7 +8,7 @@ import {
 } from "../src/features/guests/utils/import-selection";
 import { previewFile, confirmFile, getGuests } from "../src/features/guests/api/guest.api";
 import { createApiClient } from "../src/core/api/api-client";
-import { Session } from "../src/core/auth/session";
+import { Session } from "./helpers/api-session";
 import {
   canEditPreview,
   editedCsv,

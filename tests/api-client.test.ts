@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { z } from "zod";
 import { createApiClient } from "../src/core/api/api-client";
 import { ApiError, normalizeHttpError } from "../src/core/api/api-error";
-import { Session } from "../src/core/auth/session";
+import { Session } from "./helpers/api-session";
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {

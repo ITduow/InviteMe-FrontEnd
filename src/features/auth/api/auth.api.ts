@@ -1,36 +1,33 @@
 import { z } from "zod";
 import type { ApiClient } from "@/core/api/api-client";
-import {
-  currentUserSchema,
-  tokenResponseSchema,
-  weddingAccessSchema,
-} from "@/core/auth/auth.types";
-import type { LoginInput } from "../schemas/login.schema";
-export const authKeys = {
-  user: ["auth", "current-user"] as const,
-  access: (weddingId: string) => ["auth", "wedding-access", weddingId] as const,
-};
+import type { RegisterInput } from "../schemas/register.schema";
+const accountSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  email: z.email(),
+  role: z.enum(["USER", "ADMIN"]),
+  emailConfirmed: z.boolean(),
+});
 export const authApi = {
-  login: (api: ApiClient, input: LoginInput) =>
-    api.request("/auth/login", {
+  register: (api: ApiClient, input: Pick<RegisterInput, "displayName" | "email" | "password">) =>
+    api.request("/auth/register", {
       method: "POST",
-      body: input,
       auth: "none",
-      cookieAuth: true,
-      schema: tokenResponseSchema,
+      body: { displayName: input.displayName, email: input.email, password: input.password },
+      schema: accountSchema,
     }),
-  logout: (api: ApiClient) =>
-    api.request("/auth/logout", {
+  resendConfirmation: (api: ApiClient, email: string) =>
+    api.request("/auth/resend-confirmation", {
       method: "POST",
       auth: "none",
-      cookieAuth: true,
+      body: { email },
       schema: z.void(),
     }),
-  currentUser: (api: ApiClient, signal: AbortSignal) =>
-    api.request("/auth/me", { signal, schema: currentUserSchema }),
-  access: (api: ApiClient, weddingId: string, signal: AbortSignal) =>
-    api.request(`/weddings/${encodeURIComponent(weddingId)}/access`, {
-      signal,
-      schema: weddingAccessSchema,
+  confirmEmail: (api: ApiClient, email: string, code: string) =>
+    api.request("/auth/confirm-email", {
+      method: "POST",
+      auth: "none",
+      body: { email, code },
+      schema: z.void(),
     }),
 };

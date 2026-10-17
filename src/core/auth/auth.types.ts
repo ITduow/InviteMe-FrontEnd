@@ -17,18 +17,6 @@ export const WEDDING_PERMISSIONS = [
   "ANALYTICS_VIEW",
 ] as const;
 export type WeddingPermission = (typeof WEDDING_PERMISSIONS)[number];
-export const currentUserSchema = z.object({
-  id: z.string(),
-  displayName: z.string(),
-  email: z.email(),
-  role: z.enum(PLATFORM_ROLES),
-});
-export type CurrentUser = z.infer<typeof currentUserSchema>;
-export const tokenResponseSchema = z.object({
-  accessToken: z.string().min(1),
-  expiresIn: z.number().positive(),
-});
-export type TokenResponse = z.infer<typeof tokenResponseSchema>;
 export const weddingAccessSchema = z.object({
   weddingId: z.string(),
   permissions: z.array(z.enum(WEDDING_PERMISSIONS)),

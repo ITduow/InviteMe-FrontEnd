@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError, isAbortError, normalizeHttpError } from "./api-error";
-import type { Session } from "../auth/session";
+import type { ApiSession } from "./api-session";
 
 type RequestOptions<T> = Omit<RequestInit, "body" | "credentials"> & {
   body?: unknown;
@@ -8,7 +8,7 @@ type RequestOptions<T> = Omit<RequestInit, "body" | "credentials"> & {
   auth?: "required" | "none";
   cookieAuth?: boolean;
 };
-export function createApiClient(baseUrl: string | undefined, session?: Session) {
+export function createApiClient(baseUrl: string | undefined, session?: ApiSession) {
   return {
     async request<T>(path: string, options: RequestOptions<T>): Promise<T> {
       if (!baseUrl)
