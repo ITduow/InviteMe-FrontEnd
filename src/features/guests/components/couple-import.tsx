@@ -80,6 +80,12 @@ const columns = [
     "Ghi nhu cầu đặc biệt. Ghi chú chưa tự trở thành yêu cầu xếp bàn đã được áp dụng.",
     "Muốn ngồi gần lối ra",
   ],
+  [
+    "Email",
+    "Tùy chọn",
+    "Email người đại diện. Để trống nếu chưa có; nếu nhập cần đúng định dạng.",
+    "nam@example.com",
+  ],
 ];
 
 export function CoupleImport({
@@ -117,6 +123,7 @@ export function CoupleImport({
         side: "Phía khách mời",
         group: "Nhóm khách",
         phone: "SĐT",
+        email: "Email",
         note: "Ghi chú",
         rowNumber: "Số dòng",
         rows: "Danh sách",
@@ -241,7 +248,7 @@ export function CoupleImport({
       </header>
       <ol className="grid gap-3 sm:grid-cols-3" aria-label="Các bước chuẩn bị danh sách">
         {[
-          "Tải mẫu 8 cột",
+          "Tải mẫu 9 cột",
           "Điền người nhận & số người",
           onImport ? "Kiểm tra & nhập danh sách" : "Kiểm tra nhóm & thử xếp bàn",
         ].map((label, i) => (
@@ -274,7 +281,7 @@ export function CoupleImport({
             </a>
           </Button>
           <p className="text-xs leading-5 text-muted-foreground">
-            Mẫu 8 cột có danh sách chọn cho phía khách mời, nhóm khách, danh xưng và kiểu lời mời.
+            Mẫu 9 cột có danh sách chọn cho phía khách mời, nhóm khách, danh xưng và kiểu lời mời.
             Giữ nguyên tên và thứ tự cột; có thể tải lại file .xlsx trực tiếp.
           </p>
           <a
@@ -348,7 +355,7 @@ export function CoupleImport({
             type="file"
             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
-            aria-label="Chọn danh sách khách mẫu 8 cột"
+            aria-label="Chọn danh sách khách mẫu 9 cột"
             onChange={(event) => {
               void choose(event.target.files?.[0]);
               event.target.value = "";

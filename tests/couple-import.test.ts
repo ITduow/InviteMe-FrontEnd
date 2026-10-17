@@ -5,8 +5,53 @@ import {
   coupleExamples,
   coupleHeaders,
   parseCoupleCsv,
+  validateCoupleRows,
 } from "../src/features/guests/utils/couple-import";
 const header = coupleHeaders.join(",");
+test("optional contacts allow blanks, preserve phone zero and validate provided values", () => {
+  for (const [phone, email] of [
+    ["", ""],
+    ["0900123456", "nam@example.com"],
+    ["+84 900-123-456", "nam+invite@example.com"],
+  ]) {
+    const [row] = validateCoupleRows([
+      { line: 12, values: ["Nam", "Anh", "Cá nhân", "1", "Chung", "", phone!, "", email!] },
+    ]);
+    assert.deepEqual(row?.errors, []);
+    assert.equal(row?.values[6], phone);
+    assert.equal(row?.values[8], email);
+  }
+  for (const phone of ["abc", "123", "1234567890123456", "++84900123456", "=1234567"]) {
+    const [row] = validateCoupleRows([
+      { line: 12, values: ["Nam", "", "", "1", "Chung", "", phone, "", ""] },
+    ]);
+    assert.ok(row?.errors.some((error) => error.includes("SĐT")));
+    assert.equal(row?.expected, null);
+  }
+  for (const email of [
+    "nam",
+    "nam@",
+    "nam@@example.com",
+    "nam@localhost",
+    "nam..test@example.com",
+    "nam@-example.com",
+    "nam@example_domain.com",
+    "nam name@example.com",
+    "a".repeat(250) + "@example.com",
+  ]) {
+    const [row] = validateCoupleRows([
+      { line: 12, values: ["Nam", "", "", "1", "Chung", "", "", "", email] },
+    ]);
+    assert.ok(row?.errors.some((error) => error.includes("Email")));
+  }
+});
+test("old eight-column CSV still imports with no email", () => {
+  const [row] = parseCoupleCsv(
+    "Tên người nhận,Danh xưng,Kiểu lời mời,Tổng người dự kiến,Phía khách mời,Nhóm khách,SĐT,Ghi chú\nNam,Anh,Cá nhân,1,Chung,,0900123456,",
+  );
+  assert.equal(row?.values[8], "");
+  assert.deepEqual(row?.errors, []);
+});
 test("download matches the displayed example: five recipients and ten expected places", () => {
   const rows = parseCoupleCsv(
     readFileSync(new URL("../public/templates/khach-moi.csv", import.meta.url), "utf8"),

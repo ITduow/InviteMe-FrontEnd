@@ -3,6 +3,21 @@ import assert from "node:assert/strict";
 import { importBody } from "../src/features/guests/api/planning.api";
 import { validateCoupleRows } from "../src/features/guests/utils/couple-import";
 import { normalizeHttpError } from "../src/core/api/api-error";
+test("contact columns are mapped to backend and email errors retain spreadsheet row", () => {
+  const rows = validateCoupleRows([
+    {
+      line: 17,
+      values: ["Nam", "Anh", "Cá nhân", "1", "Chung", "", "0900123456", "", "nam@example.com"],
+    },
+  ]);
+  const row = importBody(rows).rows[0];
+  assert.equal(row?.phone, "0900123456");
+  assert.equal(row?.email, "nam@example.com");
+  const error = normalizeHttpError(422, {
+    errors: [{ rowNumber: 17, field: "email", code: "INVALID_EMAIL", message: "unsafe" }],
+  });
+  assert.deepEqual(Object.keys(error.fieldErrors), ["rows.17.email"]);
+});
 
 test("import maps expected places including primary, explicit side and family without fabricating companions", () => {
   const rows = validateCoupleRows([
@@ -22,6 +37,7 @@ test("import maps expected places including primary, explicit side and family wi
         side: "BRIDE",
         group: { newName: "Họ ngoại", confirmed: true },
         phone: null,
+        email: null,
         note: "Hai trẻ nhỏ",
       },
     ],
