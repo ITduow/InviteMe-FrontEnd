@@ -25,6 +25,7 @@ export class ApiError extends Error {
     public readonly code: ApiErrorCode,
     message: string,
     public readonly fieldErrors: Record<string, string[]> = {},
+    public readonly backendCode?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -36,6 +37,10 @@ export function normalizeHttpError(status: number, body: unknown): ApiError {
     "server",
     "Something went wrong. Please try again later.",
   ];
+  const backendCode =
+    body && typeof body === "object" && "code" in body && typeof body.code === "string"
+      ? body.code
+      : undefined;
   const fieldErrors: Record<string, string[]> = {};
   // Never render backend detail/title/exception text. Only recognize field names.
   if (
@@ -69,11 +74,11 @@ export function normalizeHttpError(status: number, body: unknown): ApiError {
         )
           fieldErrors[`rows.${issue.rowNumber}.${issue.field}`] = ["Please check this value."];
       }
-      return new ApiError(status, code, message, fieldErrors);
+      return new ApiError(status, code, message, fieldErrors, backendCode);
     }
     for (const key of Object.keys(body.errors)) fieldErrors[key] = ["Please check this value."];
   }
-  return new ApiError(status, code, message, fieldErrors);
+  return new ApiError(status, code, message, fieldErrors, backendCode);
 }
 
 export function isAbortError(error: unknown): boolean {
