@@ -1,18 +1,18 @@
-import Link from "next/link";
-import { Button } from "@/shared/ui/button";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { LoginForm } from "@/features/auth";
+
+export const metadata: Metadata = {
+  title: "Đăng nhập",
+  description: "Đăng nhập vào tài khoản InviteMe để chuẩn bị ngày cưới của bạn.",
+};
+
+// LoginForm uses useSearchParams() — Suspense boundary is required in Next.js
+// App Router when a Client Component reads searchParams.
 export default function Page() {
   return (
-    <div className="space-y-5">
-      <h1 className="font-display text-3xl">Đăng nhập</h1>
-      <p className="text-sm text-muted-foreground">
-        Đăng nhập đang được cập nhật. Bạn có thể tạo tài khoản và xác nhận email trước.
-      </p>
-      <Button asChild className="w-full">
-        <Link href="/register">Tạo tài khoản</Link>
-      </Button>
-      <Link href="/" className="block text-center text-sm text-primary">
-        Về trang chủ
-      </Link>
-    </div>
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

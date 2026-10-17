@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { AuthGuard } from "@/features/auth";
+import { AuthGuard, UserMenu } from "@/features/auth";
 import { DashboardShell } from "@/shared/layout/dashboard-shell";
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard>
@@ -9,7 +10,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           { href: "/dashboard", label: "Dashboard" },
           { href: "/weddings", label: "Weddings" },
         ]}
-        account={null}
+        account={<UserMenu />}
       >
         {children}
       </DashboardShell>

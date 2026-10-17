@@ -13,9 +13,13 @@ export const env = z
     apiUrl: optionalUrl,
     signalrUrl: optionalUrl,
     appUrl: optionalUrl,
+    // Public Google OAuth client ID — required for Google login button.
+    // Leave empty to disable the Google login button gracefully.
+    googleClientId: z.string().optional(),
   })
   .parse({
     apiUrl: process.env.NEXT_PUBLIC_API_URL,
     signalrUrl: process.env.NEXT_PUBLIC_SIGNALR_URL,
     appUrl: process.env.NEXT_PUBLIC_APP_URL,
+    googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
   });

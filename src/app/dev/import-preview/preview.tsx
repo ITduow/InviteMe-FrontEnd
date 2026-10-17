@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CoupleImport } from "@/features/guests/components/couple-import";
+import { CoupleImport } from "@/features/guests";
 
 export function ImportPreview() {
   const router = useRouter();
