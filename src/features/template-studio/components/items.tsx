@@ -2,7 +2,9 @@
 
 import { useEditor, useNode } from "@craftjs/core";
 import type { CSSProperties, ReactNode } from "react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { WordingPreviewContext } from "./wording-preview";
+import { resolveStudioText } from "./wording-text";
 
 export type ItemProps = {
   cover?: import("./invitation-cover").CoverConfig;
@@ -15,6 +17,7 @@ export type ItemProps = {
   height?: number;
   rotation?: number;
   text?: string;
+  textBinding?: "invitationWording";
   fontSize?: number;
   color?: string;
   src?: string;
@@ -79,6 +82,7 @@ export function imageShapeStyle(props: ItemProps): CSSProperties {
 }
 
 export function StudioText(props: ItemProps) {
+  const wording = useContext(WordingPreviewContext);
   const { enabled } = useEditor((state) => ({ enabled: state.options.enabled }));
   const [editing, setEditing] = useState(false);
   const {
@@ -91,20 +95,22 @@ export function StudioText(props: ItemProps) {
     <div
       ref={(element) => {
         if (element) connect(element);
-        if (element && editing) element.focus();
+        if (element && editing && !props.textBinding) element.focus();
       }}
       data-studio-node={id}
-      contentEditable={editing}
+      contentEditable={editing && !props.textBinding}
       suppressContentEditableWarning
       onDoubleClick={() => {
-        if (enabled) setEditing(true);
+        if (enabled && !props.textBinding) setEditing(true);
       }}
       onBlur={(event) => {
         if (editing) {
-          const text = event.currentTarget.innerText.slice(0, 10000);
-          setProp((value: ItemProps) => {
-            value.text = text;
-          });
+          if (!props.textBinding) {
+            const text = event.currentTarget.innerText.slice(0, 10000);
+            setProp((value: ItemProps) => {
+              value.text = text;
+            });
+          }
           setEditing(false);
         }
       }}
@@ -127,10 +133,10 @@ export function StudioText(props: ItemProps) {
         background: props.background ?? "transparent",
         borderRadius: props.borderRadius ?? 0,
         opacity: props.opacity ?? 1,
-        cursor: editing ? "text" : "pointer",
+        cursor: editing && !props.textBinding ? "text" : "pointer",
       }}
     >
-      {props.text ?? "Viết lời của bạn"}
+      {resolveStudioText(props, wording)}
     </div>
   );
 }

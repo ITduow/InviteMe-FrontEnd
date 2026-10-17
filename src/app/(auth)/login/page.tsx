@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "@/features/auth";
+import { SessionLoading } from "@/shared/feedback/session-loading";
 
 export const metadata: Metadata = {
   title: "Đăng nhập",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 // App Router when a Client Component reads searchParams.
 export default function Page() {
   return (
-    <Suspense>
+    <Suspense fallback={<SessionLoading />}>
       <LoginForm />
     </Suspense>
   );

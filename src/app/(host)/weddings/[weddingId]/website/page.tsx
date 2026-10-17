@@ -1,7 +1,9 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import Link from "next/link";
+import { Button } from "@/shared/ui/button";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
       permission="WEDDING_EDIT"
@@ -12,7 +14,15 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder title="Wedding website" description="A place to share your story." />
+      <section className="space-y-4">
+        <h1 className="font-serif text-3xl">Thiết kế thiệp</h1>
+        <p className="text-sm text-muted-foreground">
+          Thiết kế nội dung thiệp và lời mời cá nhân hóa cho wedding.
+        </p>
+        <Button asChild>
+          <Link href={`/weddings/${encodeURIComponent(weddingId)}/studio`}>Mở Edit Studio</Link>
+        </Button>
+      </section>
     </PermissionGuard>
   );
 }

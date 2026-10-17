@@ -37,6 +37,22 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+.backLink {
+  align-self: center;
+  font-size: 12px;
+  text-decoration: underline;
+}
+.wordingPanel {
+  min-width: 0;
+}
+.wordingPanel input[type="radio"],
+.wordingPanel input[type="checkbox"] {
+  width: auto;
+}
+.studio .wordingInsert {
+  width: 100%;
+  margin-bottom: 12px;
+}
 .studio button {
   padding: 9px 13px;
   border: 1px solid #cdd7ce;

@@ -13,7 +13,13 @@ export const planningGuestSchema = z.object({
   side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
   group: group.nullable(),
   phone: z.string().nullable(),
+  email: z.string().nullable().optional(),
   note: z.string().nullable(),
+  invitationPath: z
+    .string()
+    .regex(/^\/invite\/[a-f0-9]{64}$/)
+    .nullable()
+    .optional(),
 });
 export const planningDetailSchema = planningGuestSchema.extend({
   places: z.array(
@@ -71,6 +77,7 @@ export function importBody(rows: CoupleRow[]) {
         ] ?? "UNSPECIFIED",
       group: r.values[5] ? { newName: r.values[5], confirmed: true } : null,
       phone: r.values[6] || null,
+      email: r.values[8] || null,
       note: r.values[7] || null,
     })),
   };

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { templateCatalog } from "../templates/catalog";
 import { imageShapeStyle } from "./items";
+import { resolveStudioText } from "./wording-text";
 export function TemplateThumbnail({
   document,
   scale = 0.43,
@@ -81,7 +82,7 @@ export function TemplateThumbnail({
           };
           return node.type.resolvedName === "StudioText" ? (
             <div key={id} style={style}>
-              {p.text}
+              {resolveStudioText(p)}
             </div>
           ) : node.type.resolvedName === "StudioImage" ? (
             /* eslint-disable-next-line @next/next/no-img-element */

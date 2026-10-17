@@ -3,7 +3,7 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { WeddingAccessContext } from "@/shared/components/permission-guard";
-import { LoadingState } from "@/shared/feedback/loading-state";
+import { SessionLoading } from "@/shared/feedback/session-loading";
 import { ErrorState } from "@/shared/feedback/error-state";
 import { getWeddingAccess } from "../api/wedding.api";
 
@@ -26,8 +26,7 @@ export function WeddingAccessProvider({
     enabled: session.authenticated,
     staleTime: 0,
   });
-  if (!session.authenticated || access.isPending)
-    return <LoadingState label="Đang kiểm tra quyền truy cập…" />;
+  if (!session.authenticated || access.isPending) return <SessionLoading />;
   if (access.isError)
     return <ErrorState error={access.error} retry={() => void access.refetch()} />;
   return <WeddingAccessContext value={access.data}>{children}</WeddingAccessContext>;

@@ -11,6 +11,11 @@ import {
 } from "../src/features/template-studio/templates/catalog";
 import { parseStudioDocument } from "../src/features/template-studio/schemas/document";
 import {
+  resolveStudioText,
+  defaultWordingText,
+  resolveCoverGreeting,
+} from "../src/features/template-studio/components/wording-text";
+import {
   calendarMonth,
   countdownParts,
   eventTimestamp,
@@ -45,6 +50,83 @@ function document() {
     },
   };
 }
+
+test("wording blocks stay bound across export/import without storing a preview guest", () => {
+  const original = document();
+  const source = {
+    ...original,
+    nodes: {
+      ...original.nodes,
+      text: {
+        ...original.nodes.text,
+        props: {
+          ...original.nodes.text.props,
+          textBinding: "invitationWording",
+          text: defaultWordingText,
+        },
+      },
+    },
+  };
+  const saved = JSON.stringify(parseStudioDocument(JSON.stringify(source)));
+  const restored = parseStudioDocument(saved);
+  const props = restored.nodes.text?.props;
+  assert.equal(props?.textBinding, "invitationWording");
+  const sampleA = "Kính mời gia đình bác Nguyễn Văn An đến chung vui cùng chúng cháu.";
+  const sampleB = "Chị Hoa ơi, đến chung vui cùng chúng em nhé!";
+  assert.equal(resolveStudioText(props ?? {}, sampleA), sampleA);
+  assert.equal(resolveStudioText(props ?? {}, sampleB), sampleB);
+  assert.equal(resolveStudioText(props ?? {}, null), defaultWordingText);
+  assert.doesNotMatch(saved, /Nguyễn Văn An|Chị Hoa/);
+  assert.equal(resolveStudioText({ text: "Minh & Lan" }, sampleA), "Minh & Lan");
+});
+
+test("cover wording binding survives export without copying guest identity", () => {
+  const source = document();
+  const cover = {
+    enabled: true,
+    names: "Minh & Lan",
+    date: "",
+    background: "#681f30",
+    greeting: "Thân mời",
+    greetingBinding: "invitationWording" as const,
+  };
+  const saved = JSON.stringify(
+    parseStudioDocument(
+      JSON.stringify({
+        ...source,
+        nodes: { ...source.nodes, ROOT: { ...source.nodes.ROOT, props: { cover } } },
+      }),
+    ),
+  );
+  const restored = parseStudioDocument(saved).nodes.ROOT!.props.cover!;
+  assert.equal(restored.greetingBinding, "invitationWording");
+  assert.equal(resolveCoverGreeting(restored, "Kính mời Bác An"), "Kính mời Bác An");
+  assert.equal(resolveCoverGreeting(restored, "Thân gửi Chị Hoa"), "Thân gửi Chị Hoa");
+  assert.equal(resolveCoverGreeting(restored), defaultWordingText);
+  assert.equal(
+    resolveCoverGreeting({ ...restored, greetingBinding: undefined }, "Bác An"),
+    "Thân mời",
+  );
+  assert.doesNotMatch(saved, /Bác An|Chị Hoa/);
+});
+
+test("wording binding rejects unsupported sources and non-text nodes", () => {
+  const original = document();
+  const bad = {
+    ...original,
+    nodes: {
+      ...original.nodes,
+      text: {
+        ...original.nodes.text,
+        props: { ...original.nodes.text.props, textBinding: "unsafe-source" },
+      },
+    },
+  };
+  assert.throws(() => parseStudioDocument(JSON.stringify(bad)));
+  bad.nodes.text.props.textBinding = "invitationWording";
+  bad.nodes.text.type.resolvedName = "StudioImage";
+  assert.throws(() => parseStudioDocument(JSON.stringify(bad)));
+});
 
 test("studio document preserves Vietnamese content and layout across JSON round-trip", () => {
   const input = document();

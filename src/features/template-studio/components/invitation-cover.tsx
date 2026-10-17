@@ -1,10 +1,13 @@
 "use client";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import styles from "./invitation-cover.module.css";
+import { WordingPreviewContext } from "./wording-preview";
+import { resolveCoverGreeting } from "./wording-text";
 export type CoverConfig = {
   enabled: boolean;
   names: string;
   greeting?: string;
+  greetingBinding?: "invitationWording";
   date: string;
   background: string;
   style?: "floral" | "traditional" | "botanical";
@@ -22,6 +25,7 @@ export function InvitationCover({
   editing?: boolean;
 }) {
   const [opening, setOpening] = useState(false);
+  const wordingPreview = useContext(WordingPreviewContext);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completed = useRef(false);
   useEffect(
@@ -174,7 +178,7 @@ export function InvitationCover({
               overflowWrap: "anywhere",
             }}
           >
-            {config.greeting ?? "Thân mời"}
+            {resolveCoverGreeting(config, wordingPreview)}
           </p>
           <button
             onClick={start}

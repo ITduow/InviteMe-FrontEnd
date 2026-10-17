@@ -16,6 +16,7 @@ const props = z
         opening: z.enum(["seal", "fly", "fade"]).optional(),
         names: z.string().max(150),
         greeting: z.string().max(300).optional(),
+        greetingBinding: z.literal("invitationWording").optional(),
         date: z.string().max(100),
         background: z.string().regex(/^#[0-9a-f]{6}$/i),
         decoration: assetSource.optional(),
@@ -31,6 +32,7 @@ const props = z
     height: z.number().min(20).max(10000).optional(),
     rotation: z.number().min(-3600).max(3600).optional(),
     text: z.string().max(10000).optional(),
+    textBinding: z.literal("invitationWording").optional(),
     bold: z.boolean().optional(),
     italic: z.boolean().optional(),
     underline: z.boolean().optional(),
@@ -123,6 +125,7 @@ const node = z
 export const studioDocumentSchema = z
   .object({
     schemaVersion: z.literal(1),
+    templateId: z.string().max(100).optional(),
     nodes: z.record(z.string(), node),
   })
   .strict()
@@ -147,6 +150,7 @@ export const studioDocumentSchema = z
     )
       invalid();
     for (const [id, item] of Object.entries(nodes)) {
+      if (item.props.textBinding && item.type.resolvedName !== "StudioText") invalid();
       if (id === "ROOT") continue;
       if (
         !children.has(id) ||

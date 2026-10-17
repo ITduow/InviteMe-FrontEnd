@@ -7,6 +7,7 @@ export const coupleHeaders = [
   "Nhóm khách",
   "SĐT",
   "Ghi chú",
+  "Email",
 ] as const;
 
 export const coupleExamples = [
@@ -24,7 +25,7 @@ export const coupleExamples = [
   ["Lê Minh Anh", "Bạn", "Cá nhân", "2", "Nhà gái", "Bạn đại học", "", "Đi cùng một người"],
   ["Phạm Thu Hà", "Bạn", "Cá nhân", "1", "Nhà gái", "Bạn đại học", "", ""],
   ["Hoàng Quốc Nam", "Anh", "Cá nhân", "1", "Nhà trai", "Đồng nghiệp", "", ""],
-];
+].map((row) => [...row, ""]);
 
 export type CoupleRow = {
   line: number;
@@ -86,18 +87,21 @@ export function parseCoupleCsv(source: string): CoupleRow[] {
   if (quoted) throw new Error("Có ô chưa đóng dấu ngoặc kép. Hãy kiểm tra và lưu lại file CSV.");
   if (cell || cells.length || closed) record();
   const header = records.shift()?.cells.map((value) => value.trim());
-  const sevenHeaders = coupleHeaders.filter((name) => name !== "Phía khách mời");
+  const oldHeaders = coupleHeaders.filter((name) => name !== "Email");
+  const sevenHeaders = oldHeaders.filter((name) => name !== "Phía khách mời");
   const legacyHeaders = sevenHeaders.filter((name) => name !== "Kiểu lời mời");
   const legacy = header?.length === 6 && legacyHeaders.every((name, i) => name === header[i]);
   const seven = header?.length === 7 && sevenHeaders.every((name, i) => name === header[i]);
+  const eight = header?.length === 8 && oldHeaders.every((name, i) => name === header[i]);
   if (
     !header ||
     (!legacy &&
       !seven &&
-      (header.length !== 8 || !coupleHeaders.every((name, i) => name === header[i])))
+      !eight &&
+      (header.length !== 9 || !coupleHeaders.every((name, i) => name === header[i])))
   )
     throw new Error(
-      "File cần đúng 8 cột theo thứ tự trong mẫu. Hãy tải mẫu và giữ nguyên dòng tiêu đề.",
+      "File cần đúng 9 cột theo thứ tự trong mẫu. Hãy tải mẫu và giữ nguyên dòng tiêu đề.",
     );
   if (!records.length) throw new Error("File chưa có khách. Thêm ít nhất một người nhận thiệp.");
   if (records.length > 500)
@@ -117,10 +121,30 @@ export function validateCoupleRows(rows: { line: number; values: string[] }[]): 
     seenPhones = new Set<string>();
   return rows.map(({ line, values: rawValues }) => {
     const values = rawValues.map((value) => value.trim());
+    // Existing templates have no Email column; missing optional trailing cells stay blank.
+    if (values.length === 8) values.push("");
     const errors: string[] = [],
       warnings: string[] = [];
-    if (values.length !== 8) errors.push("Dòng cần đủ 8 ô, kể cả ô để trống.");
+    if (values.length !== 9) errors.push("Dòng cần đủ 9 ô, kể cả ô để trống.");
     const [name = "", , rawKind = "", rawCount = "", rawSide = "", , phone = ""] = values;
+    const email = values[8] ?? "";
+    if (
+      phone &&
+      (phone.length > 30 ||
+        !/^\+?[0-9][0-9 ().-]*$/.test(phone) ||
+        phone.replace(/[^0-9]/g, "").length < 7 ||
+        phone.replace(/[^0-9]/g, "").length > 15)
+    )
+      errors.push(
+        "SĐT cần 7–15 chữ số; chỉ dùng dấu + ở đầu, khoảng trắng, dấu chấm, gạch nối hoặc ngoặc.",
+      );
+    // Match FluentValidation EmailAddress(): one @ with content on both sides.
+    const at = email.indexOf("@");
+    if (
+      email &&
+      (email.length > 254 || at <= 0 || at === email.length - 1 || at !== email.lastIndexOf("@"))
+    )
+      errors.push("Email không đúng định dạng hoặc vượt quá 254 ký tự.");
     if (!name) errors.push("Thiếu tên người nhận.");
     const expected = rawCount === "" ? 1 : /^\d+$/.test(rawCount) ? Number(rawCount) : null;
     if (expected === null || !Number.isSafeInteger(expected) || expected < 1)
@@ -140,7 +164,7 @@ export function validateCoupleRows(rows: { line: number; values: string[] }[]): 
       warnings.push(
         "Chưa chọn kiểu lời mời: đang dùng Cá nhân. Chọn Gia đình nếu mời cả nhà; không suy từ số người.",
       );
-    if (values.some((value) => /^[=+@]/.test(value) && value !== phone))
+    if (values.some((value, index) => /^[=+@-]/.test(value) && index !== 6))
       errors.push("Dùng văn bản hoặc số, không dùng công thức trong các ô.");
     const nameKey = name.normalize("NFC").toLocaleLowerCase("vi").replace(/\s+/g, " ");
     const phoneKey = phone.replace(/[\s().-]/g, "");

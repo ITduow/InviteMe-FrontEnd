@@ -14,6 +14,7 @@ import {
 } from "../api/planning.api";
 import type { CoupleRow } from "../utils/couple-import";
 import Link from "next/link";
+import { Copy, ExternalLink } from "lucide-react";
 
 export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const { api } = useRuntime();
@@ -24,6 +25,14 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  async function copyInvitation(path: string) {
+    try {
+      await navigator.clipboard.writeText(new URL(path, window.location.origin).href);
+      setNotice("Đã sao chép link thiệp cá nhân.");
+    } catch {
+      setNotice("Không sao chép được link. Hãy cấp quyền clipboard và thử lại.");
+    }
+  }
   const attempt = useRef<{ serialized: string; key: string } | null>(null);
   const list = useQuery({
     queryKey: ["guest-planning", weddingId, page, search],
@@ -114,6 +123,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                           {x}
                         </th>
                       ))}
+                      {can("INVITATION_SEND") && <th className="p-3">Thiệp cá nhân</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -136,6 +146,37 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                         <td className="p-3">{g.expectedPeople}</td>
                         <td className="p-3">{sideLabels[g.side]}</td>
                         <td className="p-3">{g.group?.name ?? "Chưa phân nhóm"}</td>
+                        {can("INVITATION_SEND") && (
+                          <td className="p-3">
+                            {g.invitationPath ? (
+                              <div className="flex items-center gap-2 whitespace-nowrap">
+                                <Button variant="outline" size="sm" asChild>
+                                  <a
+                                    href={g.invitationPath}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="size-4" aria-hidden="true" />
+                                    Mở thiệp
+                                  </a>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label={`Sao chép link thiệp của ${g.recipientName}`}
+                                  title="Sao chép link thiệp"
+                                  onClick={() => {
+                                    if (g.invitationPath) void copyInvitation(g.invitationPath);
+                                  }}
+                                >
+                                  <Copy className="size-4" aria-hidden="true" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">Chưa có link</span>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
