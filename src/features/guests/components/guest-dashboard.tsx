@@ -19,7 +19,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { ErrorState } from "@/shared/feedback/error-state";
 import { guestKeys, getGuests, getPeople, getReport, type GuestParams } from "../api/guest.api";
-import { GuestImport } from "./guest-import";
+import { CoupleImport } from "./couple-import";
 import { GuestDetail } from "./guest-detail";
 
 const sides: Record<string, string> = {
@@ -55,7 +55,8 @@ function Badge({ value, label }: { value: string; label: string }) {
     </span>
   );
 }
-export function GuestDashboard({ weddingId }: { weddingId: string }) {
+export { PlanningDashboard as GuestDashboard } from "./planning-dashboard";
+export function LegacyGuestDashboard({ weddingId }: { weddingId: string }) {
   const { api } = useRuntime();
   const { can } = usePermission();
   const [importing, setImporting] = useState(false);
@@ -86,9 +87,7 @@ export function GuestDashboard({ weddingId }: { weddingId: string }) {
     enabled: can("ANALYTICS_VIEW") && !importing,
   });
   if (importing && can("GUEST_EDIT"))
-    return (
-      <GuestImport key={weddingId} weddingId={weddingId} onClose={() => setImporting(false)} />
-    );
+    return <CoupleImport key={weddingId} onClose={() => setImporting(false)} />;
   const current = view === "groups" ? groups : people;
   const page = view === "groups" ? params.page : peoplePage;
   const setPage = (value: number) =>
@@ -143,7 +142,7 @@ export function GuestDashboard({ weddingId }: { weddingId: string }) {
                 </a>
               </Button>
               <Button onClick={() => setImporting(true)}>
-                <Upload /> Nhập CSV / Excel
+                <Upload /> Nhập danh sách
               </Button>
             </>
           )}

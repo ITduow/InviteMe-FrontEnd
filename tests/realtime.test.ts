@@ -40,6 +40,29 @@ class FakeConnection {
 }
 afterEach(() => mock.restoreAll());
 
+test("planning weddingChanged invalidations are scoped, validated and delivered to seating listeners", async () => {
+  const connection = new FakeConnection();
+  mock.method(
+    HubConnectionBuilder.prototype,
+    "build",
+    () => connection as unknown as HubConnection,
+  );
+  const client = new RealtimeClient("https://api.example.test/hub", async () => "token");
+  const received: number[] = [];
+  client.on("SeatingUpdated", (event) => received.push(event.version));
+  await client.activate("one");
+  const emit = connection.handlers.get("weddingChanged");
+  emit?.({ type: "PlanningSeatingChanged", entityId: "other", version: 1 });
+  emit?.({ type: "PlanningSeatingChanged", entityId: "one", version: "bad" });
+  emit?.({ type: "Unknown", entityId: "one", version: 1 });
+  emit?.({ type: "PlanningSeatingChanged", entityId: "one", version: 7 });
+  emit?.({ type: "PlanningGuestsImported", entityId: "one", version: null });
+  assert.deepEqual(received, [7, 0]);
+  await client.activate(null);
+  emit?.({ type: "PlanningSeatingChanged", entityId: "one", version: 8 });
+  assert.deepEqual(received, [7, 0]);
+});
+
 test("one active wedding connection; switching and logout stop prior connections", async () => {
   const connections: FakeConnection[] = [];
   mock.method(HubConnectionBuilder.prototype, "build", () => {

@@ -211,7 +211,7 @@ export function GuestImport({ weddingId, onClose }: { weddingId: string; onClose
           <div className="space-y-5 rounded-xl border bg-card p-6">
             <h2 className="font-serif text-xl">Bắt đầu từ file mẫu</h2>
             <Button asChild variant="outline">
-              <a href="/templates/khach-moi.csv" download>
+              <a href="/templates/khach-moi-legacy.csv" download>
                 <Download /> Tải mẫu CSV
               </a>
             </Button>
