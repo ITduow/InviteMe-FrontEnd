@@ -1,9 +1,5 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
-export default function Page() {
-  return (
-    <FeaturePlaceholder
-      title="You’re invited"
-      description="Personalized invitation details will appear here."
-    />
-  );
+import { GuestInvitation } from "@/features/template-studio";
+export default async function Page({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  return <GuestInvitation token={token} />;
 }

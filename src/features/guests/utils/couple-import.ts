@@ -138,12 +138,11 @@ export function validateCoupleRows(rows: { line: number; values: string[] }[]): 
       errors.push(
         "SĐT cần 7–15 chữ số; chỉ dùng dấu + ở đầu, khoảng trắng, dấu chấm, gạch nối hoặc ngoặc.",
       );
+    // Match FluentValidation EmailAddress(): one @ with content on both sides.
+    const at = email.indexOf("@");
     if (
       email &&
-      (email.length > 254 ||
-        !/^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/.test(
-          email,
-        ))
+      (email.length > 254 || at <= 0 || at === email.length - 1 || at !== email.lastIndexOf("@"))
     )
       errors.push("Email không đúng định dạng hoặc vượt quá 254 ký tự.");
     if (!name) errors.push("Thiếu tên người nhận.");

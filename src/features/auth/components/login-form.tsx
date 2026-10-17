@@ -16,6 +16,7 @@ import { loginSchema, type LoginInput } from "../schemas/login.schema";
 import { authApi } from "../api/auth.api";
 import { useCurrentUser } from "../hooks/use-current-user";
 import { safeReturnTo } from "@/core/auth/safe-return-to";
+import { SessionLoading } from "@/shared/feedback/session-loading";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ export function LoginForm() {
   // Safe redirect — only allow internal paths.
   const redirect = useCallback(() => {
     const target = safeReturnTo(returnTo);
-    router.push(target);
+    router.replace(target);
   }, [returnTo, router]);
 
   // If already authenticated, redirect to target immediately
@@ -117,6 +118,8 @@ export function LoginForm() {
   const isSubmitting = form.formState.isSubmitting;
 
   // ── Render ─────────────────────────────────────────────────────────────
+
+  if (!isRestored || isAuthenticated) return <SessionLoading />;
 
   return (
     <div className="space-y-6">

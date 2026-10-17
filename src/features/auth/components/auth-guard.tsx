@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { PlatformRole } from "@/core/auth/auth.types";
 import { useCurrentUser } from "../hooks/use-current-user";
-import { LoadingState } from "@/shared/feedback/loading-state";
+import { SessionLoading } from "@/shared/feedback/session-loading";
 
 /**
  * Client-side route guard.
@@ -39,21 +39,17 @@ export function AuthGuard({ children, role }: { children: ReactNode; role?: Plat
 
   // Show loading while restoring session or fetching user details
   if (!isRestored || isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingState label="Đang kiểm tra quyền truy cập…" />
-      </div>
-    );
+    return <SessionLoading />;
   }
 
   // Not authenticated — will be redirected by useEffect
   if (!isAuthenticated) {
-    return null;
+    return <SessionLoading />;
   }
 
   // Unauthorized role — will be redirected by useEffect
   if (role && user?.role !== role) {
-    return null;
+    return <SessionLoading />;
   }
 
   return <>{children}</>;

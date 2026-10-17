@@ -32,11 +32,7 @@ test("optional contacts allow blanks, preserve phone zero and validate provided 
     "nam",
     "nam@",
     "nam@@example.com",
-    "nam@localhost",
-    "nam..test@example.com",
-    "nam@-example.com",
-    "nam@example_domain.com",
-    "nam name@example.com",
+    "@example.com",
     "a".repeat(250) + "@example.com",
   ]) {
     const [row] = validateCoupleRows([

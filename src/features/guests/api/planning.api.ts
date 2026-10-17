@@ -15,6 +15,11 @@ export const planningGuestSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable().optional(),
   note: z.string().nullable(),
+  invitationPath: z
+    .string()
+    .regex(/^\/invite\/[a-f0-9]{64}$/)
+    .nullable()
+    .optional(),
 });
 export const planningDetailSchema = planningGuestSchema.extend({
   places: z.array(

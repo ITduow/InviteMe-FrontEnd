@@ -1,4 +1,4 @@
-import { LoadingState } from "@/shared/feedback/loading-state";
+import { SessionLoading } from "@/shared/feedback/session-loading";
 export default function Loading() {
-  return <LoadingState />;
+  return <SessionLoading />;
 }
