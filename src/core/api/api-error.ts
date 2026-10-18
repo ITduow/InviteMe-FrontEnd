@@ -15,6 +15,7 @@ const errors: Record<number, [ApiErrorCode, string]> = {
   401: ["unauthenticated", "Please sign in to continue."],
   403: ["forbidden", "You do not have permission to perform this action."],
   404: ["not-found", "The requested item could not be found."],
+  405: ["server", "The API does not support this operation yet. Please contact the project team."],
   409: ["conflict", "This data has changed. Reload the latest version and try again."],
   422: ["business-rule", "This action cannot be completed with the current information."],
 };

@@ -1,9 +1,4 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import { WeddingSetupForm } from "@/features/weddings";
 export default function Page() {
-  return (
-    <FeaturePlaceholder
-      title="Create a wedding"
-      description="Begin with the details of your day."
-    />
-  );
+  return <WeddingSetupForm />;
 }

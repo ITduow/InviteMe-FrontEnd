@@ -64,6 +64,12 @@ test("409 remains a conflict and cannot expose backend exception details", async
       error instanceof ApiError && error.code === "conflict" && !error.message.includes("secret"),
   );
 });
+
+test("405 explains that the requested API operation is not available", () => {
+  const error = normalizeHttpError(405, null);
+  assert.equal(error.status, 405);
+  assert.match(error.message, /API does not support this operation yet/);
+});
 test("field errors expose safe validation text only", () => {
   const error = normalizeHttpError(400, {
     errors: { Email: ["sensitive internal validation text"] },

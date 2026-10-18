@@ -7,11 +7,15 @@ export function ConfirmDialog({
   title,
   description,
   onConfirm,
+  cancelLabel = "Cancel",
+  confirmLabel = "Confirm",
 }: {
   trigger: ReactNode;
   title: string;
   description: string;
   onConfirm: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
 }) {
   return (
     <AlertDialog.Root>
@@ -25,10 +29,10 @@ export function ConfirmDialog({
           </AlertDialog.Description>
           <div className="mt-6 flex justify-end gap-3">
             <AlertDialog.Cancel className={buttonVariants({ variant: "outline" })}>
-              Cancel
+              {cancelLabel}
             </AlertDialog.Cancel>
             <AlertDialog.Action className={buttonVariants()} onClick={onConfirm}>
-              Confirm
+              {confirmLabel}
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>
