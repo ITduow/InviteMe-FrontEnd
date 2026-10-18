@@ -1,10 +1,10 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import type { PageRequest } from "@/core/api/api-types";
+import type { WeddingListRequest } from "../api/wedding.api";
 import { useRuntime } from "@/core/config/runtime";
 import { getWeddings } from "../api/wedding.api";
 import { weddingKeys } from "../api/wedding.keys";
-export function useWeddings(params: PageRequest) {
+export function useWeddings(params: WeddingListRequest) {
   const { api } = useRuntime();
   return useQuery({
     queryKey: weddingKeys.list(params),

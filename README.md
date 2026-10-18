@@ -1,8 +1,8 @@
 # InviteMe frontend
 
-Frontend foundation for a five-person capstone team. Next.js App Router, React, strict TypeScript, Tailwind CSS, and shadcn/ui conventions. The ASP.NET Core API, PostgreSQL, and SignalR hub are separate applications. There are no Next.js API routes or backend business rules here.
+Frontend foundation for a five-person capstone team. Next.js App Router, React, strict TypeScript, Tailwind CSS, and shadcn/ui conventions. The ASP.NET Core API, PostgreSQL, and SignalR hub are separate applications; business rules stay in the backend. The only Next.js API route is a development-only template asset helper.
 
-**Scope:** route scaffolds, layouts, providers, session/permission infrastructure, typed HTTP, realtime lifecycle, reusable UI, and one read-only weddings example. Wedding creation, guest import, invitations, RSVP, seating, check-in, gifts, and other business workflows are intentionally not implemented. Authentication is being rebuilt: registration, resend-confirmation and email confirmation are implemented. The old login/session/bootstrap and speculative wedding-access API have been removed. Login is explicitly unavailable until the next phase; host/admin routes fail closed and authenticated realtime is disabled.
+**Scope:** shared app foundations plus working account, wedding list/setup, guest import/planning, seating, invitation design, and tokenized guest invitation slices. These connect to the separate ASP.NET Core API. RSVP submission, invitation review/publish, check-in, gifts, analytics and most admin workflows remain incomplete; route placeholders do not imply those workflows are available.
 
 ## Run locally
 
@@ -26,15 +26,15 @@ npm run build
 npm start
 ```
 
-No environment values are required to render the public scaffold. Missing API configuration disables registration; missing SignalR configuration disables live updates. Invalid supplied URLs fail validation. Public configuration is compiled into the browser bundle; rebuild after changing it in production.
+The public pages can render without backend configuration. Missing API configuration disables data-backed account, wedding and invitation flows. Missing SignalR configuration disables live updates. Invalid supplied URLs fail validation. Public configuration is compiled into the browser bundle; rebuild after changing it in production.
 
 ## Environment
 
-| Variable                  | Purpose                                                                |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`     | ASP.NET API base including `/api`; example `http://localhost:5000/api` |
-| `NEXT_PUBLIC_SIGNALR_URL` | Full hub endpoint; example `http://localhost:5000/hubs/wedding`        |
-| `NEXT_PUBLIC_APP_URL`     | Frontend origin reserved for future absolute invitation links          |
+| Variable                  | Purpose                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`     | ASP.NET API base including `/api`; local API example `https://localhost:7043/api` |
+| `NEXT_PUBLIC_SIGNALR_URL` | Full hub endpoint; local API example `https://localhost:7043/hubs/weddings`       |
+| `NEXT_PUBLIC_APP_URL`     | Frontend origin reserved for future absolute invitation links                     |
 
 These are public values, never JWT signing keys, database credentials, provider keys, or secrets. `.env.local` is ignored. Use HTTPS in deployment.
 
@@ -46,8 +46,8 @@ The complete tracked-source tree is in [docs/directory-tree.txt](docs/directory-
 src/
   app/              Route groups, thin pages, layouts, error/loading boundaries, providers
   features/
-    auth/           Registration, confirmation, resend and a fail-closed route guard
-    weddings/       Typed, paginated, read-only example and wedding realtime integration
+    auth/           Register, confirm/resend email, email/Google login, session and route guards
+    weddings/       Wedding list, setup form, slug availability, cover media and wedding realtime integration
   shared/
     ui/             Locally owned shadcn/ui primitives
     layout/         Public, dashboard, and wedding navigation
@@ -80,20 +80,30 @@ Dependencies flow **app → features → shared → core**. A layer can use any 
 | Guest            | `/invite/[token]`, `/invite/[token]/rsvp`                                                                                                                              | Secure invitation token; no normal account |
 | Admin            | `/admin` → `/admin/dashboard`; `/admin/users`, `/admin/templates`, `/admin/plans`, `/admin/audit-logs`                                                                 | `ADMIN`                                    |
 
-Route group names never appear in URLs. Guest pages have separate mobile-first styling, `noindex`, and a no-referrer policy. Invitations are scaffolds: they do not validate tokens or display personalized data yet. Do not add analytics that records token-bearing URLs. Add log redaction at deployment infrastructure too.
+Route group names never appear in URLs. Guest pages have separate mobile-first styling, `noindex`, and a no-referrer policy. `/weddings/new` creates a workspace; `/weddings/[weddingId]/overview` reads setup; `/weddings/[weddingId]/settings` edits it. `/invite/[token]` loads the personalized invitation from the API without a normal guest account. The guest RSVP route is still a placeholder. Do not add analytics that records token-bearing URLs. Add log redaction at deployment infrastructure too.
+
+## Wedding Setup
+
+The existing `/weddings` page remains the single paginated wedding list and links into setup. `GET /weddings` returns `{ items, page, pageSize, totalCount, totalPages }`; list rows contain `id`, `title`, `weddingDate`, `participantCount`, `maxCapacity` and `version`. The backend currently serializes a database `NULL` capacity as `maxCapacity: 0`; the UI displays that as `Chưa thiết lập`, and does not infer a default capacity. List search is case-insensitive over title/slug; supported sorts are `weddingDate`, `title` and `createdAt` (the current screen uses `weddingDate`). The create and edit form uses the `weddings` feature API, TanStack Query cache keys and Zod/RHF validation. Its fields are wedding name, unique slug, event date/time, RSVP deadline, venue, capacity and cover image. Dates are sent with the wedding's IANA timezone (default `Asia/Ho_Chi_Minh`) as an explicit offset.
+
+Configure `NEXT_PUBLIC_API_URL` to the backend origin ending in `/api`. Wedding setup calls `POST /weddings`, `GET/PUT /weddings/{id}` and `GET /weddings/check-slug`. Slug checks are debounced by 500 ms and use a cancellable query; the backend still enforces uniqueness when the wedding is saved. The URL shown in the form is a preview only; it does not mean the public wedding site has been published.
+
+Cover images are selected from the device and sent as `multipart/form-data` to `/weddings/{id}/cover-image` (JPEG, PNG or WebP, maximum 5 MiB). On create, the FE first creates the wedding, then uploads with the returned version. If upload fails, it retains the new wedding ID and lets the user retry without creating another wedding. Replacing/removing cover media and setup edits use the latest backend `version`; a `409` shows a reload action instead of retrying a stale write. The Wedding Access response has no `isOwner` flag. The FE uses `WEDDING_EDIT` only to shape the UI; owner-only writes may still be rejected with `403`, and the API remains authoritative for authorization and concurrency.
+
+Use `npm run dev` with the backend running, then sign in and open `/weddings`. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` for local verification.
 
 ## State, API, auth, realtime
 
 - **TanStack Query:** all server state, including current user and wedding permissions. Factories include wedding IDs and all list filters. Queries receive AbortSignal. Mutations must deliberately invalidate/update affected keys; no automatic mutation retries.
 - **Zustand:** client UI only. The working example controls mobile sidebar expansion. Keep ephemeral component state local; future seating selection and wizard drafts may use feature-local stores. Never mirror server collections in Zustand.
 - **HTTP:** feature API files use the injected central client. Relative endpoints only, base URL from environment, Zod response parsing, JWT injection for protected requests, one recovery/retry on 401, normalized errors, and cancellation. Public invitation calls must explicitly use `auth: "none"`; cookies are omitted unless an auth endpoint explicitly requests them. Error title/detail/stack text is never displayed.
-- **Session:** the temporary session implementation has been removed. Registration never creates a session. Login/refresh/logout will be rebuilt in a separate phase.
-- **Authorization:** platform roles are `USER` and `ADMIN`. Host and co-host are wedding relationships, not new platform roles. There is no reception-staff role or AI user role. `PermissionGuard` and `usePermission()` default to no permissions. No membership fetch is wired until the backend exposes an access contract; host/admin routes currently redirect to login. Client checks are UX only; every API and hub method must authorize independently.
+- **Session:** the existing account feature handles login, refresh, logout and the current account. Registration requires email confirmation before the backend allows password login.
+- **Authorization:** platform roles are `USER` and `ADMIN`. Host and co-host are wedding relationships, not new platform roles. There is no reception-staff role or AI user role. `PermissionGuard` and `usePermission()` use the wedding access API and default to no permissions. Client checks are UX only; every API and hub method must authorize independently. Wedding setup updates and cover management are owner-only on the backend.
 - **Realtime:** currently disabled while login/session is rebuilt. The reusable connection client remains available for future authorized wedding workspaces. Features subscribe without constructing connections. Switching weddings/logout stops the previous connection. Initial failures and exhausted reconnect attempts retry; reconnect rejoins the wedding and triggers refetch. Events carry wedding ID/version and are runtime validated. Pending/stale data must be reconciled through backend queries.
 
 ## UI and conventions
 
-Neutral ivory, sage, and charcoal tokens; responsive dashboard, mobile-first invitation shell. Shared accessibility includes a skip link, labeled search/forms, error/status roles, semantic tables, visible focus, and Radix confirmation focus management. No external fonts or images are required to build.
+Soft pink and cream tokens; responsive dashboard, mobile-first invitation shell. Body text uses Be Vietnam Pro and display headings use Noto Serif. Shared accessibility includes a skip link, labeled search/forms, error/status roles, semantic tables, visible focus, and Radix confirmation focus management.
 
 `components.json` configures the shadcn registry and aliases. Button, Input, and Label are locally owned primitives following the shadcn/Radix composition pattern; ConfirmDialog wraps Radix AlertDialog. Add further primitives with `npx shadcn@latest add <component>`, review generated imports, and keep them in `shared/ui`. The only extra runtime libraries are shadcn's normal styling/accessibility dependencies. `tsx` is a development-only adapter for TypeScript tests with Node's built-in runner.
 
@@ -116,10 +126,10 @@ Exact resolved versions are in `package-lock.json` (`npm ls --depth=0`). Initial
 
 ## Next milestone
 
-Agree and integrate the ASP.NET auth/user/membership contracts, then implement wedding creation, list/detail/edit, and owner/co-host authorization as one vertical slice. Include real API integration tests, expired-session cases, and permission-denial cases. Follow with website/guests/import/invitation/RSVP; seating with backend concurrency comes after the participant and capacity contracts are stable. Do not enable refresh or advertise live collaboration until its backend contract is verified.
+Complete the published wedding website and invitation review/send lifecycle, then connect guest RSVP and the backend capacity/waitlist results. After that, implement mobile check-in and gifts/wishes. Keep AI output suggestion-only and wait for the matching backend contracts before exposing those workflows.
 
 ## Registration integration
 
 Set `NEXT_PUBLIC_API_URL` to the BE base URL including `/api`. Backend `Frontend__Url` must match the browser origin for CORS and email links. SMTP must be configured on BE for delivery; a successful register response does not guarantee mail delivery.
 
-`/register` posts only displayName/email/password and shows an email-confirmation notice; it does not sign in. `/confirm-email?email=...&code=...` asks the user to confirm before posting the token (avoids triggering confirmation on link preview). A successful confirmation clears query parameters. Resending has a 60-second UI cooldown, and only the newest email link remains valid. No password/token is persisted by this flow. Login/session and per-wedding authorization will be implemented separately against the real backend contract.
+`/register` posts only displayName/email/password and shows an email-confirmation notice; it does not sign in. `/confirm-email?email=...&code=...` asks the user to confirm before posting the token (avoids triggering confirmation on link preview). A successful confirmation clears query parameters. Resending has a 60-second UI cooldown, and only the newest email link remains valid. No password/token is persisted by this flow. Email/Google login, session refresh and wedding-access checks use the existing backend contract; backend authorization remains authoritative.

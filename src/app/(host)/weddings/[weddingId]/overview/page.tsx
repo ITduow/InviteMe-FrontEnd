@@ -1,7 +1,8 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import { WeddingOverview } from "@/features/weddings";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
       permission="WEDDING_VIEW"
@@ -12,7 +13,7 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder title="Overview" description="Your wedding at a glance." />
+      <WeddingOverview weddingId={weddingId} />
     </PermissionGuard>
   );
 }

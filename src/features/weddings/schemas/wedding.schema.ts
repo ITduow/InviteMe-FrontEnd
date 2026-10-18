@@ -1,6 +1,88 @@
 import { z } from "zod";
+
+export const WEDDING_TIME_ZONE = "Asia/Ho_Chi_Minh";
+export const RESERVED_WEDDING_SLUGS = new Set([
+  "admin",
+  "api",
+  "auth",
+  "guest-invitations",
+  "health",
+  "hubs",
+  "login",
+  "register",
+  "rsvp",
+  "swagger",
+  "weddings",
+  "www",
+]);
+
+export const weddingSlugSchema = z
+  .string()
+  .min(3, "Đường dẫn cần có ít nhất 3 ký tự.")
+  .max(80, "Đường dẫn không được dài quá 80 ký tự.")
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Chỉ dùng chữ thường không dấu, số và dấu gạch ngang đơn.")
+  .refine((value) => !RESERVED_WEDDING_SLUGS.has(value), "Đường dẫn này không thể sử dụng.");
+
+export const weddingSetupSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  eventDateTime: z.iso.datetime({ offset: true }).nullable(),
+  venueName: z.string().nullable(),
+  venueAddress: z.string().nullable(),
+  capacity: z.number().int().positive().nullable(),
+  rsvpDeadline: z.iso.datetime({ offset: true }).nullable(),
+  coverImageUrl: z.string().nullable(),
+  timeZoneId: z.string(),
+  status: z.string(),
+  version: z.number().int().positive(),
+  createdAt: z.iso.datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }),
+});
+export type WeddingSetup = z.infer<typeof weddingSetupSchema>;
+
+const weddingInputShape = z.object({
+  name: z.string().trim().min(1, "Vui lòng nhập tên lễ cưới.").max(200),
+  slug: weddingSlugSchema,
+  eventDateTime: z.iso.datetime({ offset: true }),
+  venueName: z.string().trim().min(1, "Vui lòng nhập tên địa điểm.").max(200),
+  venueAddress: z.string().trim().min(1, "Vui lòng nhập địa chỉ.").max(2000),
+  capacity: z.number().int().positive("Sức chứa phải lớn hơn 0."),
+  rsvpDeadline: z.iso.datetime({ offset: true }),
+});
+
+function deadlineMustNotFollowEvent<T extends { eventDateTime: string; rsvpDeadline: string }>(
+  value: T,
+  ctx: z.RefinementCtx,
+) {
+  if (Date.parse(value.rsvpDeadline) > Date.parse(value.eventDateTime))
+    ctx.addIssue({
+      code: "custom",
+      path: ["rsvpDeadline"],
+      message: "Hạn RSVP không được sau ngày tổ chức.",
+    });
+}
+
+export const weddingCreateInputSchema = weddingInputShape
+  .extend({ coverImageUrl: z.null() })
+  .superRefine(deadlineMustNotFollowEvent);
+
+export const weddingUpdateInputSchema = weddingInputShape
+  .extend({
+    coverImageUrl: z.string().nullable(),
+    expectedVersion: z.number().int().positive(),
+  })
+  .superRefine(deadlineMustNotFollowEvent);
+export type WeddingCreateInput = z.infer<typeof weddingCreateInputSchema>;
+export type WeddingUpdateInput = z.infer<typeof weddingUpdateInputSchema>;
+export const weddingSlugAvailabilitySchema = z.object({ slug: z.string(), available: z.boolean() });
+export const weddingCoverResultSchema = z.object({
+  coverImageUrl: z.string().nullable(),
+  version: z.number().int().positive(),
+});
+
 export const weddingSummarySchema = z.object({
-  id: z.string(),
+  id: z.uuid(),
   title: z.string(),
   weddingDate: z.iso.date().nullable(),
   participantCount: z.number().int().nonnegative(),
@@ -12,5 +94,81 @@ export const weddingListSchema = z.object({
   totalCount: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
+  totalPages: z.number().int().nonnegative(),
 });
 export type WeddingSummary = z.infer<typeof weddingSummarySchema>;
+
+export function normalizeWeddingSlug(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function slugFromWeddingName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+    .replace(/-+$/g, "");
+}
+
+function datePartsAt(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  return Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+}
+
+export function localDateTimeToIso(value: string, timeZone = WEDDING_TIME_ZONE) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) throw new Error("Ngày giờ không hợp lệ.");
+  const [, year, month, day, hour, minute] = match;
+  const target = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+  );
+  const offsetAt = (instant: number) => {
+    const parts = datePartsAt(new Date(instant), timeZone);
+    return (
+      Date.UTC(
+        Number(parts.year),
+        Number(parts.month) - 1,
+        Number(parts.day),
+        Number(parts.hour),
+        Number(parts.minute),
+      ) - instant
+    );
+  };
+  const candidate = target - offsetAt(target);
+  const check = datePartsAt(new Date(candidate), timeZone);
+  if (
+    Number(check.year) !== Number(year) ||
+    Number(check.month) !== Number(month) ||
+    Number(check.day) !== Number(day) ||
+    Number(check.hour) !== Number(hour) ||
+    Number(check.minute) !== Number(minute)
+  )
+    throw new Error("Ngày giờ không tồn tại trong múi giờ lễ cưới.");
+  const offsetMinutes = Math.round(offsetAt(candidate) / 60_000);
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absoluteOffset = Math.abs(offsetMinutes);
+  return `${year}-${month}-${day}T${hour}:${minute}:00${sign}${String(Math.floor(absoluteOffset / 60)).padStart(2, "0")}:${String(absoluteOffset % 60).padStart(2, "0")}`;
+}
+
+export function isoToLocalDateTime(value: string | null, timeZone = WEDDING_TIME_ZONE) {
+  if (!value) return "";
+  const parts = datePartsAt(new Date(value), timeZone);
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
