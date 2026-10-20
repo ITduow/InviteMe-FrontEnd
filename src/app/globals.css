@@ -65,6 +65,9 @@
     background: #ffc2be;
   }
 }
+body:has(.seating-details-dialog[open]) {
+  overflow: hidden;
+}
 .public-shell {
   min-height: 100vh;
   overflow: clip;
