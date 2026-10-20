@@ -16,7 +16,18 @@ export const weddingEventSchema = z.object({
 });
 export type WeddingEvent = z.infer<typeof weddingEventSchema>;
 export const planningChangeSchema = z.object({
-  type: z.enum(["PlanningSeatingChanged", "PlanningGuestsImported"]),
+  type: z.enum([
+    "PlanningSeatingChanged",
+    "PlanningGuestsImported",
+    "PlanningSeatingNeedsAttention",
+    "PlanningSeatingPublished",
+    "PlanningSeatingUnpublished",
+    "RsvpChanged",
+    "RsvpChangeRequested",
+    "RsvpLocksChanged",
+    "RsvpSettingsChanged",
+  ]),
   entityId: z.string(),
   version: z.number().int().nonnegative().nullable().optional(),
 });
+export type PlanningChange = z.infer<typeof planningChangeSchema>;

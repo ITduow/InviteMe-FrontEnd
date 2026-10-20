@@ -72,7 +72,23 @@ export type SeatingChange =
       confirmReplace: boolean;
     };
 export const seatingKey = (id: string) => ["planning-seating", id] as const;
+export const seatingPublicationKey = (id: string) => ["seating-publication", id] as const;
+export const seatingPublicationSchema = z.object({
+  published: z.boolean(),
+  publishedAt: z.string().nullable(),
+  publishedBy: z.string().nullable(),
+});
 const path = (id: string) => `/weddings/${encodeURIComponent(id)}/guest-planning/seating-plan`;
+const publicationPath = (id: string) => `${path(id)}/publication`;
+export function getSeatingPublication(api: ApiClient, id: string, signal?: AbortSignal) {
+  return api.request(publicationPath(id), { signal, schema: seatingPublicationSchema });
+}
+export function setSeatingPublication(api: ApiClient, id: string, published: boolean) {
+  return api.request(`/weddings/${encodeURIComponent(id)}/guest-planning/seating-plan/publish`, {
+    method: published ? "POST" : "DELETE",
+    schema: seatingPublicationSchema,
+  });
+}
 export function getSeatingPlan(api: ApiClient, id: string, signal?: AbortSignal) {
   return api.request(path(id), { signal, schema: seatingPlanSchema });
 }

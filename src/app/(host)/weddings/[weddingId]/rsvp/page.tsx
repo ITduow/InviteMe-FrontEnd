@@ -1,7 +1,8 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+import { HostRsvpDashboard } from "@/features/rsvp";
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
       permission="RSVP_VIEW"
@@ -12,7 +13,7 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder title="RSVP" description="Keep track of who is joining you." />
+      <HostRsvpDashboard weddingId={weddingId} />
     </PermissionGuard>
   );
 }

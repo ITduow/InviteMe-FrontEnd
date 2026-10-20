@@ -43,5 +43,11 @@ export function GuestInvitation({ token }: { token: string }) {
         </button>
       </section>
     );
-  return <Invitation document={invitation.data.document} content={invitation.data.content} />;
+  return (
+    <Invitation
+      document={invitation.data.document}
+      content={invitation.data.content}
+      token={token}
+    />
+  );
 }

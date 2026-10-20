@@ -1,9 +1,6 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
-export default function Page() {
-  return (
-    <FeaturePlaceholder
-      title="Your RSVP"
-      description="Let your hosts know who will be joining them."
-    />
-  );
+import { GuestRsvp } from "@/features/rsvp";
+
+export default async function Page({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  return <GuestRsvp token={token} />;
 }

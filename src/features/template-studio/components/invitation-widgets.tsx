@@ -8,6 +8,8 @@ import { createPortal } from "react-dom";
 import { WidgetBox } from "./date-widgets";
 import { eventTimestamp } from "./date-utils";
 import type { ItemProps } from "./items";
+import { InvitationGuestContext } from "./invitation-guest-context";
+import Link from "next/link";
 
 const buttonStyle: CSSProperties = {
   border: 0,
@@ -218,6 +220,7 @@ StudioMap.craft = {
 
 export function StudioAction(props: ItemProps) {
   const { enabled } = useEditor((state) => ({ enabled: state.options.enabled }));
+  const guestToken = useContext(InvitationGuestContext);
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const kind = props.action ?? "rsvp";
@@ -251,6 +254,13 @@ export function StudioAction(props: ItemProps) {
         >
           {title}
         </a>
+      ) : kind === "rsvp" && guestToken && !enabled ? (
+        <Link
+          href={`/invite/${encodeURIComponent(guestToken)}/rsvp`}
+          style={{ ...buttonStyle, background: props.accent ?? defaults.accent, color: "white" }}
+        >
+          {title}
+        </Link>
       ) : (
         <button
           disabled={enabled}

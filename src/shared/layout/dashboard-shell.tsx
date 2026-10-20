@@ -12,11 +12,13 @@ export function DashboardShell({
   navigation,
   account,
   title = "Wedding workspace",
+  homeHref = "/dashboard",
 }: {
   children: ReactNode;
   navigation: NavigationItem[];
   account: ReactNode;
   title?: string;
+  homeHref?: string;
 }) {
   const pathname = usePathname();
   const open = useUiStore((state) => state.sidebarOpen);
@@ -30,7 +32,7 @@ export function DashboardShell({
       )}
     >
       <header className="flex items-center justify-between border-b bg-card p-4 md:hidden">
-        <Link href="/" className="font-display text-xl">
+        <Link href={homeHref} className="font-display text-xl">
           InviteMe
         </Link>
         <Button
@@ -53,7 +55,7 @@ export function DashboardShell({
         )}
       >
         <div className="mb-12 hidden items-center justify-between gap-2 md:flex">
-          <Link href="/" className="flex items-center gap-2 font-display text-2xl">
+          <Link href={homeHref} className="flex items-center gap-2 font-display text-2xl">
             <Flower2 className="size-6 text-primary" aria-hidden="true" />
             InviteMe
           </Link>

@@ -35,6 +35,9 @@ import { Button } from "@/shared/ui/button";
 import { trapDialogFocus } from "@/shared/lib/dialog-focus";
 import {
   getSeatingPlan,
+  getSeatingPublication,
+  setSeatingPublication,
+  seatingPublicationKey,
   changeSeatingPlan,
   seatingKey,
   type SeatingChange,
@@ -206,6 +209,28 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     enabled: can("SEATING_VIEW"),
     refetchOnWindowFocus: true,
   });
+  const publication = useQuery({
+    queryKey: seatingPublicationKey(weddingId),
+    queryFn: ({ signal }) => getSeatingPublication(api, weddingId, signal),
+    enabled: can("SEATING_VIEW"),
+  });
+  const [publishing, setPublishing] = useState(false);
+  const [publicationError, setPublicationError] = useState("");
+  async function togglePublication() {
+    if (!editable || !publication.data) return;
+    setPublicationError("");
+    setPublishing(true);
+    try {
+      await setSeatingPublication(api, weddingId, !publication.data.published);
+      await cache.invalidateQueries({ queryKey: seatingPublicationKey(weddingId) });
+    } catch (cause) {
+      setPublicationError(
+        cause instanceof ApiError ? cause.message : "Không cập nhật được trạng thái công bố.",
+      );
+    } finally {
+      setPublishing(false);
+    }
+  }
   const [preview, setPreview] = useState<SeatingPlan | null>(null);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -259,10 +284,24 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     const invalidate = () => {
       void cache.invalidateQueries({ queryKey: seatingKey(weddingId) });
     };
+    const invalidatePublication = () => {
+      void cache.invalidateQueries({ queryKey: seatingPublicationKey(weddingId) });
+    };
     const stopEvent = realtime.on(REALTIME_EVENTS.seating, invalidate);
-    const stopResync = realtime.onResync(invalidate);
+    const stopPublication = realtime.onPlanningChange((change) => {
+      if (
+        change.type === "PlanningSeatingPublished" ||
+        change.type === "PlanningSeatingUnpublished"
+      )
+        invalidatePublication();
+    });
+    const stopResync = realtime.onResync(() => {
+      invalidate();
+      invalidatePublication();
+    });
     return () => {
       stopEvent();
+      stopPublication();
       stopResync();
     };
   }, [realtime, cache, weddingId]);
@@ -383,6 +422,12 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   const inspectedPlace = plan.places.find((p) => p.id === placeId);
   const inspectedGuest = inspectedPlace ? guests.get(inspectedPlace.guestId) : undefined;
   const inspectedTable = plan.tables.find((t) => t.id === tableId);
+  const assignedPlaces = new Set(plan.assignments.map((item) => item.placeId));
+  const seatsNeedingAttention = plan.places.filter(
+    (place) =>
+      assignedPlaces.has(place.id) &&
+      ["DECLINED", "WAITLISTED"].includes(place.person?.attendanceStatus ?? ""),
+  );
   const dragFeedback = seatingDropFeedback(plan, dragIds, dragTarget);
   const placeName = (id: string) => {
     const p = plan.places.find((x) => x.id === id),
@@ -479,6 +524,41 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               <Link href={`/weddings/${weddingId}/guests`}>Danh sách khách</Link>
             </Button>
           </div>
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3 text-sm">
+            <span>
+              {publication.data?.published
+                ? "Khách đang xem được bàn và ghế"
+                : "Chỗ ngồi chưa công bố cho khách"}
+            </span>
+            {editable && publication.data && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={publishing}
+                onClick={() => void togglePublication()}
+              >
+                {publishing
+                  ? "Đang cập nhật…"
+                  : publication.data.published
+                    ? "Thu hồi công bố"
+                    : "Công bố chỗ ngồi"}
+              </Button>
+            )}
+            {publicationError && (
+              <span role="alert" className="text-red-800">
+                {publicationError}
+              </span>
+            )}
+          </div>
+          {seatsNeedingAttention.length > 0 && (
+            <p
+              role="status"
+              className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+            >
+              {seatsNeedingAttention.length} ghế đang gán cho người từ chối hoặc chờ duyệt. Kiểm tra
+              và sắp xếp lại nếu cần.
+            </p>
+          )}
           {status !== "connected" && (
             <p role="status" className="text-sm text-amber-800">
               Đang nối lại đồng bộ trực tiếp…
@@ -698,7 +778,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                                   setSeat(n);
                                   setPlaceId(p?.id ?? null);
                                 }}
-                                className="relative size-full rounded focus-visible:outline-2 focus-visible:outline-primary"
+                                className={`relative size-full rounded focus-visible:outline-2 focus-visible:outline-primary ${p && seatsNeedingAttention.some((item) => item.id === p.id) ? "ring-2 ring-amber-500" : ""}`}
                               >
                                 <Image
                                   src={`/images/seating/${!p ? "chair-empty.svg" : confirmed ? "chair-confirmed.svg" : "chair-pending.svg"}`}
