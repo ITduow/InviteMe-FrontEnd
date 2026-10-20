@@ -10,13 +10,16 @@ import { StudioInterview, StudioTimeline } from "./story-widgets";
 import { InvitationCover } from "./invitation-cover";
 import { WordingPreviewContext } from "./wording-preview";
 import { StudioReveal, RevealPausedContext } from "./reveal";
+import { InvitationGuestContext } from "./invitation-guest-context";
 
 export function InvitationRenderer({
   document,
   content,
+  token,
 }: {
   document: z.infer<typeof studioDocumentSchema>;
   content: string;
+  token: string;
 }) {
   const [opened, setOpened] = useState(false);
   const [width, setWidth] = useState(480);
@@ -39,47 +42,49 @@ export function InvitationRenderer({
       className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto bg-background"
       aria-label="Thiệp mời cá nhân"
     >
-      <WordingPreviewContext value={content}>
-        <Editor
-          enabled={false}
-          onRender={StudioReveal}
-          resolver={{
-            StudioFrame,
-            StudioText,
-            StudioImage,
-            StudioCalendar,
-            StudioCountdown,
-            StudioAlbum,
-            StudioMap,
-            StudioAction,
-            StudioWishes,
-            StudioInterview,
-            StudioTimeline,
-          }}
-        >
-          <RevealPausedContext value={showingCover}>
-            <div
-              style={{
-                display: showingCover ? "none" : undefined,
-                zoom: Math.min(1, width / (root.props.width ?? 480)),
-                width: root.props.width ?? 480,
-                marginInline: "auto",
-              }}
-            >
-              <Frame data={JSON.stringify(document.nodes)} />
-            </div>
-          </RevealPausedContext>
-        </Editor>
-        {showingCover && cover && (
-          <InvitationCover
-            config={cover}
-            onOpen={() => {
-              setOpened(true);
-              host.current?.scrollTo(0, 0);
+      <InvitationGuestContext value={token}>
+        <WordingPreviewContext value={content}>
+          <Editor
+            enabled={false}
+            onRender={StudioReveal}
+            resolver={{
+              StudioFrame,
+              StudioText,
+              StudioImage,
+              StudioCalendar,
+              StudioCountdown,
+              StudioAlbum,
+              StudioMap,
+              StudioAction,
+              StudioWishes,
+              StudioInterview,
+              StudioTimeline,
             }}
-          />
-        )}
-      </WordingPreviewContext>
+          >
+            <RevealPausedContext value={showingCover}>
+              <div
+                style={{
+                  display: showingCover ? "none" : undefined,
+                  zoom: Math.min(1, width / (root.props.width ?? 480)),
+                  width: root.props.width ?? 480,
+                  marginInline: "auto",
+                }}
+              >
+                <Frame data={JSON.stringify(document.nodes)} />
+              </div>
+            </RevealPausedContext>
+          </Editor>
+          {showingCover && cover && (
+            <InvitationCover
+              config={cover}
+              onOpen={() => {
+                setOpened(true);
+                host.current?.scrollTo(0, 0);
+              }}
+            />
+          )}
+        </WordingPreviewContext>
+      </InvitationGuestContext>
     </div>
   );
 }
