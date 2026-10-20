@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useCallback,
   useRef,
   useState,
   useSyncExternalStore,
@@ -45,6 +46,7 @@ import { PlanningSuggestions } from "./planning-suggestions";
 import { SeatingQueue } from "./seating-queue";
 import { SeatingTableDrawer } from "./seating-table-drawer";
 import { SeatingDragPreview } from "./seating-drag-preview";
+import { useSeatingCollaboration } from "../hooks/use-seating-collaboration";
 import {
   offsetDragPreview,
   seatingDropFeedback,
@@ -219,6 +221,19 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   }, [tableId, placeId]);
   const [dragIds, setDragIds] = useState<string[]>([]);
   const [dragTarget, setDragTarget] = useState<DropPosition | null>(null);
+  const [dragEpoch, setDragEpoch] = useState(0);
+  const abortDrag = useCallback(() => {
+    setDragIds([]);
+    setDragTarget(null);
+    setDragEpoch((value) => value + 1);
+  }, []);
+  const collaborationError = useCallback(() => {
+    setFailure(true);
+    setMessage(
+      "Chưa giữ được quyền kéo hoặc kết nối đã mất. Vui lòng thử lại khi đồng bộ kết nối.",
+    );
+  }, []);
+  const collaboration = useSeatingCollaboration(weddingId, abortDrag, collaborationError);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: tableCoordinates }),
@@ -243,13 +258,23 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   const plan = preview ?? planQuery.data;
   async function change(input: SeatingChange, optimistic?: SeatingPlan) {
     if (!editable || savingRef.current || !planQuery.data) return;
+    if (realtime.getStatus() !== "connected") {
+      collaborationError();
+      return;
+    }
     savingRef.current = true;
     setSaving(true);
     setFailure(false);
     setMessage("Đang lưu…");
     if (optimistic) setPreview(optimistic);
     try {
-      const latest = await changeSeatingPlan(api, weddingId, planQuery.data.version, input);
+      const version = planQuery.data.version;
+      const latest =
+        input.action === "MOVE_PLACES"
+          ? await collaboration.run(input.placeIds, (token) =>
+              changeSeatingPlan(api, weddingId, version, input, token),
+            )
+          : await changeSeatingPlan(api, weddingId, version, input);
       cache.setQueryData<SeatingPlan>(key, (current) =>
         current && current.version > latest.version ? current : latest,
       );
@@ -285,6 +310,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     if (!plan || !editable || savingRef.current) return;
     const next = previewSeatMove(plan, ids, target, seatNumber);
     if (!next) {
+      collaboration.cancel();
       setFailure(true);
       const table = plan.tables.find((t) => t.id === target);
       const occupied = plan.assignments.filter(
@@ -330,6 +356,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   };
   return (
     <DndContext
+      key={dragEpoch}
       autoScroll={{
         enabled: true,
         order: TraversalOrder.ReversedTreeOrder,
@@ -364,16 +391,21 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         )
       }
       onDragStart={({ active }) => {
-        setDragIds((active.data.current?.ids as string[] | undefined) ?? []);
+        const ids = (active.data.current?.ids as string[] | undefined) ?? [];
+        collaboration.begin(ids);
+        setDragIds(ids);
         setDragTarget(null);
         setSelection([]);
       }}
-      onDragOver={({ over }) =>
-        setDragTarget((over?.data.current as DropPosition | undefined) ?? null)
-      }
+      onDragOver={({ over }) => {
+        const target = (over?.data.current as DropPosition | undefined) ?? null;
+        setDragTarget(target);
+        collaboration.hover(target);
+      }}
       onDragCancel={() => {
         setDragIds([]);
         setDragTarget(null);
+        collaboration.cancel();
       }}
       onDragEnd={({ active, over }) => {
         setDragIds([]);
@@ -381,6 +413,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         const ids = active.data.current?.ids as string[] | undefined;
         const target = over?.data.current as DropPosition | undefined;
         if (ids && target) move(ids, target.tableId, target.seatNumber);
+        else collaboration.cancel();
       }}
     >
       <section className="space-y-5">

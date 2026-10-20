@@ -81,10 +81,11 @@ export function changeSeatingPlan(
   id: string,
   expectedVersion: number,
   change: SeatingChange,
+  dragToken?: string,
 ) {
   return api.request(path(id), {
     method: "PATCH",
-    body: { ...change, expectedVersion },
+    body: { ...change, expectedVersion, ...(dragToken ? { dragToken } : {}) },
     schema: seatingPlanSchema,
   });
 }

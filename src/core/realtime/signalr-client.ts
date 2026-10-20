@@ -11,6 +11,7 @@ import {
   type RealtimeEvent,
   type WeddingEvent,
 } from "./realtime-events";
+import { seatingDragSnapshotSchema, type SeatingDragSnapshot } from "./seating-drag-events";
 
 export type RealtimeStatus =
   "disabled" | "disconnected" | "connecting" | "connected" | "reconnecting";
@@ -25,6 +26,33 @@ export class RealtimeClient {
   private listeners = new Set<() => void>();
   private resyncListeners = new Set<() => void>();
   private handlers = new Map<RealtimeEvent, Set<(event: WeddingEvent) => void>>();
+  private dragListeners = new Set<(snapshot: SeatingDragSnapshot) => void>();
+  getConnectionId = () => this.connection?.connectionId ?? null;
+  onSeatingDrags(listener: (snapshot: SeatingDragSnapshot) => void) {
+    this.dragListeners.add(listener);
+    return () => {
+      this.dragListeners.delete(listener);
+    };
+  }
+  async invokeSeating<T>(
+    method:
+      | "GetSeatingDrags"
+      | "StartSeatingDrag"
+      | "RenewSeatingDrag"
+      | "TargetSeatingDrag"
+      | "EndSeatingDrag",
+    weddingId: string,
+    ...args: unknown[]
+  ): Promise<T> {
+    const connection = this.connection;
+    const generation = this.generation;
+    if (!connection || this.status !== "connected" || weddingId !== this.activeWedding)
+      throw new Error("SEATING_REALTIME_DISCONNECTED");
+    const result = await connection.invoke<T>(method, weddingId, ...args);
+    if (this.connection !== connection || this.generation !== generation)
+      throw new Error("SEATING_REALTIME_DISCONNECTED");
+    return result;
+  }
   constructor(
     private url: string | undefined,
     private getToken: () => Promise<string | null>,
@@ -74,6 +102,11 @@ export class RealtimeClient {
       this.connection === connection &&
       this.generation === generation &&
       this.activeWedding === weddingId;
+    connection.on("SeatingDragSnapshot", (payload: unknown) => {
+      const parsed = seatingDragSnapshotSchema.safeParse(payload);
+      if (isCurrent() && parsed.success && parsed.data.weddingId === weddingId)
+        this.dragListeners.forEach((listener) => listener(parsed.data));
+    });
     for (const event of Object.values(REALTIME_EVENTS)) {
       connection.on(event, (payload: unknown) => {
         const parsed = weddingEventSchema.safeParse(payload);
