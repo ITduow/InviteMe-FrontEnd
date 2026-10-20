@@ -10,6 +10,7 @@ import {
   planningChangeSchema,
   type RealtimeEvent,
   type WeddingEvent,
+  type PlanningChange,
 } from "./realtime-events";
 import {
   seatingDragSnapshotSchema,
@@ -30,6 +31,7 @@ export class RealtimeClient {
   private status: RealtimeStatus;
   private listeners = new Set<() => void>();
   private resyncListeners = new Set<() => void>();
+  private planningListeners = new Set<(change: PlanningChange) => void>();
   private handlers = new Map<RealtimeEvent, Set<(event: WeddingEvent) => void>>();
   private dragListeners = new Set<(snapshot: SeatingDragSnapshot) => void>();
   private pointerListeners = new Set<(pointer: SeatingDragPointer) => void>();
@@ -105,6 +107,12 @@ export class RealtimeClient {
       this.resyncListeners.delete(listener);
     };
   }
+  onPlanningChange(listener: (change: PlanningChange) => void) {
+    this.planningListeners.add(listener);
+    return () => {
+      this.planningListeners.delete(listener);
+    };
+  }
   on(event: RealtimeEvent, listener: (event: WeddingEvent) => void) {
     const listeners = this.handlers.get(event) ?? new Set();
     listeners.add(listener);
@@ -157,13 +165,20 @@ export class RealtimeClient {
     }
     connection.on("weddingChanged", (payload: unknown) => {
       const parsed = planningChangeSchema.safeParse(payload);
-      if (!isCurrent() || !parsed.success || parsed.data.entityId !== this.activeWedding) return;
-      this.handlers.get(REALTIME_EVENTS.seating)?.forEach((handler) =>
-        handler({
-          weddingId: parsed.data.entityId,
-          version: parsed.data.version ?? 0,
-        }),
-      );
+      if (!isCurrent() || !parsed.success) return;
+      const change = parsed.data;
+      this.planningListeners.forEach((listener) => listener(change));
+      if (
+        [
+          "PlanningSeatingChanged",
+          "PlanningGuestsImported",
+          "PlanningSeatingNeedsAttention",
+        ].includes(change.type)
+      ) {
+        this.handlers
+          .get(REALTIME_EVENTS.seating)
+          ?.forEach((handler) => handler({ weddingId, version: change.version ?? 0 }));
+      }
     });
     connection.onreconnecting(() => {
       if (isCurrent()) this.setStatus("reconnecting");

@@ -383,6 +383,12 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   const inspectedPlace = plan.places.find((p) => p.id === placeId);
   const inspectedGuest = inspectedPlace ? guests.get(inspectedPlace.guestId) : undefined;
   const inspectedTable = plan.tables.find((t) => t.id === tableId);
+  const assignedPlaces = new Set(plan.assignments.map((item) => item.placeId));
+  const seatsNeedingAttention = plan.places.filter(
+    (place) =>
+      assignedPlaces.has(place.id) &&
+      ["DECLINED", "WAITLISTED"].includes(place.person?.attendanceStatus ?? ""),
+  );
   const dragFeedback = seatingDropFeedback(plan, dragIds, dragTarget);
   const placeName = (id: string) => {
     const p = plan.places.find((x) => x.id === id),
@@ -479,6 +485,15 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               <Link href={`/weddings/${weddingId}/guests`}>Danh sách khách</Link>
             </Button>
           </div>
+          {seatsNeedingAttention.length > 0 && (
+            <p
+              role="status"
+              className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+            >
+              {seatsNeedingAttention.length} ghế đang gán cho người từ chối hoặc chờ duyệt. Kiểm tra
+              và sắp xếp lại nếu cần.
+            </p>
+          )}
           {status !== "connected" && (
             <p role="status" className="text-sm text-amber-800">
               Đang nối lại đồng bộ trực tiếp…
@@ -698,7 +713,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                                   setSeat(n);
                                   setPlaceId(p?.id ?? null);
                                 }}
-                                className="relative size-full rounded focus-visible:outline-2 focus-visible:outline-primary"
+                                className={`relative size-full rounded focus-visible:outline-2 focus-visible:outline-primary ${p && seatsNeedingAttention.some((item) => item.id === p.id) ? "ring-2 ring-amber-500" : ""}`}
                               >
                                 <Image
                                   src={`/images/seating/${!p ? "chair-empty.svg" : confirmed ? "chair-confirmed.svg" : "chair-pending.svg"}`}

@@ -16,9 +16,25 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
       void queryClient.invalidateQueries({ queryKey: weddingKeys.detail(weddingId) });
       void queryClient.invalidateQueries({ queryKey: weddingKeys.lists() });
     };
+    const invalidateRsvp = () => {
+      void queryClient.invalidateQueries({ queryKey: ["host-rsvp", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["guests", weddingId] });
+    };
     const unsubscribers = [
-      realtime.onResync(invalidate),
+      realtime.onResync(() => {
+        invalidate();
+        invalidateRsvp();
+      }),
       realtime.on(REALTIME_EVENTS.capacity, invalidate),
+      realtime.on(REALTIME_EVENTS.rsvp, invalidateRsvp),
+      realtime.on(REALTIME_EVENTS.waitlist, invalidateRsvp),
+      realtime.onPlanningChange((change) => {
+        if (change.type.startsWith("Rsvp")) invalidateRsvp();
+        if (change.type === "PlanningSeatingNeedsAttention") {
+          void queryClient.invalidateQueries({ queryKey: ["planning-seating", weddingId] });
+          invalidateRsvp();
+        }
+      }),
     ];
     void realtime.activate(weddingId);
     return () => {
