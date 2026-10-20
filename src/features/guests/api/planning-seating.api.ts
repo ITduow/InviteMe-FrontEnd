@@ -59,6 +59,7 @@ export const seatingSuggestionSchema = z.object({
 });
 export type SeatingSuggestion = z.infer<typeof seatingSuggestionSchema>;
 export type SeatingChange =
+  | { action: "RESTORE_PLACES"; placeIds: string[]; assignments: SeatingPlan["assignments"] }
   | { action: "CREATE_TABLE"; name: string; capacity: number }
   | { action: "CREATE_TABLES"; capacity: number; tableCount: number }
   | { action: "UPDATE_TABLE"; tableId: string; name: string; capacity: number }
