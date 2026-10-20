@@ -195,75 +195,114 @@ function GroupCard({
   const detailId = useId();
   const { guest, places } = entry;
   const ids = places.map((p) => p.id);
+  const lock = useSeatingDragLock(ids);
+  const unavailable = disabled || !!lock;
+  const { setNodeRef, setActivatorNodeRef, attributes, listeners, isDragging } = useDraggable({
+    id: `queue-group:${guest.id}`,
+    data: { ids },
+    disabled: unavailable,
+  });
   const selected = ids.length > 0 && ids.every((id) => selection.includes(id));
   const assignedCount = places.filter((p) => tablesByPlace.has(p.id)).length;
   const tableCount = new Set(places.flatMap((p) => tablesByPlace.get(p.id)?.id ?? [])).size;
   const name = `${guest.invitationKind === "FAMILY" ? "Gia đình" : "Nhóm"} ${guest.honorific ? guest.honorific.toLocaleLowerCase("vi") + " " : ""}${guest.recipientName}`;
   return (
     <article
+      ref={setNodeRef}
+      onPointerDown={(event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) && !(target instanceof SVGElement)) return;
+        if (target.closest("[data-no-group-drag]")) return;
+        const button = target.closest("button");
+        // The grip owns its activator; the name button delegates here. Never
+        // activate twice or let nested member/menu interactions drag the group.
+        if (button && !button.hasAttribute("data-group-drag-target")) return;
+        listeners?.onPointerDown?.(event);
+      }}
       className={cn(
         "min-w-0 rounded-xl border bg-white p-2",
+        !unavailable && "cursor-grab active:cursor-grabbing",
         selected && "border-primary bg-primary/5",
       )}
     >
-      <div className="flex items-center gap-1">
-        <div className="min-w-0 flex-1">
-          <QueueDrag
-            id={`queue-group:${guest.id}`}
-            ids={ids}
-            disabled={disabled}
-            selected={selected}
-            label={name}
-            onSelect={() => onSelect(ids)}
+      <div className={cn("touch-none", (isDragging || lock) && "opacity-40")}>
+        <div className="flex items-center gap-1">
+          <button
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            type="button"
+            disabled={unavailable}
+            aria-label={`Kéo ${name}`}
+            className="shrink-0 cursor-grab rounded p-1 text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
           >
-            <span className="min-w-0 flex-1 truncate text-xs font-semibold" title={name}>
+            <GripVertical className="size-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            data-group-drag-target=""
+            disabled={unavailable}
+            aria-pressed={selected}
+            aria-label={`Chọn ${name}`}
+            onClick={() => onSelect(ids)}
+            className="min-w-0 flex-1 cursor-grab rounded-lg py-2 text-left focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            <span className="block truncate text-xs font-semibold" title={name}>
               {name}
             </span>
-          </QueueDrag>
+          </button>
+          <button
+            type="button"
+            data-no-group-drag=""
+            aria-expanded={expanded}
+            aria-controls={detailId}
+            aria-label={`${expanded ? "Thu gọn" : "Mở"} ${name}`}
+            onClick={() => setExpanded(!expanded)}
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            <ChevronDown
+              className={cn("size-4 transition-transform", expanded && "rotate-180")}
+              aria-hidden="true"
+            />
+          </button>
         </div>
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={detailId}
-          aria-label={`${expanded ? "Thu gọn" : "Mở"} ${name}`}
-          onClick={() => setExpanded(!expanded)}
-          className="shrink-0 rounded p-1 focus-visible:outline-2 focus-visible:outline-primary"
-        >
-          <ChevronDown
-            className={cn("size-4 transition-transform", expanded && "rotate-180")}
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-      <div className="flex flex-wrap gap-1 px-1 text-[10px] text-muted-foreground">
-        <span className="rounded-full bg-muted px-2 py-0.5">{sideLabels[guest.side]}</span>
-        {guest.group && (
-          <span className="rounded-full bg-muted px-2 py-0.5">{guest.group.name}</span>
-        )}
-        {tableCount > 1 && (
-          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800">
-            Tách {tableCount} bàn
+        <div className="flex flex-wrap gap-1 px-1 text-[10px] text-muted-foreground">
+          <span className="rounded-full bg-muted px-2 py-0.5">{sideLabels[guest.side]}</span>
+          {guest.group && (
+            <span className="rounded-full bg-muted px-2 py-0.5">{guest.group.name}</span>
+          )}
+          {tableCount > 1 && (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800">
+              Tách {tableCount} bàn
+            </span>
+          )}
+        </div>
+        <div className="mt-2 flex w-full items-center gap-2 px-1 text-left text-[11px] text-muted-foreground">
+          <span>
+            {places.length} người · {assignedCount}/{places.length} đã xếp
           </span>
-        )}
-      </div>
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={detailId}
-        onClick={() => setExpanded(!expanded)}
-        className="mt-2 flex w-full items-center gap-2 rounded px-1 text-left text-[11px] text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        <span>
-          {places.length} người · {assignedCount}/{places.length} đã xếp
-        </span>
-        <span className="ml-auto h-1 w-10 overflow-hidden rounded-full bg-muted" aria-hidden="true">
           <span
-            className="block h-full rounded-full bg-primary"
-            style={{ width: `${places.length ? (assignedCount / places.length) * 100 : 0}%` }}
-          />
-        </span>
-      </button>
-      <div id={detailId} hidden={!expanded} className="mt-3 space-y-2 border-t pt-2">
+            className="ml-auto h-1 w-10 overflow-hidden rounded-full bg-muted"
+            aria-hidden="true"
+          >
+            <span
+              className="block h-full rounded-full bg-primary"
+              style={{ width: `${places.length ? (assignedCount / places.length) * 100 : 0}%` }}
+            />
+          </span>
+        </div>
+      </div>
+      {lock && (
+        <div className="mt-1 px-1">
+          <DraggingLabel presence={lock} />
+        </div>
+      )}
+      <div
+        data-no-group-drag=""
+        id={detailId}
+        hidden={!expanded}
+        className="mt-3 cursor-auto space-y-2 border-t pt-2"
+      >
         {places.map((place) => (
           <GuestRow
             key={place.id}

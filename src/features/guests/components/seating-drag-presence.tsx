@@ -16,10 +16,10 @@ export function DraggingLabel({ presence }: { presence: SeatingDragPresence }) {
   return (
     <span
       className="inline-flex max-w-full items-center gap-1 text-[11px] text-muted-foreground"
-      title={`${presence.displayName} đang kéo`}
+      title={`Đang được xử lí bởi ${presence.displayName}`}
     >
       <Avatar name={presence.displayName} className="size-5 text-[9px]" />
-      <span className="truncate">{presence.displayName} đang kéo</span>
+      <span className="truncate">Đang được xử lí bởi {presence.displayName}</span>
     </span>
   );
 }

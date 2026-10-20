@@ -44,6 +44,7 @@ import { sideLabels, type PlanningGuest } from "../api/planning.api";
 import { previewSeatMove } from "../utils/planning-seat-move";
 import { moveSeatingWithRetry } from "../utils/seating-conflict-retry";
 import { PlanningSuggestions } from "./planning-suggestions";
+import { SeatingLegend } from "./seating-legend";
 import { SeatingQueue } from "./seating-queue";
 import { SeatingTableDrawer } from "./seating-table-drawer";
 import { SeatingDragPreview } from "./seating-drag-preview";
@@ -125,7 +126,7 @@ function DragSource({
       {...listeners}
       type="button"
       aria-label={label}
-      title={lock ? `${lock.displayName} đang kéo` : undefined}
+      title={lock ? `Đang được xử lí bởi ${lock.displayName}` : undefined}
       onClick={onClick}
       className={className}
       style={{ touchAction: "none", opacity: isDragging || lock ? 0.4 : 1 }}
@@ -341,7 +342,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       collaboration.cancel(false);
       setFailure(true);
       setMessage(
-        `${lock.displayName} đang kéo người trong lựa chọn này. Hãy chờ thao tác hoàn tất.`,
+        `Người trong lựa chọn này đang được xử lí bởi ${lock.displayName}. Hãy chờ thao tác hoàn tất.`,
       );
       return;
     }
@@ -473,28 +474,16 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       >
         <section className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="font-serif text-3xl">Sắp xếp chỗ ngồi</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Kéo người hoặc nhóm vào bàn. Hoặc bấm chọn khách, rồi bấm bàn để xếp.
-              </p>
-            </div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Sắp xếp chỗ ngồi</h1>
             <Button variant="outline" asChild>
               <Link href={`/weddings/${weddingId}/guests`}>Danh sách khách</Link>
             </Button>
           </div>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <span>
-              {plan.assignments.length}/{plan.places.length} chỗ đã xếp
-            </span>
-            <span>{plan.tables.length} bàn</span>
-            <span>
-              {status === "connected"
-                ? "Đồng bộ trực tiếp đã kết nối"
-                : "Đang nối lại đồng bộ trực tiếp"}
-            </span>
-            <span>Phiên bản {plan.version}</span>
-          </div>
+          {status !== "connected" && (
+            <p role="status" className="text-sm text-amber-800">
+              Đang nối lại đồng bộ trực tiếp…
+            </p>
+          )}
           <div aria-live="polite" className="flex flex-wrap gap-2">
             {collaboration.leases
               .filter((lease) => lease.connectionId !== collaboration.connectionId)
@@ -513,10 +502,6 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                 </span>
               ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Ghế xanh: đã xác nhận tham dự · xám: chưa xác nhận/chưa có tên · viền nét đứt: ghế
-            trống.
-          </p>
           {message && failure && (
             <p
               role={failure ? "alert" : "status"}
@@ -525,52 +510,16 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               {message}
             </p>
           )}
-          <PlanningSuggestions plan={plan} editable={editable} saving={saving} onChange={change} />
-          {editable && (
-            <details className="rounded-xl border p-4">
-              <summary className="cursor-pointer text-sm font-medium">
-                Hoặc thêm lẻ một bàn với tên riêng
-              </summary>
-              <form
-                className="flex flex-wrap items-end gap-3 rounded-xl border p-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const data = new FormData(e.currentTarget);
-                  void change({
-                    action: "CREATE_TABLE",
-                    name: String(data.get("name")),
-                    capacity: Number(data.get("capacity")),
-                  });
-                }}
-              >
-                <label className="text-sm">
-                  Tên bàn
-                  <input
-                    name="name"
-                    aria-label="Tên bàn mới"
-                    required
-                    maxLength={100}
-                    placeholder={`Bàn ${plan.tables.length + 1}`}
-                    className="mt-1 block rounded border p-2"
-                  />
-                </label>
-                <label className="text-sm">
-                  Số ghế
-                  <input
-                    name="capacity"
-                    aria-label="Số ghế bàn mới"
-                    type="number"
-                    min={1}
-                    max={20}
-                    required
-                    defaultValue={10}
-                    className="mt-1 block w-24 rounded border p-2"
-                  />
-                </label>
-                <Button disabled={saving}>Thêm bàn</Button>
-              </form>
-            </details>
-          )}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <SeatingLegend />
+            <PlanningSuggestions
+              plan={plan}
+              editable={editable}
+              saving={saving}
+              onChange={change}
+              saveError={failure ? message : undefined}
+            />
+          </div>
           <div className="grid items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
             <DropTarget
               id="unassigned"
