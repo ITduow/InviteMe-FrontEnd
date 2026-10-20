@@ -19,19 +19,30 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
     const invalidateRsvp = () => {
       void queryClient.invalidateQueries({ queryKey: ["host-rsvp", weddingId] });
       void queryClient.invalidateQueries({ queryKey: ["guests", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["guest-planning", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] });
+      invalidate();
+    };
+    const invalidateSeating = () => {
+      void queryClient.invalidateQueries({ queryKey: ["planning-seating", weddingId] });
     };
     const unsubscribers = [
       realtime.onResync(() => {
-        invalidate();
         invalidateRsvp();
+        invalidateSeating();
       }),
       realtime.on(REALTIME_EVENTS.capacity, invalidate),
       realtime.on(REALTIME_EVENTS.rsvp, invalidateRsvp),
       realtime.on(REALTIME_EVENTS.waitlist, invalidateRsvp),
       realtime.onPlanningChange((change) => {
         if (change.type.startsWith("Rsvp")) invalidateRsvp();
+        if (change.type === "PlanningGuestsImported") invalidateRsvp();
+        if (
+          change.type === "PlanningSeatingChanged" ||
+          change.type === "PlanningGuestsImported" ||
+          change.type === "PlanningSeatingNeedsAttention"
+        ) invalidateSeating();
         if (change.type === "PlanningSeatingNeedsAttention") {
-          void queryClient.invalidateQueries({ queryKey: ["planning-seating", weddingId] });
           invalidateRsvp();
         }
       }),

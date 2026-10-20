@@ -177,6 +177,7 @@ export class RealtimeClient {
           "PlanningSeatingChanged",
           "PlanningGuestsImported",
           "PlanningSeatingNeedsAttention",
+          "RsvpChanged",
         ].includes(change.type)
       ) {
         this.handlers

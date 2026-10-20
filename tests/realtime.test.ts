@@ -131,10 +131,11 @@ test("planning weddingChanged invalidations are scoped, validated and delivered 
   emit?.({ type: "Unknown", entityId: "one", version: 1 });
   emit?.({ type: "PlanningSeatingChanged", entityId: "one", version: 7 });
   emit?.({ type: "PlanningGuestsImported", entityId: "one", version: null });
-  assert.deepEqual(received, [7, 0]);
+  emit?.({ type: "RsvpChanged", entityId: "guest-one", version: 9 });
+  assert.deepEqual(received, [7, 0, 9]);
   await client.activate(null);
   emit?.({ type: "PlanningSeatingChanged", entityId: "one", version: 8 });
-  assert.deepEqual(received, [7, 0]);
+  assert.deepEqual(received, [7, 0, 9]);
 });
 
 test("one active wedding connection; switching and logout stop prior connections", async () => {

@@ -7,6 +7,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <AuthGuard role="ADMIN">
       <DashboardShell
         title="Administration"
+        homeHref="/admin/dashboard"
         account={<UserMenu />}
         navigation={[
           { href: "/admin/dashboard", label: "Dashboard" },
