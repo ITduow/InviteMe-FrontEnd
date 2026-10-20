@@ -137,7 +137,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
         {requests.data && (
           <Pager
             page={requestPage}
-            total={requests.data.totalItems}
+            total={requests.data.totalCount}
             pageSize={requests.data.pageSize}
             onChange={setRequestPage}
           />
@@ -188,7 +188,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
         {waitlist.data && (
           <Pager
             page={waitPage}
-            total={waitlist.data.totalItems}
+            total={waitlist.data.totalCount}
             pageSize={waitlist.data.pageSize}
             onChange={setWaitPage}
           />

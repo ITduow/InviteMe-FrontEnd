@@ -249,7 +249,7 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
               )}
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span>{guests.data.totalItems} thiệp</span>
+              <span>{guests.data.totalCount} thiệp</span>
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -263,7 +263,7 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={page * 25 >= guests.data.totalItems}
+                  disabled={page * 25 >= guests.data.totalCount}
                   onClick={() => setPage(page + 1)}
                 >
                   Sau

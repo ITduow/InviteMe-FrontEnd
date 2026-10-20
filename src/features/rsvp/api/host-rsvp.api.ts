@@ -16,7 +16,7 @@ const page = <T extends z.ZodType>(item: T) =>
     items: z.array(item),
     page: count,
     pageSize: count,
-    totalItems: count,
+    totalCount: count,
   });
 
 export const rsvpSettingsSchema = z.object({
