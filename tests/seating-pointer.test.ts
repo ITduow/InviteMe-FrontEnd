@@ -18,7 +18,7 @@ test("pointer movement keeps only the latest point, with one in-flight request e
   sender.push(1);
   sender.push(2);
   sender.push(3);
-  t.mock.timers.tick(49);
+  t.mock.timers.tick(33);
   assert.deepEqual(sent, []);
   t.mock.timers.tick(1);
   assert.deepEqual(sent, [3]);
@@ -27,14 +27,33 @@ test("pointer movement keeps only the latest point, with one in-flight request e
   assert.deepEqual(sent, [3]);
   finish();
   await flush();
-  t.mock.timers.tick(50);
+  t.mock.timers.tick(34);
   await flush();
   assert.deepEqual(sent, [3, 100]);
   sender.push(101);
   sender.cancel();
-  t.mock.timers.tick(50);
+  t.mock.timers.tick(34);
   await flush();
   assert.deepEqual(sent, [3, 100]);
+});
+
+test("drop flushes the latest trailing sample and cancellation discards pending movement", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const sent: number[] = [];
+  const sender = createLatestPointerSender<number>(async (value) => {
+    sent.push(value);
+  });
+  sender.push(1);
+  sender.push(2);
+  await sender.flush();
+  assert.deepEqual(sent, [2]);
+  t.mock.timers.tick(100);
+  await flush();
+  assert.deepEqual(sent, [2]);
+  sender.push(3);
+  sender.cancel();
+  await sender.flush();
+  assert.deepEqual(sent, [2]);
 });
 
 test("pointer payload rejects invalid coordinates and unexpected anchors", () => {

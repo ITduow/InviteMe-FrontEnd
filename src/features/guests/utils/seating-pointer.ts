@@ -1,8 +1,9 @@
-// Keep one request in flight and only the newest pending position. Slow links cannot build a queue.
-export function createLatestPointerSender<T>(send: (value: T) => Promise<unknown>, interval = 50) {
+// One transport write in flight and one latest pending position. send() must not wait for a hub response.
+export function createLatestPointerSender<T>(send: (value: T) => Promise<unknown>, interval = 34) {
   let pending: T | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let busy = false;
+  let sending: Promise<unknown> | undefined;
   function schedule() {
     if (!busy && pending !== undefined && timer === undefined)
       timer = setTimeout(() => {
@@ -16,11 +17,13 @@ export function createLatestPointerSender<T>(send: (value: T) => Promise<unknown
     pending = undefined;
     busy = true;
     try {
-      await send(value);
+      sending = send(value);
+      await sending;
     } catch {
       /* Pointer updates are disposable; lease renewal handles connectivity failures. */
     } finally {
       busy = false;
+      sending = undefined;
       schedule();
     }
   }
@@ -28,6 +31,14 @@ export function createLatestPointerSender<T>(send: (value: T) => Promise<unknown
     push(value: T) {
       pending = value;
       schedule();
+    },
+    async flush() {
+      // A drop flushes the last sample before the HTTP mutation and EndSeatingDrag.
+      // The caller stops accepting movement before awaiting this method.
+      if (sending) await sending.catch(() => undefined);
+      clearTimeout(timer);
+      timer = undefined;
+      await flush();
     },
     cancel() {
       pending = undefined;

@@ -45,11 +45,10 @@ export function useSeatingCollaboration(
         point: PointerPoint;
         sequence: number;
       }>(async ({ operation, point, sequence: packetSequence }) => {
-        if (!operation?.lease || operation.cancelled || operation.saving) return;
+        if (!operation?.lease || operation.cancelled) return;
         const position = readSeatingPointer(point);
         if (position)
-          await realtime.invokeSeating(
-            "MoveSeatingPointer",
+          await realtime.sendSeatingPointer(
             weddingId,
             operation.lease.token,
             position.anchor,
@@ -190,6 +189,7 @@ export function useSeatingCollaboration(
       await realtime.invokeSeating("RenewSeatingDrag", weddingId, lease.token);
       if (operation.cancelled) throw new Error("SEATING_DRAG_CANCELLED");
       operation.saving = true;
+      await pointerSender.flush();
       clearTimeout(hoverTimer.current);
       return await work(lease.token);
     } finally {

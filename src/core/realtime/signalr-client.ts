@@ -45,6 +45,15 @@ export class RealtimeClient {
     };
   }
   getConnectionId = () => this.connection?.connectionId ?? null;
+  async sendSeatingPointer(weddingId: string, ...args: unknown[]): Promise<void> {
+    const connection = this.connection;
+    const generation = this.generation;
+    if (!connection || this.status !== "connected" || weddingId !== this.activeWedding)
+      throw new Error("SEATING_REALTIME_DISCONNECTED");
+    await connection.send("MoveSeatingPointer", weddingId, ...args);
+    if (this.connection !== connection || this.generation !== generation)
+      throw new Error("SEATING_REALTIME_DISCONNECTED");
+  }
   onSeatingDrags(listener: (snapshot: SeatingDragSnapshot) => void) {
     this.dragListeners.add(listener);
     return () => {

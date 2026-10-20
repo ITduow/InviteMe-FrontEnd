@@ -11,6 +11,10 @@ class FakeConnection {
   stops = 0;
   joins: string[] = [];
   handlers = new Map<string, (payload: unknown) => void>();
+  sends: unknown[][] = [];
+  async send(...args: unknown[]) {
+    this.sends.push(args);
+  }
   closed = () => {};
   reconnecting = () => {};
   reconnected: () => Promise<void> = async () => {};
@@ -41,6 +45,27 @@ class FakeConnection {
   }
 }
 afterEach(() => mock.restoreAll());
+
+test("pointer uses send without hub completion and rejects the wrong wedding or disconnected client", async () => {
+  const connection = new FakeConnection();
+  mock.method(
+    HubConnectionBuilder.prototype,
+    "build",
+    () => connection as unknown as HubConnection,
+  );
+  const client = new RealtimeClient("https://api.example.test/hub", async () => "token");
+  await assert.rejects(client.sendSeatingPointer("one", "lease"));
+  try {
+    await client.activate("one");
+    await client.sendSeatingPointer("one", "lease", "board", 0.2, 0.3, 1);
+    assert.deepEqual(connection.sends, [
+      ["MoveSeatingPointer", "one", "lease", "board", 0.2, 0.3, 1],
+    ]);
+    await assert.rejects(client.sendSeatingPointer("other", "lease"));
+  } finally {
+    await client.activate(null);
+  }
+});
 
 function deferred() {
   let resolve!: () => void;
