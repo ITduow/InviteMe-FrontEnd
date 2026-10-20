@@ -2,22 +2,19 @@ import { z } from "zod";
 import { ApiError, isAbortError, normalizeHttpError } from "./api-error";
 import type { ApiSession } from "./api-session";
 
-type RequestOptions<T> = Omit<RequestInit, "body" | "credentials"> & {
+type BaseRequestOptions = Omit<RequestInit, "body" | "credentials"> & {
   body?: unknown;
-  schema: z.ZodType<T>;
   auth?: "required" | "none";
   cookieAuth?: boolean;
 };
+type RequestOptions<T> = BaseRequestOptions & { schema: z.ZodType<T> };
 export function createApiClient(baseUrl: string | undefined, session?: ApiSession) {
-  const execute = async <T>(
-    path: string,
-    options: RequestOptions<T>,
-  ): Promise<{ data: T; status: number }> => {
+  const send = async (path: string, options: BaseRequestOptions): Promise<Response> => {
     if (!baseUrl)
       throw new ApiError(0, "configuration", "The API connection has not been configured.");
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("://"))
       throw new Error("API paths must be relative to the configured API.");
-    const { schema, body, auth = "required", cookieAuth = false, ...init } = options;
+    const { body, auth = "required", cookieAuth = false, ...init } = options;
     const generation = session?.getGeneration();
     const checkSession = () => {
       if (auth === "required" && session?.getGeneration() !== generation)
@@ -29,7 +26,7 @@ export function createApiClient(baseUrl: string | undefined, session?: ApiSessio
       checkSession();
       init.signal?.throwIfAborted();
       const headers = new Headers(init.headers);
-      headers.set("Accept", "application/json");
+      if (!headers.has("Accept")) headers.set("Accept", "application/json");
       headers.delete("Authorization");
       if (token) headers.set("Authorization", `Bearer ${token}`);
       const isForm = typeof FormData !== "undefined" && body instanceof FormData;
@@ -61,15 +58,30 @@ export function createApiClient(baseUrl: string | undefined, session?: ApiSessio
       checkSession();
       if (response.status === 401) session.clear();
     }
+    if (!response.ok) {
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        if (isAbortError(error)) throw error;
+      }
+      throw normalizeHttpError(response.status, payload);
+    }
+    checkSession();
+    return response;
+  };
+  const execute = async <T>(
+    path: string,
+    options: RequestOptions<T>,
+  ): Promise<{ data: T; status: number }> => {
+    const { schema, ...init } = options;
+    const response = await send(path, init);
     let payload: unknown;
     try {
       payload = response.status === 204 ? undefined : await response.json();
     } catch (error) {
       if (isAbortError(error)) throw error;
-      payload = undefined;
     }
-    if (!response.ok) throw normalizeHttpError(response.status, payload);
-    checkSession();
     const parsed = schema.safeParse(payload);
     if (!parsed.success)
       throw new ApiError(
@@ -84,6 +96,12 @@ export function createApiClient(baseUrl: string | undefined, session?: ApiSessio
       return (await execute(path, options)).data;
     },
     requestWithStatus: execute,
+    async download(path: string, options: BaseRequestOptions = {}): Promise<Blob> {
+      const headers = new Headers(options.headers);
+      headers.set("Accept", "text/csv");
+      const response = await send(path, { ...options, headers });
+      return response.blob();
+    },
   };
 }
 export type ApiClient = ReturnType<typeof createApiClient>;
