@@ -10,7 +10,7 @@ export function createRuntime() {
   const session = new SessionManager();
   const api = createApiClient(env.apiUrl, session);
   const queryClient = createQueryClient();
-  const realtime = new RealtimeClient(undefined, async () => null);
+  const realtime = new RealtimeClient(env.signalrUrl, () => session.getToken());
   return { queryClient, api, session, realtime };
 }
 

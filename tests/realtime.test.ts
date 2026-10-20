@@ -40,6 +40,43 @@ class FakeConnection {
 }
 afterEach(() => mock.restoreAll());
 
+test("runtime connects to the configured hub using the current session token", async () => {
+  const previousUrl = process.env.NEXT_PUBLIC_SIGNALR_URL;
+  process.env.NEXT_PUBLIC_SIGNALR_URL = "https://api.example.test/hubs/weddings";
+  try {
+    const { createRuntime } = await import("../src/core/config/runtime");
+    const connection = new FakeConnection();
+    mock.method(
+      HubConnectionBuilder.prototype,
+      "build",
+      () => connection as unknown as HubConnection,
+    );
+    const withUrl = mock.method(HubConnectionBuilder.prototype, "withUrl");
+    const { realtime, session, queryClient } = createRuntime();
+    try {
+      session.setToken({ accessToken: "owner-token", expiresIn: 3600 });
+      await realtime.activate("one");
+      assert.equal(realtime.getStatus(), "connected");
+      assert.deepEqual(connection.joins, ["one"]);
+      const [url, options] = withUrl.mock.calls[0]!.arguments;
+      assert.equal(url, process.env.NEXT_PUBLIC_SIGNALR_URL);
+      const tokenFactory = (options as { accessTokenFactory: () => Promise<string> })
+        .accessTokenFactory;
+      assert.equal(await tokenFactory(), "owner-token");
+      session.setToken({ accessToken: "renewed-token", expiresIn: 3600 });
+      assert.equal(await tokenFactory(), "renewed-token");
+      session.clear();
+      await assert.rejects(tokenFactory(), /Authentication required/);
+    } finally {
+      await realtime.activate(null);
+      queryClient.clear();
+    }
+  } finally {
+    if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SIGNALR_URL;
+    else process.env.NEXT_PUBLIC_SIGNALR_URL = previousUrl;
+  }
+});
+
 test("planning weddingChanged invalidations are scoped, validated and delivered to seating listeners", async () => {
   const connection = new FakeConnection();
   mock.method(
