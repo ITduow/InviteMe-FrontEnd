@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { ErrorState } from "@/shared/feedback/error-state";
 import { LoadingState } from "@/shared/feedback/loading-state";
 import { createMyRsvp, getMyRsvp, replaceMyRsvp, type Rsvp } from "../api/rsvp.api";
+import { getGuestSeats } from "../api/guest-seats.api";
 
 type Answer = "yes" | "no" | "";
 type Row = { key: string; participantId?: string; name: string; answer: Answer; position?: number };
@@ -78,6 +79,10 @@ export function GuestRsvp({ token }: { token: string }) {
     retry: false,
     staleTime: 0,
   });
+  const seats = useQuery({
+    queryKey: ["guest-seats", token],
+    queryFn: ({ signal }) => getGuestSeats(api, token, signal),
+  });
   if (query.isPending) return <LoadingState label="Đang tải câu trả lời của bạn…" />;
   if (query.isError) {
     if (query.error instanceof ApiError && query.error.backendCode === "INVITATION_UNAVAILABLE")
@@ -90,14 +95,41 @@ export function GuestRsvp({ token }: { token: string }) {
   }
   const rsvp = query.data;
   return (
-    <RsvpForm
-      key={`${rsvp.version}:${rsvp.pendingRequest?.id ?? "none"}`}
-      token={token}
-      rsvp={rsvp}
-      refresh={() => void query.refetch()}
-      notice={notice}
-      setNotice={setNotice}
-    />
+    <div className="space-y-5">
+      <RsvpForm
+        key={`${rsvp.version}:${rsvp.pendingRequest?.id ?? "none"}`}
+        token={token}
+        rsvp={rsvp}
+        refresh={() => void query.refetch()}
+        notice={notice}
+        setNotice={setNotice}
+      />
+      {seats.data?.published && (
+        <section className="rounded-2xl bg-card p-5 shadow-sm sm:p-7">
+          <h2 className="text-xl font-semibold">Chỗ ngồi của bạn</h2>
+          <div className="mt-3 space-y-2">
+            {seats.data.seats
+              .filter((seat) => seat.status === "USED")
+              .map((seat) => (
+                <p key={seat.position} className="rounded-lg border p-3 text-sm">
+                  {seat.personName ?? `Người thứ ${seat.position}`} ·{" "}
+                  {seat.table
+                    ? `${seat.table}${seat.seatNumber ? `, ghế ${seat.seatNumber}` : ""}`
+                    : "Chưa được xếp bàn"}
+                </p>
+              ))}
+            {seats.data.seats.every((seat) => seat.status !== "USED") && (
+              <p className="text-sm text-muted-foreground">Chưa có người tham dự được xác nhận.</p>
+            )}
+          </div>
+        </section>
+      )}
+      {seats.data && !seats.data.published && (
+        <p className="text-center text-sm text-muted-foreground">
+          Sơ đồ chỗ ngồi chưa được công bố.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -158,6 +190,7 @@ function RsvpForm({
         ? await replaceMyRsvp(api, token, input)
         : await createMyRsvp(api, token, input);
       cache.setQueryData(["guest-rsvp", token], result.rsvp);
+      void cache.invalidateQueries({ queryKey: ["guest-seats", token] });
       setNotice(
         result.queued
           ? "Đã gửi yêu cầu thay đổi. Cô dâu chú rể sẽ xem xét trước khi áp dụng."
