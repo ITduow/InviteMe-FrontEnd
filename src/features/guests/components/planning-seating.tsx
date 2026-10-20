@@ -219,12 +219,6 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   }, [tableId, placeId]);
   const [dragIds, setDragIds] = useState<string[]>([]);
   const [dragTarget, setDragTarget] = useState<DropPosition | null>(null);
-  const [undo, setUndo] = useState<{
-    version: number;
-    ids: string[];
-    assignments: SeatingPlan["assignments"];
-    message: string;
-  } | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: tableCoordinates }),
@@ -252,7 +246,6 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     savingRef.current = true;
     setSaving(true);
     setFailure(false);
-    setUndo(null);
     setMessage("Đang lưu…");
     if (optimistic) setPreview(optimistic);
     try {
@@ -266,14 +259,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
           ? `Đã xếp ${input.placeIds.length} người vào ${destination.name}`
           : `Đã bỏ xếp ${input.placeIds.length} người`;
         setMessage(notice);
-        setUndo({
-          version: latest.version,
-          ids: input.placeIds,
-          assignments: planQuery.data.assignments.filter((a) => input.placeIds.includes(a.placeId)),
-          message: notice,
-        });
-      } else
-        setMessage(input.action === "RESTORE_PLACES" ? "Đã hoàn tác vị trí vừa xếp" : "Đã lưu");
+      } else setMessage("Đã lưu");
       setSelection([]);
       if (input.action === "DELETE_TABLE") {
         setTableId(null);
@@ -321,17 +307,6 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       },
       next,
     );
-  }
-  async function undoMove() {
-    if (!undo || savingRef.current) return;
-    const current = await planQuery.refetch();
-    if (!current.data || current.data.version !== undo.version) {
-      setUndo(null);
-      setFailure(true);
-      setMessage("Sơ đồ đã thay đổi. Chưa hoàn tác để tránh ghi đè vị trí mới.");
-      return;
-    }
-    await change({ action: "RESTORE_PLACES", placeIds: undo.ids, assignments: undo.assignments });
   }
   if (planQuery.isPending) return <p role="status">Đang tải sơ đồ…</p>;
   if (planQuery.isError || !plan)
@@ -837,23 +812,10 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
           className="fixed bottom-5 left-1/2 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-lg"
         >
           <span>{message}</span>
-          {undo && (
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={saving || undo.version !== planQuery.data?.version}
-              onClick={() => void undoMove()}
-            >
-              Hoàn tác
-            </Button>
-          )}
           {!saving && (
             <button
               aria-label="Ẩn thông báo"
-              onClick={() => {
-                setMessage("");
-                setUndo(null);
-              }}
+              onClick={() => setMessage("")}
               className="rounded p-1 focus-visible:outline-2 focus-visible:outline-primary"
             >
               <X className="size-4" aria-hidden="true" />
