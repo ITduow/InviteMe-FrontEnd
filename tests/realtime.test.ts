@@ -186,13 +186,29 @@ test("drag snapshots are validated and scoped; commands reject disconnected or s
   );
   const client = new RealtimeClient("https://api.example.test/hub", async () => "token");
   const received: number[] = [];
+  const pointers: number[] = [];
   client.onSeatingDrags((snapshot) => received.push(snapshot.revision));
+  client.onSeatingPointer((pointer) => pointers.push(pointer.sequence));
   await client.activate("one");
   const emit = connection.handlers.get("SeatingDragSnapshot");
   emit?.({ weddingId: "other", revision: 1, leases: [] });
   emit?.({ weddingId: "one", revision: "bad", leases: [] });
   emit?.({ weddingId: "one", revision: 2, leases: [] });
   assert.deepEqual(received, [2]);
+  const emitPointer = connection.handlers.get("SeatingDragPointer");
+  const pointer = {
+    weddingId: "one",
+    connectionId: "tab",
+    dragId: "gesture",
+    anchor: "queue",
+    x: 0.5,
+    y: 0.5,
+    sequence: 1,
+  };
+  emitPointer?.({ ...pointer, weddingId: "other" });
+  emitPointer?.({ ...pointer, x: 2 });
+  emitPointer?.(pointer);
+  assert.deepEqual(pointers, [1]);
   await assert.rejects(client.invokeSeating("GetSeatingDrags", "other"), /DISCONNECTED/);
   const pending = deferred();
   mock.method(connection, "invoke", () => pending.promise);
@@ -202,7 +218,9 @@ test("drag snapshots are validated and scoped; commands reject disconnected or s
   await assert.rejects(loading, /DISCONNECTED/);
   await assert.rejects(client.invokeSeating("StartSeatingDrag", "one", ["place"]), /DISCONNECTED/);
   emit?.({ weddingId: "one", revision: 3, leases: [] });
+  emitPointer?.({ ...pointer, sequence: 2 });
   assert.deepEqual(received, [2]);
+  assert.deepEqual(pointers, [1]);
 });
 
 test("reconnect resync waits for rejoin and ignores a wedding left during rejoin", async () => {

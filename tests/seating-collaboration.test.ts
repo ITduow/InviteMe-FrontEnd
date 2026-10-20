@@ -7,6 +7,7 @@ test("snapshots replace locks, reject other weddings and out-of-order updates; r
   const lease = {
     userId: "user",
     connectionId: "tab",
+    dragId: "gesture",
     displayName: "An",
     placeIds: ["p"],
     expiresAt: "2026-10-20T10:00:00Z",

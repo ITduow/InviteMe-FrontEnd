@@ -11,7 +11,12 @@ import {
   type RealtimeEvent,
   type WeddingEvent,
 } from "./realtime-events";
-import { seatingDragSnapshotSchema, type SeatingDragSnapshot } from "./seating-drag-events";
+import {
+  seatingDragSnapshotSchema,
+  seatingDragPointerSchema,
+  type SeatingDragSnapshot,
+  type SeatingDragPointer,
+} from "./seating-drag-events";
 
 export type RealtimeStatus =
   "disabled" | "disconnected" | "connecting" | "connected" | "reconnecting";
@@ -27,6 +32,13 @@ export class RealtimeClient {
   private resyncListeners = new Set<() => void>();
   private handlers = new Map<RealtimeEvent, Set<(event: WeddingEvent) => void>>();
   private dragListeners = new Set<(snapshot: SeatingDragSnapshot) => void>();
+  private pointerListeners = new Set<(pointer: SeatingDragPointer) => void>();
+  onSeatingPointer(listener: (pointer: SeatingDragPointer) => void) {
+    this.pointerListeners.add(listener);
+    return () => {
+      this.pointerListeners.delete(listener);
+    };
+  }
   getConnectionId = () => this.connection?.connectionId ?? null;
   onSeatingDrags(listener: (snapshot: SeatingDragSnapshot) => void) {
     this.dragListeners.add(listener);
@@ -40,7 +52,8 @@ export class RealtimeClient {
       | "StartSeatingDrag"
       | "RenewSeatingDrag"
       | "TargetSeatingDrag"
-      | "EndSeatingDrag",
+      | "EndSeatingDrag"
+      | "MoveSeatingPointer",
     weddingId: string,
     ...args: unknown[]
   ): Promise<T> {
@@ -106,6 +119,11 @@ export class RealtimeClient {
       const parsed = seatingDragSnapshotSchema.safeParse(payload);
       if (isCurrent() && parsed.success && parsed.data.weddingId === weddingId)
         this.dragListeners.forEach((listener) => listener(parsed.data));
+    });
+    connection.on("SeatingDragPointer", (payload: unknown) => {
+      const parsed = seatingDragPointerSchema.safeParse(payload);
+      if (isCurrent() && parsed.success && parsed.data.weddingId === weddingId)
+        this.pointerListeners.forEach((listener) => listener(parsed.data));
     });
     for (const event of Object.values(REALTIME_EVENTS)) {
       connection.on(event, (payload: unknown) => {

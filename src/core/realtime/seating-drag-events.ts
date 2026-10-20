@@ -3,6 +3,7 @@ import { z } from "zod";
 const presenceFields = {
   userId: z.string(),
   connectionId: z.string(),
+  dragId: z.string(),
   displayName: z.string(),
   placeIds: z.array(z.string()),
   expiresAt: z.string().datetime({ offset: true }),
@@ -22,3 +23,13 @@ export const seatingDragSnapshotSchema = z.object({
 export type SeatingDragLease = z.infer<typeof seatingDragLeaseSchema>;
 export type SeatingDragSnapshot = z.infer<typeof seatingDragSnapshotSchema>;
 export type SeatingDragPresence = SeatingDragSnapshot["leases"][number];
+export const seatingDragPointerSchema = z.object({
+  weddingId: z.string(),
+  connectionId: z.string(),
+  dragId: z.string(),
+  anchor: z.string().regex(/^(queue|board|table:[a-f0-9-]{36})$/i),
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  sequence: z.number().int().nonnegative(),
+});
+export type SeatingDragPointer = z.infer<typeof seatingDragPointerSchema>;

@@ -48,6 +48,7 @@ import { SeatingQueue } from "./seating-queue";
 import { SeatingTableDrawer } from "./seating-table-drawer";
 import { SeatingDragPreview } from "./seating-drag-preview";
 import { useSeatingCollaboration } from "../hooks/use-seating-collaboration";
+import { SeatingRemoteCursors } from "./seating-remote-cursors";
 import {
   DraggingLabel,
   SeatingDragPresenceContext,
@@ -143,6 +144,7 @@ function DropTarget({
   label,
   invalid = false,
   hint,
+  anchor,
   highlighted = false,
 }: {
   id: string;
@@ -154,12 +156,14 @@ function DropTarget({
   label?: string;
   invalid?: boolean;
   hint?: string;
+  anchor?: string;
   highlighted?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id, data: target, disabled });
   return (
     <div
       ref={setNodeRef}
+      data-seating-pointer-anchor={anchor}
       aria-label={label}
       title={hint}
       style={style}
@@ -393,6 +397,13 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         (lease) => lease.connectionId !== collaboration.connectionId,
       )}
     >
+      <SeatingRemoteCursors
+        weddingId={weddingId}
+        plan={plan}
+        leases={collaboration.leases.filter(
+          (lease) => lease.connectionId !== collaboration.connectionId,
+        )}
+      />
       <DndContext
         key={dragEpoch}
         autoScroll={{
@@ -428,10 +439,15 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               Number(String(b.id).startsWith("seat:")) - Number(String(a.id).startsWith("seat:")),
           )
         }
-        onDragStart={({ active }) => {
+        onDragStart={({ active, activatorEvent }) => {
           if (savingRef.current || realtime.getStatus() !== "connected") return;
           const ids = (active.data.current?.ids as string[] | undefined) ?? [];
-          collaboration.begin(ids);
+          collaboration.begin(
+            ids,
+            "clientX" in activatorEvent && "clientY" in activatorEvent
+              ? { x: Number(activatorEvent.clientX), y: Number(activatorEvent.clientY) }
+              : undefined,
+          );
           setDragIds(ids);
           setDragTarget(null);
           setSelection([]);
@@ -558,6 +574,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
           <div className="grid items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
             <DropTarget
               id="unassigned"
+              anchor="queue"
               target={{ tableId: null }}
               disabled={!editable || saving}
               className="space-y-3 rounded-xl border bg-card p-4"
@@ -607,6 +624,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               </p>
             </DropTarget>
             <section
+              data-seating-pointer-anchor="board"
               className="min-w-0 rounded-xl border bg-[#F8F5EF] p-4"
               aria-label="Sơ đồ bàn đã lưu"
             >
@@ -633,6 +651,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                   return (
                     <DropTarget
                       key={t.id}
+                      anchor={`table:${t.id}`}
                       id={`table:${t.id}`}
                       target={{ tableId: t.id }}
                       disabled={!editable || saving}

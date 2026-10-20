@@ -54,9 +54,8 @@ function QueueDrag({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-w-0 items-center gap-1 rounded-lg transition-colors",
+        "flex min-w-0 flex-wrap items-center gap-1 rounded-lg transition-colors",
         selected && "bg-primary/10",
-        (isDragging || lock) && "opacity-40",
       )}
     >
       <button
@@ -76,13 +75,20 @@ function QueueDrag({
         aria-pressed={selected}
         aria-label={`Chọn ${label}`}
         onPointerDown={(event) => listeners?.onPointerDown?.(event)}
-        className="flex min-w-0 flex-1 touch-pan-y items-center gap-2 rounded-lg py-2 pr-2 text-left focus-visible:outline-2 focus-visible:outline-primary"
+        className={cn(
+          "flex min-w-0 flex-1 touch-pan-y items-center gap-2 rounded-lg py-2 pr-2 text-left focus-visible:outline-2 focus-visible:outline-primary",
+          (isDragging || lock) && "opacity-40",
+        )}
       >
         <span className="min-w-0 flex-1">
           <span className="flex min-w-0 items-center gap-2">{children}</span>
-          {lock && <DraggingLabel presence={lock} />}
         </span>
       </button>
+      {lock && (
+        <span className="w-full pl-6 pb-1">
+          <DraggingLabel presence={lock} />
+        </span>
+      )}
     </div>
   );
 }

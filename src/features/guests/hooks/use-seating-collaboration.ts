@@ -10,6 +10,11 @@ import {
 } from "@/core/realtime/seating-drag-events";
 import { createSeatingCollaborationStore } from "../stores/seating-collaboration";
 import type { SeatingDropPosition } from "../utils/seating-drag-preview";
+import {
+  createLatestPointerSender,
+  readSeatingPointer,
+  type PointerPoint,
+} from "../utils/seating-pointer";
 
 type Operation = {
   ids: string[];
@@ -31,6 +36,30 @@ export function useSeatingCollaboration(
   const heartbeat = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastTarget = useRef<string | undefined>(undefined);
+  const pointer = useRef<PointerPoint | undefined>(undefined);
+  const sequence = useRef(0);
+  const pointerSender = useMemo(
+    () =>
+      createLatestPointerSender<{
+        operation: Operation;
+        point: PointerPoint;
+        sequence: number;
+      }>(async ({ operation, point, sequence: packetSequence }) => {
+        if (!operation?.lease || operation.cancelled || operation.saving) return;
+        const position = readSeatingPointer(point);
+        if (position)
+          await realtime.invokeSeating(
+            "MoveSeatingPointer",
+            weddingId,
+            operation.lease.token,
+            position.anchor,
+            position.x,
+            position.y,
+            packetSequence,
+          );
+      }),
+    [realtime, weddingId],
+  );
 
   const release = useCallback(
     (lease: SeatingDragLease) => {
@@ -45,6 +74,8 @@ export function useSeatingCollaboration(
       active.current = null;
       clearInterval(heartbeat.current);
       clearTimeout(hoverTimer.current);
+      pointerSender.cancel();
+      pointer.current = undefined;
       lastTarget.current = undefined;
       if (operation) {
         operation.cancelled = true;
@@ -52,7 +83,7 @@ export function useSeatingCollaboration(
       }
       if (operation && notify) onAbort();
     },
-    [onAbort, release],
+    [onAbort, release, pointerSender],
   );
 
   useEffect(() => {
@@ -80,7 +111,17 @@ export function useSeatingCollaboration(
       if (document.hidden) cancel();
     };
     const onBlur = () => cancel();
+    const onPointerMove = (event: PointerEvent) => {
+      if (!active.current || active.current.cancelled || active.current.saving) return;
+      pointer.current = { x: event.clientX, y: event.clientY };
+      pointerSender.push({
+        operation: active.current,
+        point: pointer.current,
+        sequence: ++sequence.current,
+      });
+    };
     window.addEventListener("blur", onBlur);
+    document.addEventListener("pointermove", onPointerMove, { passive: true, capture: true });
     document.addEventListener("visibilitychange", onHidden);
     return () => {
       disposed = true;
@@ -88,14 +129,16 @@ export function useSeatingCollaboration(
       stopResync();
       stopStatus();
       window.removeEventListener("blur", onBlur);
+      document.removeEventListener("pointermove", onPointerMove, true);
       document.removeEventListener("visibilitychange", onHidden);
       cancel(false, true);
     };
-  }, [realtime, weddingId, store, cancel, onError]);
+  }, [realtime, weddingId, store, cancel, onError, pointerSender]);
 
-  function begin(ids: string[]) {
+  function begin(ids: string[], initialPointer?: PointerPoint) {
     if (active.current?.saving) return active.current;
     cancel(false);
+    pointer.current = initialPointer;
     const operation: Operation = {
       ids: [...ids],
       cancelled: false,
@@ -112,6 +155,8 @@ export function useSeatingCollaboration(
           release(lease);
           return;
         }
+        if (pointer.current)
+          pointerSender.push({ operation, point: pointer.current, sequence: ++sequence.current });
         heartbeat.current = setInterval(() => {
           void realtime.invokeSeating("RenewSeatingDrag", weddingId, lease.token).catch(() => {
             if (active.current === operation && !operation.saving) {
