@@ -299,11 +299,15 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     } catch (error) {
       setFailure(true);
       setMessage(
-        error instanceof ApiError && error.status === 409
-          ? "Sơ đồ hoặc danh sách khách vừa thay đổi. Đã hủy thao tác; hãy kiểm tra bản mới và tính lại gợi ý nếu cần."
-          : error instanceof ApiError && error.status === 403
-            ? "Bạn không có quyền sửa sơ đồ này."
-            : "Chưa lưu được: kiểm tra sức chứa, ghế đang có khách hoặc kết nối. Đang tải lại trạng thái đã lưu.",
+        error instanceof ApiError && error.backendCode === "SEATING_PLACE_LOCKED"
+          ? "Người khác đang thao tác với các chỗ này. Hãy chờ họ hoàn tất rồi thử lại."
+          : error instanceof ApiError && error.backendCode === "SEATING_DRAG_EXPIRED"
+            ? "Quyền kéo đã hết hạn. Chưa lưu thay đổi; hãy kéo hoặc chọn lại."
+            : error instanceof ApiError && error.status === 409
+              ? "Sơ đồ hoặc danh sách khách vừa thay đổi. Đã hủy thao tác; hãy kiểm tra bản mới và tính lại gợi ý nếu cần."
+              : error instanceof ApiError && error.status === 403
+                ? "Bạn không có quyền sửa sơ đồ này."
+                : "Chưa lưu được: kiểm tra sức chứa, ghế đang có khách hoặc kết nối. Đang tải lại trạng thái đã lưu.",
       );
     } finally {
       setPreview(null);
