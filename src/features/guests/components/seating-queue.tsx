@@ -6,6 +6,7 @@ import { ChevronDown, GripVertical, Plus, Users } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { sideLabels, type PlanningGuest } from "../api/planning.api";
 import type { SeatingPlan } from "../api/planning-seating.api";
+import { DraggingLabel, useSeatingDragLock } from "./seating-drag-presence";
 
 type Place = SeatingPlan["places"][number];
 type Table = SeatingPlan["tables"][number];
@@ -42,10 +43,12 @@ function QueueDrag({
   onSelect: () => void;
   children: ReactNode;
 }) {
+  const lock = useSeatingDragLock(ids);
+  const unavailable = disabled || !!lock;
   const { setNodeRef, setActivatorNodeRef, attributes, listeners, isDragging } = useDraggable({
     id,
     data: { ids },
-    disabled,
+    disabled: unavailable,
   });
   return (
     <div
@@ -53,14 +56,14 @@ function QueueDrag({
       className={cn(
         "flex min-w-0 items-center gap-1 rounded-lg transition-colors",
         selected && "bg-primary/10",
-        isDragging && "opacity-40",
+        (isDragging || lock) && "opacity-40",
       )}
     >
       <button
         ref={setActivatorNodeRef}
         {...attributes}
         {...listeners}
-        disabled={disabled}
+        disabled={unavailable}
         aria-label={`Kéo ${label}`}
         className="shrink-0 touch-none rounded p-1 text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       >
@@ -69,13 +72,16 @@ function QueueDrag({
       <button
         type="button"
         onClick={onSelect}
-        disabled={disabled}
+        disabled={unavailable}
         aria-pressed={selected}
         aria-label={`Chọn ${label}`}
         onPointerDown={(event) => listeners?.onPointerDown?.(event)}
         className="flex min-w-0 flex-1 touch-pan-y items-center gap-2 rounded-lg py-2 pr-2 text-left focus-visible:outline-2 focus-visible:outline-primary"
       >
-        {children}
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-center gap-2">{children}</span>
+          {lock && <DraggingLabel presence={lock} />}
+        </span>
       </button>
     </div>
   );

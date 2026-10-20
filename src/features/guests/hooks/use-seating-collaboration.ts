@@ -38,19 +38,22 @@ export function useSeatingCollaboration(
     },
     [realtime, weddingId],
   );
-  const cancel = useCallback(() => {
-    const operation = active.current;
-    if (operation?.saving) return;
-    active.current = null;
-    clearInterval(heartbeat.current);
-    clearTimeout(hoverTimer.current);
-    lastTarget.current = undefined;
-    if (operation) {
-      operation.cancelled = true;
-      if (operation.lease) release(operation.lease);
-    }
-    if (operation) onAbort();
-  }, [onAbort, release]);
+  const cancel = useCallback(
+    (notify = true) => {
+      const operation = active.current;
+      if (operation?.saving) return;
+      active.current = null;
+      clearInterval(heartbeat.current);
+      clearTimeout(hoverTimer.current);
+      lastTarget.current = undefined;
+      if (operation) {
+        operation.cancelled = true;
+        if (operation.lease) release(operation.lease);
+      }
+      if (operation && notify) onAbort();
+    },
+    [onAbort, release],
+  );
 
   useEffect(() => {
     let disposed = false;
@@ -76,21 +79,22 @@ export function useSeatingCollaboration(
     const onHidden = () => {
       if (document.hidden) cancel();
     };
-    window.addEventListener("blur", cancel);
+    const onBlur = () => cancel();
+    window.addEventListener("blur", onBlur);
     document.addEventListener("visibilitychange", onHidden);
     return () => {
       disposed = true;
       stopSnapshots();
       stopResync();
       stopStatus();
-      window.removeEventListener("blur", cancel);
+      window.removeEventListener("blur", onBlur);
       document.removeEventListener("visibilitychange", onHidden);
-      cancel();
+      cancel(false);
     };
   }, [realtime, weddingId, store, cancel, onError]);
 
   function begin(ids: string[]) {
-    cancel();
+    cancel(false);
     const operation: Operation = {
       ids: [...ids],
       cancelled: false,
@@ -144,7 +148,7 @@ export function useSeatingCollaboration(
       return await work(lease.token);
     } finally {
       operation.saving = false;
-      cancel();
+      cancel(false);
     }
   }
 
