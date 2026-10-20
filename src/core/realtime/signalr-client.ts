@@ -167,6 +167,10 @@ export class RealtimeClient {
       const parsed = planningChangeSchema.safeParse(payload);
       if (!isCurrent() || !parsed.success) return;
       const change = parsed.data;
+      if (
+        ["PlanningSeatingChanged", "PlanningGuestsImported", "PlanningSeatingNeedsAttention"].includes(change.type) &&
+        change.entityId !== weddingId
+      ) return;
       this.planningListeners.forEach((listener) => listener(change));
       if (
         [
