@@ -48,8 +48,15 @@ test("cursor interpolates without React and follows receiver layout; disposal ca
     animator.push(packet);
     tick(16);
     assert.equal(element.style.transform, "translate3d(100px, 100px, 0)");
+    animator.push({ ...packet, x: 0.001, sequence: 2 });
+    tick(32);
+    assert.equal(
+      String(element.style.transform),
+      "translate3d(100.4px, 100px, 0)",
+      "small movements must not revert to the library's previous spline endpoint",
+    );
     now = 100;
-    animator.push({ ...packet, x: 1, sequence: 2 });
+    animator.push({ ...packet, x: 1, sequence: 3 });
     tick(132);
     tick(148);
     const x = Number(element.style.transform.match(/\(([^p]+)px/)![1]);
@@ -58,6 +65,17 @@ test("cursor interpolates without React and follows receiver layout; disposal ca
     tick(164);
     const moved = Number(element.style.transform.match(/\(([^p]+)px/)![1]);
     assert.ok(moved > x, "receiver geometry must be resolved at paint time");
+    for (let time = 180; time <= 400; time += 16) tick(time);
+    assert.equal(
+      element.style.transform,
+      "translate3d(1000px, 100px, 0)",
+      "stopped cursor must reach the exact last sample",
+    );
+    now = 410;
+    animator.push({ ...packet, anchor: "queue", x: 0.2, sequence: 4 });
+    tick(426);
+    const crossing = Number(String(element.style.transform).match(/\(([^p]+)px/)![1]);
+    assert.ok(crossing > 360, "switching anchors must continue from the visible point");
     animator.reset();
     assert.equal(element.hidden, true);
     animator.dispose();

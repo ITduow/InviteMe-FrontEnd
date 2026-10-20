@@ -8,6 +8,7 @@ export function createSeatingCursorAnimator(element: HTMLDivElement) {
   let pointer: SeatingDragPointer | undefined;
   let basis = { width: 1, height: 1 };
   let point: [number, number] = [0, 0];
+  let endpoint: [number, number] = [0, 0];
   let screen: [number, number] | undefined;
   let anchor: HTMLElement | null = null;
   let frame: number;
@@ -27,6 +28,8 @@ export function createSeatingCursorAnimator(element: HTMLDivElement) {
       const rect = anchor?.getBoundingClientRect();
       element.hidden = !rect || rect.width <= 0 || rect.height <= 0;
       if (rect && !element.hidden) {
+        // The library may finish between frames without painting the exact endpoint.
+        if (cursor && cursor.state !== "animating") point = endpoint;
         const rawX = rect.left + (point[0] / basis.width) * rect.width;
         const rawY = rect.top + (point[1] / basis.height) * rect.height;
         screen = [rawX, rawY];
@@ -63,8 +66,20 @@ export function createSeatingCursorAnimator(element: HTMLDivElement) {
           point = [value[0] ?? 0, value[1] ?? 0];
         });
         cursor.addPoint(point);
+        if (screen) cursor.timestamp = performance.now() - 34;
+      }
+      // PerfectCursor queues animations internally. On low-FPS receivers, discard
+      // accumulated work and continue from the visible point toward the latest sample.
+      if (cursor && cursor.queue.length >= 2) {
+        disposeCursor();
+        cursor = new PerfectCursor((value) => {
+          point = [value[0] ?? 0, value[1] ?? 0];
+        });
+        cursor.addPoint(point);
+        cursor.timestamp = performance.now() - 34;
       }
       const target: [number, number] = [next.x * basis.width, next.y * basis.height];
+      endpoint = target;
       if (reducedMotion.matches) {
         disposeCursor();
         point = target;
