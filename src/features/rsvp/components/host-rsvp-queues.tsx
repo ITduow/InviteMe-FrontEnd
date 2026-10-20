@@ -10,6 +10,7 @@ import { Button } from "@/shared/ui/button";
 import { ErrorState } from "@/shared/feedback/error-state";
 import { LoadingState } from "@/shared/feedback/loading-state";
 import {
+  getHostRsvp,
   hostRsvpKeys,
   listRsvpRequests,
   listRsvpWaitlist,
@@ -106,6 +107,11 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
               {item.change.participantIds.length} người có sẵn
               {item.change.plusOnes?.length ? ` · thêm ${item.change.plusOnes.join(", ")}` : ""}
             </p>
+            <QueueGuestInfo
+              weddingId={weddingId}
+              guestId={item.guestId}
+              participantIds={item.change.participantIds}
+            />
             {item.change.note && <p className="text-sm">Ghi chú: {item.change.note}</p>}
             {editable && (
               <div className="flex gap-2">
@@ -152,7 +158,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4"
           >
             <div>
-              <h3 className="font-semibold">Khách {item.guestId}</h3>
+              <QueueGuestInfo weddingId={weddingId} guestId={item.guestId} waitlisted />
               <p className="text-sm text-muted-foreground">
                 {item.kind === "FULL_PARTY" ? "Cả nhóm" : "Người đi thêm"} · {item.requestedSlots}{" "}
                 chỗ · {date(item.requestedAt)}
@@ -188,6 +194,41 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
           />
         )}
       </section>
+    </div>
+  );
+}
+
+function QueueGuestInfo({
+  weddingId,
+  guestId,
+  participantIds,
+  waitlisted = false,
+}: {
+  weddingId: string;
+  guestId: string;
+  participantIds?: string[];
+  waitlisted?: boolean;
+}) {
+  const { api } = useRuntime();
+  const detail = useQuery({
+    queryKey: hostRsvpKeys.detail(weddingId, guestId),
+    queryFn: ({ signal }) => getHostRsvp(api, weddingId, guestId, signal),
+  });
+  if (detail.isError)
+    return <p className="text-sm text-muted-foreground">Không tải được tên khách ({guestId}).</p>;
+  if (!detail.data)
+    return <p className="text-sm text-muted-foreground">Đang tải thông tin khách…</p>;
+  const people = participantIds
+    ? detail.data.participants.filter((person) => participantIds.includes(person.id))
+    : waitlisted
+      ? detail.data.participants.filter((person) => person.attendanceStatus === "WAITLISTED")
+      : [];
+  return (
+    <div className="text-sm">
+      {waitlisted && <h3 className="font-semibold">{detail.data.recipientName}</h3>}
+      {people.length > 0 && (
+        <p>Người liên quan: {people.map((person) => person.fullName).join(", ")}</p>
+      )}
     </div>
   );
 }
