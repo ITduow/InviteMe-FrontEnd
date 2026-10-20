@@ -57,9 +57,9 @@ test("pointer uses send without hub completion and rejects the wrong wedding or 
   await assert.rejects(client.sendSeatingPointer("one", "lease"));
   try {
     await client.activate("one");
-    await client.sendSeatingPointer("one", "lease", "board", 0.2, 0.3, 1);
+    await client.sendSeatingPointer("one", "lease", "board", 0.2, 0.3, 1, "table", 2);
     assert.deepEqual(connection.sends, [
-      ["MoveSeatingPointer", "one", "lease", "board", 0.2, 0.3, 1],
+      ["MoveSeatingPointerWithTarget", "one", "lease", "board", 0.2, 0.3, 1, "table", 2],
     ]);
     await assert.rejects(client.sendSeatingPointer("other", "lease"));
   } finally {

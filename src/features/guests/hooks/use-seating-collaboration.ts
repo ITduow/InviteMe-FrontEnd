@@ -22,6 +22,7 @@ type Operation = {
   cancelled: boolean;
   saving: boolean;
   lease?: SeatingDragLease;
+  target?: SeatingDropPosition | null;
 };
 
 export function useSeatingCollaboration(
@@ -34,7 +35,6 @@ export function useSeatingCollaboration(
   const leases = useStore(store, (state) => state.leases);
   const active = useRef<Operation | null>(null);
   const heartbeat = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastTarget = useRef<string | undefined>(undefined);
   const pointer = useRef<PointerPoint | undefined>(undefined);
   const sequence = useRef(0);
@@ -55,6 +55,8 @@ export function useSeatingCollaboration(
             position.x,
             position.y,
             packetSequence,
+            operation.target?.tableId ?? null,
+            operation.target?.seatNumber ?? null,
           );
       }),
     [realtime, weddingId],
@@ -72,7 +74,6 @@ export function useSeatingCollaboration(
       if (operation?.saving && !force) return;
       active.current = null;
       clearInterval(heartbeat.current);
-      clearTimeout(hoverTimer.current);
       pointerSender.cancel();
       pointer.current = undefined;
       lastTarget.current = undefined;
@@ -97,7 +98,16 @@ export function useSeatingCollaboration(
           if (!disposed && realtime.getStatus() === "connected") onError();
         });
     };
-    const stopSnapshots = realtime.onSeatingDrags((snapshot) => store.getState().replace(snapshot));
+    const stopSnapshots = realtime.onSeatingDrags((snapshot) => {
+      store.getState().replace(snapshot);
+      for (const lease of snapshot.leases) {
+        const pointer = realtime.getSeatingPointer(lease.connectionId, lease.dragId);
+        if (pointer) store.getState().updateTarget(pointer);
+      }
+    });
+    const stopPointers = realtime.onSeatingPointer((pointer) =>
+      store.getState().updateTarget(pointer),
+    );
     const stopResync = realtime.onResync(load);
     const stopStatus = realtime.subscribe(() => {
       if (realtime.getStatus() !== "connected") {
@@ -125,6 +135,7 @@ export function useSeatingCollaboration(
     return () => {
       disposed = true;
       stopSnapshots();
+      stopPointers();
       stopResync();
       stopStatus();
       window.removeEventListener("blur", onBlur);
@@ -190,7 +201,6 @@ export function useSeatingCollaboration(
       if (operation.cancelled) throw new Error("SEATING_DRAG_CANCELLED");
       operation.saving = true;
       await pointerSender.flush();
-      clearTimeout(hoverTimer.current);
       return await work(lease.token);
     } finally {
       operation.saving = false;
@@ -198,23 +208,29 @@ export function useSeatingCollaboration(
     }
   }
 
-  function hover(target: SeatingDropPosition | null) {
-    const key = JSON.stringify(target);
+  function hover(next: SeatingDropPosition | null) {
+    const key = JSON.stringify(next);
     if (key === lastTarget.current) return;
     lastTarget.current = key;
-    clearTimeout(hoverTimer.current);
     const operation = active.current;
-    if (!operation) return;
-    hoverTimer.current = setTimeout(() => {
+    if (!operation || operation.cancelled || operation.saving) return;
+    operation.target = next;
+    if (pointer.current) {
+      // Target and coordinates share one latest-only packet, including when the
+      // pointer stops immediately after entering/leaving a table.
+      pointerSender.push({ operation, point: pointer.current, sequence: ++sequence.current });
+    } else {
+      // Keyboard/tap placement may have no pointer coordinates. Keep its existing
+      // acknowledged target command, with no mouse-hover debounce.
       void operation.pending
         .then((lease) => {
-          if (!operation.cancelled && !operation.saving)
+          if (!operation.cancelled && !operation.saving && lastTarget.current === key)
             return realtime.invokeSeating(
               "TargetSeatingDrag",
               weddingId,
               lease.token,
-              target?.tableId ?? null,
-              target?.seatNumber ?? null,
+              next?.tableId ?? null,
+              next?.seatNumber ?? null,
             );
         })
         .catch(() => {
@@ -223,7 +239,7 @@ export function useSeatingCollaboration(
             onError();
           }
         });
-    }, 100);
+    }
   }
   return { begin, cancel, run, hover, leases, connectionId: realtime.getConnectionId() };
 }

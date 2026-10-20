@@ -9,6 +9,7 @@ const presenceFields = {
   expiresAt: z.string().datetime({ offset: true }),
   tableId: z.string().nullable(),
   seatNumber: z.number().int().nullable(),
+  targetSequence: z.number().int().nonnegative().optional(),
 };
 export const seatingDragLeaseSchema = z.object({
   ...presenceFields,
@@ -31,5 +32,8 @@ export const seatingDragPointerSchema = z.object({
   x: z.number().min(0).max(1),
   y: z.number().min(0).max(1),
   sequence: z.number().int().nonnegative(),
+  tableId: z.string().nullable().optional(),
+  seatNumber: z.number().int().min(1).max(20).nullable().optional(),
+  hasTarget: z.boolean().optional(),
 });
 export type SeatingDragPointer = z.infer<typeof seatingDragPointerSchema>;

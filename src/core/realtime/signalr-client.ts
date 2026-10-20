@@ -50,7 +50,7 @@ export class RealtimeClient {
     const generation = this.generation;
     if (!connection || this.status !== "connected" || weddingId !== this.activeWedding)
       throw new Error("SEATING_REALTIME_DISCONNECTED");
-    await connection.send("MoveSeatingPointer", weddingId, ...args);
+    await connection.send("MoveSeatingPointerWithTarget", weddingId, ...args);
     if (this.connection !== connection || this.generation !== generation)
       throw new Error("SEATING_REALTIME_DISCONNECTED");
   }
