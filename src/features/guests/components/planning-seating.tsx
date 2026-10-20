@@ -42,6 +42,7 @@ import {
 } from "../api/planning-seating.api";
 import { sideLabels, type PlanningGuest } from "../api/planning.api";
 import { previewSeatMove } from "../utils/planning-seat-move";
+import { moveSeatingWithRetry } from "../utils/seating-conflict-retry";
 import { PlanningSuggestions } from "./planning-suggestions";
 import { SeatingQueue } from "./seating-queue";
 import { SeatingTableDrawer } from "./seating-table-drawer";
@@ -274,13 +275,15 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     setMessage("Đang lưu…");
     if (optimistic) setPreview(optimistic);
     try {
-      const version = planQuery.data.version;
+      const source = planQuery.data;
       const latest =
         input.action === "MOVE_PLACES"
           ? await collaboration.run(input.placeIds, (token) =>
-              changeSeatingPlan(api, weddingId, version, input, token),
+              moveSeatingWithRetry(api, weddingId, source, input, token, () =>
+                realtime.invokeSeating("RenewSeatingDrag", weddingId, token),
+              ),
             )
-          : await changeSeatingPlan(api, weddingId, version, input);
+          : await changeSeatingPlan(api, weddingId, source.version, input);
       cache.setQueryData<SeatingPlan>(key, (current) =>
         current && current.version > latest.version ? current : latest,
       );
@@ -298,16 +301,23 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       }
     } catch (error) {
       setFailure(true);
+      const dragProblem =
+        error instanceof Error &&
+        /SEATING_(PLACE_LOCKED|DRAG_EXPIRED|DRAG_CANCELLED|REALTIME_DISCONNECTED)/.test(
+          error.message,
+        );
       setMessage(
-        error instanceof ApiError && error.backendCode === "SEATING_PLACE_LOCKED"
-          ? "Người khác đang thao tác với các chỗ này. Hãy chờ họ hoàn tất rồi thử lại."
-          : error instanceof ApiError && error.backendCode === "SEATING_DRAG_EXPIRED"
-            ? "Quyền kéo đã hết hạn. Chưa lưu thay đổi; hãy kéo hoặc chọn lại."
-            : error instanceof ApiError && error.status === 409
-              ? "Sơ đồ hoặc danh sách khách vừa thay đổi. Đã hủy thao tác; hãy kiểm tra bản mới và tính lại gợi ý nếu cần."
-              : error instanceof ApiError && error.status === 403
-                ? "Bạn không có quyền sửa sơ đồ này."
-                : "Chưa lưu được: kiểm tra sức chứa, ghế đang có khách hoặc kết nối. Đang tải lại trạng thái đã lưu.",
+        dragProblem
+          ? "Quyền kéo đã mất hoặc người khác đang thao tác. Chưa lưu thay đổi; hãy chọn lại khi đồng bộ kết nối."
+          : error instanceof ApiError && error.backendCode === "SEATING_PLACE_LOCKED"
+            ? "Người khác đang thao tác với các chỗ này. Hãy chờ họ hoàn tất rồi thử lại."
+            : error instanceof ApiError && error.backendCode === "SEATING_DRAG_EXPIRED"
+              ? "Quyền kéo đã hết hạn. Chưa lưu thay đổi; hãy kéo hoặc chọn lại."
+              : error instanceof ApiError && error.status === 409
+                ? "Sơ đồ hoặc danh sách khách vừa thay đổi. Đã hủy thao tác; hãy kiểm tra bản mới và tính lại gợi ý nếu cần."
+                : error instanceof ApiError && error.status === 403
+                  ? "Bạn không có quyền sửa sơ đồ này."
+                  : "Chưa lưu được: kiểm tra sức chứa, ghế đang có khách hoặc kết nối. Đang tải lại trạng thái đã lưu.",
       );
     } finally {
       setPreview(null);
@@ -324,7 +334,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         ids.some((id) => lease.placeIds.includes(id)),
     );
     if (lock) {
-      collaboration.cancel();
+      collaboration.cancel(false);
       setFailure(true);
       setMessage(
         `${lock.displayName} đang kéo người trong lựa chọn này. Hãy chờ thao tác hoàn tất.`,
@@ -333,7 +343,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     }
     const next = previewSeatMove(plan, ids, target, seatNumber);
     if (!next) {
-      collaboration.cancel();
+      collaboration.cancel(false);
       setFailure(true);
       const table = plan.tables.find((t) => t.id === target);
       const occupied = plan.assignments.filter(
@@ -419,6 +429,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
           )
         }
         onDragStart={({ active }) => {
+          if (savingRef.current || realtime.getStatus() !== "connected") return;
           const ids = (active.data.current?.ids as string[] | undefined) ?? [];
           collaboration.begin(ids);
           setDragIds(ids);
@@ -433,7 +444,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         onDragCancel={() => {
           setDragIds([]);
           setDragTarget(null);
-          collaboration.cancel();
+          collaboration.cancel(false);
         }}
         onDragEnd={({ active, over }) => {
           setDragIds([]);
@@ -441,7 +452,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
           const ids = active.data.current?.ids as string[] | undefined;
           const target = over?.data.current as DropPosition | undefined;
           if (ids && target) move(ids, target.tableId, target.seatNumber);
-          else collaboration.cancel();
+          else collaboration.cancel(false);
         }}
       >
         <section className="space-y-5">

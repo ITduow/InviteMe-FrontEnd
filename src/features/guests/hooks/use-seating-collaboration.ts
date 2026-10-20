@@ -39,9 +39,9 @@ export function useSeatingCollaboration(
     [realtime, weddingId],
   );
   const cancel = useCallback(
-    (notify = true) => {
+    (notify = true, force = false) => {
       const operation = active.current;
-      if (operation?.saving) return;
+      if (operation?.saving && !force) return;
       active.current = null;
       clearInterval(heartbeat.current);
       clearTimeout(hoverTimer.current);
@@ -64,7 +64,7 @@ export function useSeatingCollaboration(
           if (!disposed) store.getState().replace(seatingDragSnapshotSchema.parse(snapshot));
         })
         .catch(() => {
-          if (!disposed) onError();
+          if (!disposed && realtime.getStatus() === "connected") onError();
         });
     };
     const stopSnapshots = realtime.onSeatingDrags((snapshot) => store.getState().replace(snapshot));
@@ -89,11 +89,12 @@ export function useSeatingCollaboration(
       stopStatus();
       window.removeEventListener("blur", onBlur);
       document.removeEventListener("visibilitychange", onHidden);
-      cancel(false);
+      cancel(false, true);
     };
   }, [realtime, weddingId, store, cancel, onError]);
 
   function begin(ids: string[]) {
+    if (active.current?.saving) return active.current;
     cancel(false);
     const operation: Operation = {
       ids: [...ids],

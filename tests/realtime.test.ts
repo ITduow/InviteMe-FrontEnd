@@ -177,6 +177,34 @@ test("rapid mount/unmount skips obsolete queued starts", async () => {
   assert.equal(client.getStatus(), "disconnected");
 });
 
+test("drag snapshots are validated and scoped; commands reject disconnected or stale wedding sessions", async () => {
+  const connection = new FakeConnection();
+  mock.method(
+    HubConnectionBuilder.prototype,
+    "build",
+    () => connection as unknown as HubConnection,
+  );
+  const client = new RealtimeClient("https://api.example.test/hub", async () => "token");
+  const received: number[] = [];
+  client.onSeatingDrags((snapshot) => received.push(snapshot.revision));
+  await client.activate("one");
+  const emit = connection.handlers.get("SeatingDragSnapshot");
+  emit?.({ weddingId: "other", revision: 1, leases: [] });
+  emit?.({ weddingId: "one", revision: "bad", leases: [] });
+  emit?.({ weddingId: "one", revision: 2, leases: [] });
+  assert.deepEqual(received, [2]);
+  await assert.rejects(client.invokeSeating("GetSeatingDrags", "other"), /DISCONNECTED/);
+  const pending = deferred();
+  mock.method(connection, "invoke", () => pending.promise);
+  const loading = client.invokeSeating("GetSeatingDrags", "one");
+  await client.activate(null);
+  pending.resolve();
+  await assert.rejects(loading, /DISCONNECTED/);
+  await assert.rejects(client.invokeSeating("StartSeatingDrag", "one", ["place"]), /DISCONNECTED/);
+  emit?.({ weddingId: "one", revision: 3, leases: [] });
+  assert.deepEqual(received, [2]);
+});
+
 test("reconnect resync waits for rejoin and ignores a wedding left during rejoin", async () => {
   const connection = new FakeConnection();
   mock.method(
