@@ -8,6 +8,7 @@ export {
 } from "./api/rsvp.api";
 export type { GuestRsvpInput, Rsvp, RsvpRequest, RsvpWriteResponse } from "./api/rsvp.api";
 export { GuestRsvp } from "./components/guest-rsvp";
+export { HostRsvpDashboard } from "./components/host-rsvp-dashboard";
 export {
   exportRsvpGuests,
   getHostRsvp,
