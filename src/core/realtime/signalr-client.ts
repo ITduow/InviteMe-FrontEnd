@@ -33,6 +33,11 @@ export class RealtimeClient {
   private handlers = new Map<RealtimeEvent, Set<(event: WeddingEvent) => void>>();
   private dragListeners = new Set<(snapshot: SeatingDragSnapshot) => void>();
   private pointerListeners = new Set<(pointer: SeatingDragPointer) => void>();
+  private latestPointers = new Map<string, SeatingDragPointer>();
+  getSeatingPointer(connectionId: string, dragId: string) {
+    const pointer = this.latestPointers.get(connectionId);
+    return pointer?.dragId === dragId ? pointer : undefined;
+  }
   onSeatingPointer(listener: (pointer: SeatingDragPointer) => void) {
     this.pointerListeners.add(listener);
     return () => {
@@ -81,6 +86,7 @@ export class RealtimeClient {
     };
   };
   private setStatus(status: RealtimeStatus) {
+    if (status !== "connected") this.latestPointers.clear();
     this.status = status;
     this.listeners.forEach((listener) => listener());
   }
@@ -122,8 +128,16 @@ export class RealtimeClient {
     });
     connection.on("SeatingDragPointer", (payload: unknown) => {
       const parsed = seatingDragPointerSchema.safeParse(payload);
-      if (isCurrent() && parsed.success && parsed.data.weddingId === weddingId)
+      if (isCurrent() && parsed.success && parsed.data.weddingId === weddingId) {
+        const pointer = parsed.data;
+        const old = this.latestPointers.get(pointer.connectionId);
+        if (old?.dragId === pointer.dragId && old.sequence >= pointer.sequence) return;
+        this.latestPointers.set(pointer.connectionId, pointer);
+        const oldest = this.latestPointers.keys().next().value;
+        if (this.latestPointers.size > 32 && oldest !== undefined)
+          this.latestPointers.delete(oldest);
         this.pointerListeners.forEach((listener) => listener(parsed.data));
+      }
     });
     for (const event of Object.values(REALTIME_EVENTS)) {
       connection.on(event, (payload: unknown) => {
