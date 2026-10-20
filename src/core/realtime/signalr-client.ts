@@ -57,7 +57,7 @@ export class RealtimeClient {
       listeners.delete(listener);
     };
   }
-  private createConnection() {
+  private createConnection(weddingId: string, generation: number) {
     if (!this.url) return undefined;
     const connection = new HubConnectionBuilder()
       .withUrl(this.url, {
@@ -70,25 +70,20 @@ export class RealtimeClient {
       .withAutomaticReconnect([0, 2_000, 10_000, 30_000])
       .configureLogging(LogLevel.None)
       .build();
+    const isCurrent = () =>
+      this.connection === connection &&
+      this.generation === generation &&
+      this.activeWedding === weddingId;
     for (const event of Object.values(REALTIME_EVENTS)) {
       connection.on(event, (payload: unknown) => {
         const parsed = weddingEventSchema.safeParse(payload);
-        if (
-          this.connection === connection &&
-          parsed.success &&
-          parsed.data.weddingId === this.activeWedding
-        )
+        if (isCurrent() && parsed.success && parsed.data.weddingId === this.activeWedding)
           this.handlers.get(event)?.forEach((handler) => handler(parsed.data));
       });
     }
     connection.on("weddingChanged", (payload: unknown) => {
       const parsed = planningChangeSchema.safeParse(payload);
-      if (
-        this.connection !== connection ||
-        !parsed.success ||
-        parsed.data.entityId !== this.activeWedding
-      )
-        return;
+      if (!isCurrent() || !parsed.success || parsed.data.entityId !== this.activeWedding) return;
       this.handlers.get(REALTIME_EVENTS.seating)?.forEach((handler) =>
         handler({
           weddingId: parsed.data.entityId,
@@ -97,14 +92,13 @@ export class RealtimeClient {
       );
     });
     connection.onreconnecting(() => {
-      if (this.connection === connection) this.setStatus("reconnecting");
+      if (isCurrent()) this.setStatus("reconnecting");
     });
     connection.onreconnected(async () => {
-      const wedding = this.activeWedding;
-      if (!wedding || this.connection !== connection) return;
+      if (!isCurrent()) return;
       try {
-        await connection.invoke("JoinWedding", wedding);
-        if (wedding === this.activeWedding && this.connection === connection) {
+        await connection.invoke("JoinWedding", weddingId);
+        if (isCurrent()) {
           this.setStatus("connected");
           this.resyncListeners.forEach((listener) => listener());
         }
@@ -113,7 +107,7 @@ export class RealtimeClient {
       }
     });
     connection.onclose(() => {
-      if (this.connection !== connection) return;
+      if (!isCurrent()) return;
       this.setStatus("disconnected");
       this.scheduleRetry();
     });
@@ -121,9 +115,11 @@ export class RealtimeClient {
   }
   private scheduleRetry() {
     clearTimeout(this.retryTimer);
-    if (this.activeWedding)
+    const weddingId = this.activeWedding;
+    const generation = this.generation;
+    if (weddingId)
       this.retryTimer = setTimeout(() => {
-        void this.activate(this.activeWedding);
+        if (generation === this.generation) void this.activate(weddingId);
       }, 10_000);
   }
   activate(weddingId: string | null): Promise<void> {
@@ -143,20 +139,21 @@ export class RealtimeClient {
           this.setStatus("disconnected");
           return;
         }
-        this.connection = this.createConnection();
-        if (!this.connection) return;
+        const connection = this.createConnection(weddingId, generation);
+        this.connection = connection;
+        if (!connection) return;
         this.setStatus("connecting");
         try {
-          await this.connection.start();
+          await connection.start();
           if (generation !== this.generation) return;
-          await this.connection.invoke("JoinWedding", weddingId);
+          await connection.invoke("JoinWedding", weddingId);
           if (generation !== this.generation) return;
           this.setStatus("connected");
           clearTimeout(this.retryTimer);
           this.resyncListeners.forEach((listener) => listener());
         } catch {
-          if (this.connection.state !== HubConnectionState.Disconnected)
-            await this.connection.stop();
+          if (connection.state !== HubConnectionState.Disconnected) await connection.stop();
+          if (generation !== this.generation) return;
           this.setStatus("disconnected");
           this.scheduleRetry();
         }
