@@ -35,6 +35,9 @@ import { Button } from "@/shared/ui/button";
 import { trapDialogFocus } from "@/shared/lib/dialog-focus";
 import {
   getSeatingPlan,
+  getSeatingPublication,
+  setSeatingPublication,
+  seatingPublicationKey,
   changeSeatingPlan,
   seatingKey,
   type SeatingChange,
@@ -206,6 +209,28 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     enabled: can("SEATING_VIEW"),
     refetchOnWindowFocus: true,
   });
+  const publication = useQuery({
+    queryKey: seatingPublicationKey(weddingId),
+    queryFn: ({ signal }) => getSeatingPublication(api, weddingId, signal),
+    enabled: can("SEATING_VIEW"),
+  });
+  const [publishing, setPublishing] = useState(false);
+  const [publicationError, setPublicationError] = useState("");
+  async function togglePublication() {
+    if (!editable || !publication.data) return;
+    setPublicationError("");
+    setPublishing(true);
+    try {
+      await setSeatingPublication(api, weddingId, !publication.data.published);
+      await cache.invalidateQueries({ queryKey: seatingPublicationKey(weddingId) });
+    } catch (cause) {
+      setPublicationError(
+        cause instanceof ApiError ? cause.message : "Không cập nhật được trạng thái công bố.",
+      );
+    } finally {
+      setPublishing(false);
+    }
+  }
   const [preview, setPreview] = useState<SeatingPlan | null>(null);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -259,10 +284,24 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     const invalidate = () => {
       void cache.invalidateQueries({ queryKey: seatingKey(weddingId) });
     };
+    const invalidatePublication = () => {
+      void cache.invalidateQueries({ queryKey: seatingPublicationKey(weddingId) });
+    };
     const stopEvent = realtime.on(REALTIME_EVENTS.seating, invalidate);
-    const stopResync = realtime.onResync(invalidate);
+    const stopPublication = realtime.onPlanningChange((change) => {
+      if (
+        change.type === "PlanningSeatingPublished" ||
+        change.type === "PlanningSeatingUnpublished"
+      )
+        invalidatePublication();
+    });
+    const stopResync = realtime.onResync(() => {
+      invalidate();
+      invalidatePublication();
+    });
     return () => {
       stopEvent();
+      stopPublication();
       stopResync();
     };
   }, [realtime, cache, weddingId]);
@@ -484,6 +523,32 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
             <Button variant="outline" asChild>
               <Link href={`/weddings/${weddingId}/guests`}>Danh sách khách</Link>
             </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3 text-sm">
+            <span>
+              {publication.data?.published
+                ? "Khách đang xem được bàn và ghế"
+                : "Chỗ ngồi chưa công bố cho khách"}
+            </span>
+            {editable && publication.data && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={publishing}
+                onClick={() => void togglePublication()}
+              >
+                {publishing
+                  ? "Đang cập nhật…"
+                  : publication.data.published
+                    ? "Thu hồi công bố"
+                    : "Công bố chỗ ngồi"}
+              </Button>
+            )}
+            {publicationError && (
+              <span role="alert" className="text-red-800">
+                {publicationError}
+              </span>
+            )}
           </div>
           {seatsNeedingAttention.length > 0 && (
             <p
