@@ -113,7 +113,7 @@ export function WeddingList() {
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
             {hasSearch
               ? "Thử một tên khác hoặc kiểm tra lại đường dẫn bạn đang tìm."
-              : "Tạo workspace đầu tiên để lưu thông tin và bắt đầu chuẩn bị cho ngày trọng đại."}
+              : "Tạo workspace đầu tiên để lưu thông tin và bắt đầu chuẩn bị cho ngày trọng đại. Nếu bạn được mời làm co-host, hãy xác nhận lời mời bằng đúng tài khoản nhận email; wedding đã tham gia sẽ xuất hiện tại đây."}
           </p>
           {!hasSearch && (
             <Button asChild className="mt-6 min-h-11 rounded-xl px-5">

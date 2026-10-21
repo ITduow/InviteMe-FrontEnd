@@ -4,9 +4,14 @@ import { usePathname } from "next/navigation";
 import type { WeddingPermission } from "@/core/auth/auth.types";
 import { usePermission } from "@/shared/components/permission-guard";
 import { cn } from "@/shared/lib/utils";
-const sections: { slug: string; label: string; permission: WeddingPermission }[] = [
+const sections: {
+  slug: string;
+  label: string;
+  permission: WeddingPermission;
+  ownerOnly?: boolean;
+}[] = [
   { slug: "overview", label: "Overview", permission: "WEDDING_VIEW" },
-  { slug: "website", label: "Website", permission: "WEDDING_EDIT" },
+  { slug: "website", label: "Website", permission: "WEDDING_EDIT", ownerOnly: true },
   { slug: "guests", label: "Guests", permission: "GUEST_VIEW" },
   { slug: "invitations", label: "Invitations", permission: "INVITATION_SEND" },
   { slug: "rsvp", label: "RSVP", permission: "RSVP_VIEW" },
@@ -15,16 +20,16 @@ const sections: { slug: string; label: string; permission: WeddingPermission }[]
   { slug: "check-in", label: "Check-in", permission: "CHECKIN_MANAGE" },
   { slug: "gifts", label: "Gifts & wishes", permission: "GIFT_VIEW" },
   { slug: "analytics", label: "Analytics", permission: "ANALYTICS_VIEW" },
-  { slug: "settings", label: "Settings", permission: "WEDDING_EDIT" },
-  { slug: "co-hosts", label: "Co-hosts", permission: "WEDDING_EDIT" },
+  { slug: "settings", label: "Settings", permission: "WEDDING_EDIT", ownerOnly: true },
+  { slug: "co-hosts", label: "Co-hosts", permission: "WEDDING_EDIT", ownerOnly: true },
 ];
 export function WeddingNavigation({ weddingId }: { weddingId: string }) {
-  const { can } = usePermission();
+  const { can, isOwner } = usePermission();
   const pathname = usePathname();
   return (
     <nav aria-label="Wedding sections" className="flex gap-2 overflow-x-auto border-b pb-4">
       {sections
-        .filter((section) => can(section.permission))
+        .filter((section) => can(section.permission) && (!section.ownerOnly || isOwner))
         .map((section) => {
           const href = `/weddings/${encodeURIComponent(weddingId)}/${section.slug}`;
           return (

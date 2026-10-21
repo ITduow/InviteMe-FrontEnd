@@ -26,6 +26,24 @@ export function emptyScopeDraft(): ScopeDraft {
   return draft as ScopeDraft;
 }
 
+export function includeSeatingViewScope(draft: ScopeDraft): ScopeDraft {
+  const edit = draft.SEATING_EDIT;
+  if (!edit.enabled) return draft;
+
+  const view = draft.SEATING_VIEW;
+  const weddingWide = edit.weddingWide || (view.enabled && view.weddingWide);
+  return {
+    ...draft,
+    SEATING_VIEW: {
+      enabled: true,
+      weddingWide,
+      groupIds: weddingWide
+        ? []
+        : [...new Set([...(view.enabled ? view.groupIds : []), ...edit.groupIds])],
+    },
+  };
+}
+
 export function scopeDraftFromGrants(grants: PermissionScope[] | null | undefined): ScopeDraft {
   const draft = emptyScopeDraft();
   for (const grant of grants ?? []) {
@@ -35,7 +53,7 @@ export function scopeDraftFromGrants(grants: PermissionScope[] | null | undefine
       groupIds: grant.groupIds,
     };
   }
-  return draft;
+  return includeSeatingViewScope(draft);
 }
 
 export function grantsFromScopeDraft(draft: ScopeDraft): PermissionScope[] {
@@ -58,6 +76,18 @@ export function scopeValidationMessage(grants: PermissionScope[]) {
   }
   if (grants.some((grant) => !grant.weddingWide && grant.groupIds.length === 0)) {
     return "Chọn ít nhất một nhóm khách hoặc cấp quyền trên toàn bộ wedding.";
+  }
+  const seatingEdit = grants.find((grant) => grant.permission === "SEATING_EDIT");
+  if (seatingEdit) {
+    const seatingView = grants.find((grant) => grant.permission === "SEATING_VIEW");
+    const viewCoversEdit =
+      seatingView?.weddingWide === true ||
+      (seatingView !== undefined &&
+        !seatingEdit.weddingWide &&
+        seatingEdit.groupIds.every((groupId) => seatingView.groupIds.includes(groupId)));
+    if (!viewCoversEdit) {
+      return "Quyền chỉnh sửa chỗ ngồi cần quyền xem sơ đồ với phạm vi bao gồm các nhóm được sửa.";
+    }
   }
   return "";
 }

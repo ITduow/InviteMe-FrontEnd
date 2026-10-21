@@ -17,9 +17,15 @@ export const WEDDING_PERMISSIONS = [
   "ANALYTICS_VIEW",
 ] as const;
 export type WeddingPermission = (typeof WEDDING_PERMISSIONS)[number];
+export const weddingAccessScopeSchema = z.object({
+  permission: z.enum(WEDDING_PERMISSIONS),
+  weddingWide: z.boolean(),
+  groups: z.array(z.object({ id: z.string(), name: z.string() })),
+});
 export const weddingAccessSchema = z.object({
   weddingId: z.string(),
   isOwner: z.boolean().optional(),
   permissions: z.array(z.enum(WEDDING_PERMISSIONS)),
+  scopes: z.array(weddingAccessScopeSchema).optional(),
 });
 export type WeddingAccess = z.infer<typeof weddingAccessSchema>;

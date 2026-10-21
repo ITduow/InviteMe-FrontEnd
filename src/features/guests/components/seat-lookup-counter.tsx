@@ -7,7 +7,12 @@ import { useRuntime } from "@/core/config/runtime";
 import { ConfirmDialog } from "@/shared/feedback/confirm-dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { checkInGuestPlaces, lookupGuestSeats, type CheckInResult, type SeatLookup } from "../api/seat-lookup.api";
+import {
+  checkInGuestPlaces,
+  lookupGuestSeats,
+  type CheckInResult,
+  type SeatLookup,
+} from "../api/seat-lookup.api";
 import { QrCameraScanner } from "./qr-camera-scanner";
 
 type CheckInOutcome = CheckInResult["places"][number]["result"];
@@ -41,13 +46,9 @@ const attendanceStatus = {
   UNUSED: "Đã từ chối chỗ RSVP",
 } as const;
 
-function attendanceLabel(
-  seat: SeatLookup["seats"][number],
-  latestOutcome?: CheckInOutcome,
-) {
+function attendanceLabel(seat: SeatLookup["seats"][number], latestOutcome?: CheckInOutcome) {
   if (latestOutcome === "CHECKED_IN") return "Đã check-in";
-  if (latestOutcome === "ALREADY_CHECKED_IN" || seat.checkedInAt)
-    return "Đã check-in trước đó";
+  if (latestOutcome === "ALREADY_CHECKED_IN" || seat.checkedInAt) return "Đã check-in trước đó";
   return "Chưa check-in";
 }
 
@@ -59,7 +60,7 @@ function friendlyTime(value: string) {
 }
 
 export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
-  const { api } = useRuntime();
+  const { api, realtime } = useRuntime();
   const [code, setCode] = useState("");
   const [lookupCode, setLookupCode] = useState<string | null>(null);
   const [guest, setGuest] = useState<SeatLookup | null>(null);
@@ -75,6 +76,30 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
   const lookupBusy = useRef(false);
 
   useEffect(() => input.current?.focus(), []);
+
+  useEffect(() => {
+    const refreshCurrentGuest = () => {
+      if (!lookupCode || !guest || lookupBusy.current) return;
+      void lookupGuestSeats(api, weddingId, lookupCode)
+        .then((latest) => {
+          setGuest((current) => (current?.guestId === latest.guestId ? latest : current));
+        })
+        .catch(() => undefined);
+    };
+    const unsubscribe = realtime.onPlanningChange((change) => {
+      if (
+        (change.type === "GuestCheckedIn" || change.type === "GuestCheckInVoided") &&
+        change.entityId === guest?.guestId
+      ) {
+        refreshCurrentGuest();
+      }
+    });
+    const unsubscribeResync = realtime.onResync(refreshCurrentGuest);
+    return () => {
+      unsubscribe();
+      unsubscribeResync();
+    };
+  }, [api, guest, lookupCode, realtime, weddingId]);
 
   async function findGuest(value: string) {
     const normalized = value.trim();
@@ -97,7 +122,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       const result = await lookupGuestSeats(api, weddingId, normalized);
       setGuest(result);
       setLookupCode(normalized);
-      setMessage("Đã tra cứu. Chưa có check-in nào được ghi nhận; hãy chọn người và xác nhận bên dưới.");
+      setMessage(
+        "Đã tra cứu. Chưa có check-in nào được ghi nhận; hãy chọn người và xác nhận bên dưới.",
+      );
       setCode("");
     } catch (cause) {
       setError(apiErrorMessage(cause, "lookup"));
@@ -177,9 +204,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     }
   }
 
-  const selectedUnused = guest?.seats.some(
-    (seat) => selectedIds.includes(seat.placeId) && seat.status === "UNUSED",
-  ) ?? false;
+  const selectedUnused =
+    guest?.seats.some((seat) => selectedIds.includes(seat.placeId) && seat.status === "UNUSED") ??
+    false;
 
   return (
     <section className="mx-auto max-w-3xl space-y-6 pb-8">
@@ -224,7 +251,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
         </form>
         <div className="flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
           <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <p>Tra cứu QR không tự check-in. Chỉ nút xác nhận ở cuối danh sách mới ghi nhận khách đã đến.</p>
+          <p>
+            Tra cứu QR không tự check-in. Chỉ nút xác nhận ở cuối danh sách mới ghi nhận khách đã
+            đến.
+          </p>
         </div>
       </div>
 
@@ -247,7 +277,8 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
             <div className="min-w-0">
               <p className="text-sm text-muted-foreground">Khách mời</p>
               <h2 className="break-words text-xl font-semibold sm:text-2xl">
-                {guest.honorific ? `${guest.honorific} ` : ""}{guest.recipientName}
+                {guest.honorific ? `${guest.honorific} ` : ""}
+                {guest.recipientName}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {guest.seats.length} người trong lời mời
@@ -263,7 +294,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
 
           <section aria-labelledby="checkin-people-heading">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 id="checkin-people-heading" className="font-semibold">Từng người trong lời mời</h3>
+              <h3 id="checkin-people-heading" className="font-semibold">
+                Từng người trong lời mời
+              </h3>
               <p className="text-sm text-muted-foreground">Đã chọn {selectedIds.length}</p>
             </div>
             {guest.seats.length === 0 ? (
@@ -319,7 +352,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
 
           {selectedUnused && (
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Lý do check-in ngoại lệ <span aria-hidden="true">*</span></span>
+              <span className="font-medium">
+                Lý do check-in ngoại lệ <span aria-hidden="true">*</span>
+              </span>
               <span className="block text-muted-foreground">
                 Có người được chọn đã RSVP từ chối. BE yêu cầu lưu lý do khi vẫn cho vào tiệc.
               </span>
@@ -344,7 +379,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                   type="button"
                   className="h-12 w-full sm:w-auto"
                   disabled={
-                    selectedIds.length === 0 || checkInPending || (selectedUnused && !exceptionReason.trim())
+                    selectedIds.length === 0 ||
+                    checkInPending ||
+                    (selectedUnused && !exceptionReason.trim())
                   }
                 >
                   <Check aria-hidden="true" />
@@ -362,7 +399,11 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       )}
 
       {message && (
-        <p role="status" aria-live="polite" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950"
+        >
           {message}
         </p>
       )}

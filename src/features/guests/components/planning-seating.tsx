@@ -199,8 +199,9 @@ const statuses: Record<string, string> = {
 
 export function PlanningSeating({ weddingId }: { weddingId: string }) {
   const { api, realtime } = useRuntime();
-  const { can } = usePermission();
+  const { can, isWeddingWide } = usePermission();
   const editable = can("SEATING_EDIT") && can("SEATING_VIEW");
+  const canPublishSeating = isWeddingWide("SEATING_EDIT");
   const cache = useQueryClient();
   const key = seatingKey(weddingId);
   const planQuery = useQuery({
@@ -217,7 +218,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   const [publishing, setPublishing] = useState(false);
   const [publicationError, setPublicationError] = useState("");
   async function togglePublication() {
-    if (!editable || !publication.data) return;
+    if (!canPublishSeating || !publication.data) return;
     setPublicationError("");
     setPublishing(true);
     try {
@@ -307,6 +308,11 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   }, [realtime, cache, weddingId]);
 
   const plan = preview ?? planQuery.data;
+  const groupNames = new Map(
+    (plan?.guests ?? []).flatMap((guest) =>
+      guest.group ? [[guest.group.id, guest.group.name] as const] : [],
+    ),
+  );
   async function change(input: SeatingChange, optimistic?: SeatingPlan) {
     if (!editable || savingRef.current || !planQuery.data) return;
     if (realtime.getStatus() !== "connected") {
@@ -530,7 +536,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                 ? "Khách đang xem được bàn và ghế"
                 : "Chỗ ngồi chưa công bố cho khách"}
             </span>
-            {editable && publication.data && (
+            {editable && canPublishSeating && publication.data && (
               <Button
                 size="sm"
                 variant="outline"
@@ -543,6 +549,17 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                     ? "Thu hồi công bố"
                     : "Công bố chỗ ngồi"}
               </Button>
+            )}
+            {editable && !canPublishSeating && (
+              <span className="text-xs text-muted-foreground">
+                Chỉ người có quyền xếp bàn trên toàn đám cưới mới được công bố sơ đồ.
+              </span>
+            )}
+            {can("SEATING_VIEW") && !can("SEATING_EDIT") && (
+              <span role="status" className="basis-full text-amber-900">
+                Chế độ xem. Hãy nhờ chủ tiệc cấp quyền chỉnh sửa chỗ ngồi trong phạm vi của bạn để
+                kéo khách vào bàn.
+              </span>
             )}
             {publicationError && (
               <span role="alert" className="text-red-800">
@@ -731,6 +748,11 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                           }}
                         >
                           <strong>{t.name}</strong>
+                          {t.groupId && (
+                            <span className="block max-w-24 truncate text-[10px] text-muted-foreground">
+                              {groupNames.get(t.groupId) ?? "Nhóm được phân quyền"}
+                            </span>
+                          )}
                           <span>
                             {members.length}/{t.capacity} chỗ
                           </span>
