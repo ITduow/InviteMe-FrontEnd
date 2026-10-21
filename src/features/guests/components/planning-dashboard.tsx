@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
 import { usePermission } from "@/shared/components/permission-guard";
 import { Button } from "@/shared/ui/button";
@@ -10,11 +11,15 @@ import {
   importGuests,
   listPlanningGuests,
   getPlanningGuest,
+  listPlanningGroups,
+  updatePlanningGuest,
   sideLabels,
+  type PlanningGuestUpdate,
 } from "../api/planning.api";
 import type { CoupleRow } from "../utils/couple-import";
 import Link from "next/link";
 import { Copy, ExternalLink } from "lucide-react";
+import { PlanningGuestEditForm } from "./planning-guest-edit-form";
 
 export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const { api } = useRuntime();
@@ -24,6 +29,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [editingGuest, setEditingGuest] = useState(false);
   const [notice, setNotice] = useState("");
   async function copyInvitation(path: string) {
     try {
@@ -43,6 +49,42 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
     queryKey: ["guest-planning-detail", weddingId, selected],
     queryFn: ({ signal }) => getPlanningGuest(api, weddingId, selected ?? "", signal),
     enabled: !!selected && can("GUEST_VIEW"),
+  });
+  const groups = useQuery({
+    queryKey: ["guest-planning-groups", weddingId],
+    queryFn: ({ signal }) => listPlanningGroups(api, weddingId, signal),
+    enabled: Boolean(selected && can("GUEST_EDIT") && can("GUEST_VIEW")),
+  });
+  const updateGuest = useMutation({
+    mutationFn: ({ guestId, input }: { guestId: string; input: PlanningGuestUpdate }) =>
+      updatePlanningGuest(api, weddingId, guestId, input),
+    onSuccess: async () => {
+      setEditingGuest(false);
+      setNotice("Đã cập nhật thông tin khách.");
+      await Promise.all([
+        cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
+        cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId, selected] }),
+      ]);
+    },
+    onError: async (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        setNotice(
+          "Thông tin khách đã được thay đổi ở nơi khác. Đã tải phiên bản mới nhất; hãy kiểm tra và lưu lại.",
+        );
+        await Promise.all([
+          cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId, selected] }),
+          cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
+        ]);
+        return;
+      }
+      setNotice(
+        error instanceof ApiError && error.status === 403
+          ? "Bạn không có quyền sửa khách này hoặc chuyển khách vào nhóm ngoài phạm vi được giao."
+          : error instanceof ApiError && error.code === "network"
+            ? "Không thể kết nối máy chủ. Thông tin chưa được lưu."
+            : "Chưa thể cập nhật khách. Hãy kiểm tra dữ liệu rồi thử lại.",
+      );
+    },
   });
   async function save(rows: CoupleRow[]) {
     const body = importBody(rows),
@@ -132,7 +174,10 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                         <td className="p-3">
                           <button
                             className="text-left underline underline-offset-4"
-                            onClick={() => setSelected(g.id)}
+                            onClick={() => {
+                              setEditingGuest(false);
+                              setSelected(g.id);
+                            }}
                           >
                             {g.invitationKind === "FAMILY"
                               ? "Gia đình "
@@ -211,21 +256,53 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
               )}
               {detail.data && (
                 <>
-                  <h2 className="text-xl">{detail.data.recipientName}</h2>
-                  <p>
-                    {detail.data.phone || "Chưa có SĐT"} · {detail.data.expectedPeople} người dự
-                    kiến
-                  </p>
-                  <p>{detail.data.note}</p>
-                  <ol className="list-inside list-decimal space-y-2">
-                    {detail.data.places.map((p) => (
-                      <li key={p.id}>
-                        {p.person
-                          ? `${p.person.fullName} · ${p.person.attendanceStatus === "PENDING" ? "Chưa xác nhận" : p.person.attendanceStatus}`
-                          : "Chỗ dự kiến chưa có tên"}
-                      </li>
-                    ))}
-                  </ol>
+                  {can("GUEST_EDIT") && !editingGuest && (
+                    <Button variant="outline" onClick={() => setEditingGuest(true)}>
+                      Sửa thông tin
+                    </Button>
+                  )}
+                  {editingGuest && can("GUEST_EDIT") ? (
+                    groups.isPending ? (
+                      <p role="status">Đang tải nhóm khách…</p>
+                    ) : groups.isError ? (
+                      <p role="alert">
+                        Không tải được nhóm trong phạm vi của bạn. Hãy thử đóng rồi mở lại chi tiết.
+                      </p>
+                    ) : (
+                      <PlanningGuestEditForm
+                        key={`${detail.data.id}-${detail.data.version}`}
+                        guest={detail.data}
+                        groups={[
+                          ...(detail.data.group &&
+                          !groups.data.some((group) => group.id === detail.data.group?.id)
+                            ? [{ id: detail.data.group.id, name: detail.data.group.name }]
+                            : []),
+                          ...(groups.data ?? []),
+                        ]}
+                        busy={updateGuest.isPending}
+                        onCancel={() => setEditingGuest(false)}
+                        onSave={(input) => updateGuest.mutate({ guestId: detail.data.id, input })}
+                      />
+                    )
+                  ) : (
+                    <>
+                      <h2 className="text-xl">{detail.data.recipientName}</h2>
+                      <p>
+                        {detail.data.phone || "Chưa có SĐT"} · {detail.data.expectedPeople} người dự
+                        kiến
+                      </p>
+                      <p>{detail.data.note}</p>
+                      <ol className="list-inside list-decimal space-y-2">
+                        {detail.data.places.map((p) => (
+                          <li key={p.id}>
+                            {p.person
+                              ? `${p.person.fullName} · ${p.person.attendanceStatus === "PENDING" ? "Chưa xác nhận" : p.person.attendanceStatus}`
+                              : "Chỗ dự kiến chưa có tên"}
+                          </li>
+                        ))}
+                      </ol>
+                    </>
+                  )}
                 </>
               )}
             </section>
