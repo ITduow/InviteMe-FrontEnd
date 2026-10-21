@@ -18,7 +18,10 @@ const Invitation = dynamic(
 );
 export function GuestInvitation({ token }: { token: string }) {
   const { api, queryClient } = useRuntime();
-  usePublicWeddingSignal("invitation", token, () => void queryClient.invalidateQueries({ queryKey: ["guest-invitation", token] }));
+  usePublicWeddingSignal("invitation", token, () => {
+    void queryClient.invalidateQueries({ queryKey: ["guest-invitation", token] });
+    void queryClient.invalidateQueries({ queryKey: ["guest-seats", token] });
+  });
   const invitation = useQuery({
     queryKey: ["guest-invitation", token],
     retry: false,

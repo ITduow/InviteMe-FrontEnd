@@ -109,7 +109,7 @@ export function GuestRsvp({ token }: { token: string }) {
           <h2 className="text-xl font-semibold">Chỗ ngồi của bạn</h2>
           <div className="mt-3 space-y-2">
             {seats.data.seats
-              .filter((seat) => seat.status === "USED")
+              .filter((seat) => seat.status !== "UNUSED")
               .map((seat) => (
                 <p key={seat.position} className="rounded-lg border p-3 text-sm">
                   {seat.personName ?? `Người thứ ${seat.position}`} ·{" "}
@@ -118,8 +118,10 @@ export function GuestRsvp({ token }: { token: string }) {
                     : "Chưa được xếp bàn"}
                 </p>
               ))}
-            {seats.data.seats.every((seat) => seat.status !== "USED") && (
-              <p className="text-sm text-muted-foreground">Chưa có người tham dự được xác nhận.</p>
+            {seats.data.seats.every((seat) => seat.status === "UNUSED") && (
+              <p className="text-sm text-muted-foreground">
+                Hiện chưa có chỗ ngồi dành cho khách này.
+              </p>
             )}
           </div>
         </section>

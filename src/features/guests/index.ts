@@ -2,3 +2,4 @@ export { GuestDashboard } from "./components/guest-dashboard";
 export { PlanningSeating } from "./components/planning-seating";
 export { CoupleImport } from "./components/couple-import";
 export { InvitationWording } from "./components/invitation-wording";
+export { SeatLookupCounter } from "./components/seat-lookup-counter";

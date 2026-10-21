@@ -1,18 +1,19 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+import { SeatLookupCounter } from "@/features/guests";
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
       permission="CHECKIN_MANAGE"
       fallback={
         <EmptyState
-          title="Access restricted"
-          description="You do not have permission to view this section."
+            title="Không đủ quyền check-in"
+            description="Quầy check-in cần quyền CHECKIN_MANAGE trong wedding này. Việc mở màn hình hoặc tra cứu QR không thể ghi nhận khách đã đến."
         />
       }
     >
-      <FeaturePlaceholder title="Check-in" description="Welcome your guests on the day." />
+      <SeatLookupCounter weddingId={weddingId} />
     </PermissionGuard>
   );
 }
