@@ -5,7 +5,14 @@ import { planningGuestSchema } from "./planning.api";
 export const seatingPlanSchema = z.object({
   weddingId: z.string(),
   version: z.number().int(),
-  tables: z.array(z.object({ id: z.string(), name: z.string(), capacity: z.number().int() })),
+  tables: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      capacity: z.number().int(),
+      groupId: z.string().nullable().optional(),
+    }),
+  ),
   guests: z.array(planningGuestSchema),
   places: z.array(
     z.object({
@@ -59,8 +66,8 @@ export const seatingSuggestionSchema = z.object({
 });
 export type SeatingSuggestion = z.infer<typeof seatingSuggestionSchema>;
 export type SeatingChange =
-  | { action: "CREATE_TABLE"; name: string; capacity: number }
-  | { action: "CREATE_TABLES"; capacity: number; tableCount: number }
+  | { action: "CREATE_TABLE"; name: string; capacity: number; groupId?: string | null }
+  | { action: "CREATE_TABLES"; capacity: number; tableCount: number; groupId?: string | null }
   | { action: "UPDATE_TABLE"; tableId: string; name: string; capacity: number }
   | { action: "DELETE_TABLE"; tableId: string }
   | { action: "MOVE_PLACES"; placeIds: string[]; tableId: string | null; seatNumber?: number }

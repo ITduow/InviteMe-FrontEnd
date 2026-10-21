@@ -42,14 +42,18 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
       realtime.on(REALTIME_EVENTS.waitlist, invalidateRsvp),
       realtime.onPlanningChange((change) => {
         if (change.type === "WeddingSetupChanged") invalidate();
-        if (change.type.startsWith("WeddingWebsite") || change.type.startsWith("Invitation")) invalidatePublication();
+        if (change.type.startsWith("WeddingWebsite") || change.type.startsWith("Invitation"))
+          invalidatePublication();
         if (change.type.startsWith("Rsvp")) invalidateRsvp();
         if (change.type === "PlanningGuestsImported") invalidateRsvp();
+        if (change.type === "PlanningWalkInAdded") invalidateRsvp();
         if (
           change.type === "PlanningSeatingChanged" ||
           change.type === "PlanningGuestsImported" ||
-          change.type === "PlanningSeatingNeedsAttention"
-        ) invalidateSeating();
+          change.type === "PlanningSeatingNeedsAttention" ||
+          change.type === "PlanningWalkInAdded"
+        )
+          invalidateSeating();
         if (change.type === "PlanningSeatingNeedsAttention") {
           invalidateRsvp();
         }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRuntime } from "@/core/config/runtime";
+import { usePermission } from "@/shared/components/permission-guard";
 import { Button } from "@/shared/ui/button";
 import { Modal } from "@/shared/ui/modal";
 import { Plus, Sparkles } from "lucide-react";
@@ -50,7 +51,29 @@ export function PlanningSuggestions({
   saveError?: string;
 }) {
   const { api } = useRuntime();
+  const { access, isWeddingWide } = usePermission();
+  const seatingScope = access?.scopes?.find((item) => item.permission === "SEATING_EDIT");
+  const weddingWideSeating = isWeddingWide("SEATING_EDIT");
+  const groupOptions = useMemo(
+    () =>
+      weddingWideSeating
+        ? Array.from(
+            new Map(
+              plan.guests.flatMap((guest) =>
+                guest.group ? [[guest.group.id, guest.group.name] as const] : [],
+              ),
+            ).entries(),
+          ).map(([id, name]) => ({ id, name }))
+        : (seatingScope?.groups ?? []),
+    [plan.guests, seatingScope?.groups, weddingWideSeating],
+  );
+  const requiresGroup = !weddingWideSeating;
+  const canSuggest = weddingWideSeating;
   const [dialog, setDialog] = useState<"tables" | "suggestions" | null>(null);
+  const [selectedGroupIdValue, setSelectedGroupId] = useState(seatingScope?.groups[0]?.id ?? "");
+  const selectedGroupId = groupOptions.some((group) => group.id === selectedGroupIdValue)
+    ? selectedGroupIdValue
+    : (groupOptions[0]?.id ?? "");
   const [capacity, setCapacity] = useState(10);
   const [count, setCount] = useState<number | null>(null);
   const [strategy, setStrategy] = useState<SeatingStrategy>("AFFINITY");
@@ -126,14 +149,16 @@ export function PlanningSuggestions({
             <Plus className="size-4" /> Thêm bàn
           </Button>
         )}
-        <Button
-          type="button"
-          variant="outline"
-          disabled={saving}
-          onClick={() => setDialog("suggestions")}
-        >
-          <Sparkles className="size-4" /> Gợi ý sắp xếp thông minh
-        </Button>
+        {canSuggest && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={saving}
+            onClick={() => setDialog("suggestions")}
+          >
+            <Sparkles className="size-4" /> Gợi ý sắp xếp thông minh
+          </Button>
+        )}
       </div>
       <Modal
         open={dialog === "tables"}
@@ -150,21 +175,54 @@ export function PlanningSuggestions({
               {saveError}
             </p>
           )}
+          {requiresGroup && groupOptions.length === 0 && (
+            <p
+              role="alert"
+              className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
+            >
+              Không tìm thấy nhóm khách trong phạm vi xếp bàn được cấp. Hãy nhờ chủ đám cưới kiểm
+              tra quyền nhóm của bạn.
+            </p>
+          )}
           {editable && (
             <form
               className="space-y-3 rounded-xl border bg-muted/20 p-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!validTables || saving) return;
+                if (!validTables || saving || (requiresGroup && !selectedGroupId)) return;
                 setPreview(null);
                 setConfirmed(false);
-                void onChange({ action: "CREATE_TABLES", tableCount, capacity });
+                void onChange({
+                  action: "CREATE_TABLES",
+                  tableCount,
+                  capacity,
+                  groupId: selectedGroupId || null,
+                });
               }}
             >
               <h3 className="text-sm font-medium">
                 {plan.tables.length ? "Thêm nhiều bàn trống" : "Bắt đầu: mỗi bàn bao nhiêu chỗ?"}
               </h3>
               <div className="flex flex-wrap items-end gap-3">
+                {groupOptions.length > 0 && (
+                  <label className="text-sm">
+                    Nhóm khách của bàn
+                    <select
+                      aria-label="Nhóm khách của bàn"
+                      required={requiresGroup}
+                      value={selectedGroupId}
+                      onChange={(event) => setSelectedGroupId(event.target.value)}
+                      className="mt-1 block min-w-44 rounded border bg-background p-2"
+                    >
+                      {!requiresGroup && <option value="">Không gắn nhóm</option>}
+                      {groupOptions.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label className="text-sm">
                   Số ghế mỗi bàn
                   <input
@@ -191,7 +249,7 @@ export function PlanningSuggestions({
                     className="mt-1 block w-28 rounded border bg-background p-2"
                   />
                 </label>
-                <Button disabled={saving || !validTables}>
+                <Button disabled={saving || !validTables || (requiresGroup && !selectedGroupId)}>
                   Tạo {tableCount} bàn trống · {capacity} ghế/bàn
                 </Button>
                 <button
@@ -223,15 +281,35 @@ export function PlanningSuggestions({
                 className="mt-4 flex flex-wrap items-end gap-3"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (saving) return;
+                  if (saving || (requiresGroup && !selectedGroupId)) return;
                   const data = new FormData(event.currentTarget);
                   void onChange({
                     action: "CREATE_TABLE",
                     name: String(data.get("name")),
                     capacity: Number(data.get("capacity")),
+                    groupId: selectedGroupId || null,
                   });
                 }}
               >
+                {groupOptions.length > 0 && (
+                  <label className="text-sm">
+                    Nhóm khách của bàn
+                    <select
+                      aria-label="Nhóm khách của bàn có tên riêng"
+                      required={requiresGroup}
+                      value={selectedGroupId}
+                      onChange={(event) => setSelectedGroupId(event.target.value)}
+                      className="mt-1 block min-w-44 rounded border bg-background p-2"
+                    >
+                      {!requiresGroup && <option value="">Không gắn nhóm</option>}
+                      {groupOptions.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label className="text-sm">
                   Tên bàn
                   <input
@@ -256,7 +334,9 @@ export function PlanningSuggestions({
                     className="mt-1 block w-24 rounded border bg-background p-2"
                   />
                 </label>
-                <Button disabled={saving}>Thêm bàn có tên</Button>
+                <Button disabled={saving || (requiresGroup && !selectedGroupId)}>
+                  Thêm bàn có tên
+                </Button>
               </form>
             </details>
           )}

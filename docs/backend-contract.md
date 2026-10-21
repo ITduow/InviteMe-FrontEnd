@@ -10,7 +10,9 @@ These contracts are **proposals**, not claims about an existing backend. Align t
 | `POST /auth/refresh`        | Credentials included, no body                                         | Same token response; rotate refresh cookie             |
 | `POST /auth/logout`         | Credentials included, no body                                         | 204; revoke refresh session and expire cookie          |
 | `GET /auth/me`              | Bearer JWT                                                            | `{ id, displayName, email, role: "USER" \| "ADMIN" }`  |
-| `GET /weddings/{id}/access` | Bearer JWT                                                            | `{ weddingId, permissions: WeddingPermission[] }`      |
+| `GET /weddings/{id}/access` | Bearer JWT                                                            | `{ weddingId, isOwner, permissions, scopes: [{ permission, weddingWide, groups: [{ id, name }] }] }` |
+
+An active Co-host receives `WEDDING_VIEW` for the wedding workspace and realtime channel. This does not grant guest, RSVP, or seating data access. Those permissions remain separately scoped; `CHECKIN_MANAGE` is wedding-wide. Group-scoped seating edits are assigned to a guest group, and only wedding-wide `SEATING_EDIT` can publish or unpublish the seating plan.
 
 Use an HttpOnly, Secure refresh cookie with deployment-appropriate SameSite/path/domain attributes. Do not send refresh tokens in JSON to the frontend. The API must protect cookie-based auth endpoints against CSRF using a reviewed origin/CSRF policy. The frontend sends no assumed custom CSRF token header yet; if double-submit is chosen, add explicit header support before enabling refresh. Credentialed CORS must allow the exact frontend origin, never `*`. Different-origin does not always mean different-site; genuinely cross-site cookies face browser third-party restrictions, so prefer same-site custom domains when deploying.
 
@@ -60,7 +62,7 @@ Successful invalid JSON/DTOs are contract errors. AbortError remains cancellatio
 
 Hub URL comes from `NEXT_PUBLIC_SIGNALR_URL`. The only proposed group method used now is `JoinWedding(weddingId)`. Disconnect leaves groups; reconnect must invoke JoinWedding again. Server derives group names and checks the caller's membership. Rejection cannot be treated as authorization success.
 
-Events: `RsvpUpdated`, `CapacityUpdated`, `WaitlistUpdated`, `SeatingUpdated`, `TableCapacityUpdated`, `CheckInUpdated`.
+Events: `RsvpUpdated`, `CapacityUpdated`, `WaitlistUpdated`, `SeatingUpdated`, `TableCapacityUpdated`, `CheckInUpdated`, plus minimal planning invalidations such as `GuestCheckedIn`, `GuestCheckInVoided`, and `PlanningWalkInAdded`.
 
 Minimum payload: `{ weddingId: string, version: number }`. Features invalidate relevant queries; they do not trust events to update authoritative capacity locally. For future high-frequency seating changes, agree event IDs/entity IDs/version ordering before applying patches directly.
 

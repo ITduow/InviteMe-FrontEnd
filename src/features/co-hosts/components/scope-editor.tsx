@@ -4,8 +4,9 @@ import { useState } from "react";
 import type { CoHostPermission, PermissionScope } from "../api/co-host.api";
 import { CO_HOST_PERMISSIONS } from "../api/co-host.api";
 import {
-  emptyScopeDraft,
+  includeSeatingViewScope,
   PERMISSION_LABELS,
+  scopeDraftFromGrants,
   scopeValidationMessage,
   type ScopeDraft,
 } from "../utils/scopes";
@@ -23,24 +24,20 @@ export function ScopeEditor({
   busy: boolean;
   onSubmit: (grants: PermissionScope[]) => void;
 }) {
-  const [draft, setDraft] = useState<ScopeDraft>(() => {
-    const value = emptyScopeDraft();
-    for (const grant of initialGrants ?? []) {
-      value[grant.permission] = {
-        enabled: true,
-        weddingWide: grant.weddingWide,
-        groupIds: grant.groupIds,
-      };
-    }
-    return value;
-  });
+  const [draft, setDraft] = useState<ScopeDraft>(() => scopeDraftFromGrants(initialGrants));
   const [error, setError] = useState("");
 
   function togglePermission(permission: CoHostPermission, enabled: boolean) {
-    setDraft((current) => ({
-      ...current,
-      [permission]: { ...current[permission], enabled },
-    }));
+    setDraft((current) =>
+      includeSeatingViewScope({
+        ...current,
+        [permission]: { ...current[permission], enabled },
+      }),
+    );
+  }
+
+  function updateDraft(update: (current: ScopeDraft) => ScopeDraft) {
+    setDraft((current) => includeSeatingViewScope(update(current)));
   }
 
   function save() {
@@ -98,7 +95,7 @@ export function ScopeEditor({
                         checked={scope.weddingWide}
                         onChange={(event) => {
                           const checked = event.currentTarget.checked;
-                          setDraft((current) => ({
+                          updateDraft((current) => ({
                             ...current,
                             CHECKIN_MANAGE: {
                               ...current.CHECKIN_MANAGE,
@@ -119,7 +116,7 @@ export function ScopeEditor({
                         name={`scope-${permission}`}
                         checked={scope.weddingWide}
                         onChange={() =>
-                          setDraft((current) => ({
+                          updateDraft((current) => ({
                             ...current,
                             [permission]: {
                               ...current[permission],
@@ -147,6 +144,11 @@ export function ScopeEditor({
                     </label>
                   </>
                 )}
+                {permission === "SEATING_VIEW" && draft.SEATING_EDIT.enabled && (
+                  <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                    Quyền xem sơ đồ được giữ bao phủ phạm vi chỉnh sửa để co-host có thể xếp bàn.
+                  </p>
+                )}
                 {permission !== "CHECKIN_MANAGE" && !scope.weddingWide && (
                   <div className="grid gap-2 sm:grid-cols-2">
                     {groups.length ? (
@@ -160,7 +162,7 @@ export function ScopeEditor({
                             checked={scope.groupIds.includes(group.id)}
                             onChange={(event) => {
                               const checked = event.currentTarget.checked;
-                              setDraft((current) => {
+                              updateDraft((current) => {
                                 const selected = current[permission].groupIds;
                                 return {
                                   ...current,

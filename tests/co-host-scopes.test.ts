@@ -38,3 +38,25 @@ test("check-in cannot be assigned to guest groups", () => {
     "",
   );
 });
+
+test("seating edit automatically includes view permission for the same scope", () => {
+  const draft = scopeDraftFromGrants([
+    { permission: "SEATING_EDIT", weddingWide: false, groupIds: ["group-a"] },
+  ]);
+
+  assert.deepEqual(grantsFromScopeDraft(draft), [
+    { permission: "SEATING_VIEW", weddingWide: false, groupIds: ["group-a"] },
+    { permission: "SEATING_EDIT", weddingWide: false, groupIds: ["group-a"] },
+  ]);
+  assert.equal(scopeValidationMessage(grantsFromScopeDraft(draft)), "");
+});
+
+test("seating edit scope must be covered by its view scope", () => {
+  assert.match(
+    scopeValidationMessage([
+      { permission: "SEATING_VIEW", weddingWide: false, groupIds: ["group-a"] },
+      { permission: "SEATING_EDIT", weddingWide: false, groupIds: ["group-b"] },
+    ]),
+    /cần quyền xem sơ đồ/,
+  );
+});

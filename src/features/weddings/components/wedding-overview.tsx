@@ -6,10 +6,14 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowUpRight,
+  Armchair,
   CalendarDays,
+  ClipboardList,
   Flower2,
   MapPin,
   PencilLine,
+  ScanLine,
+  Send,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -107,8 +111,8 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
   const [coverFailed, setCoverFailed] = useState(false);
   const searchParams = useSearchParams();
   const { api } = useRuntime();
-  const { can } = usePermission();
-  const canEditSetup = can("WEDDING_EDIT");
+  const { can, access } = usePermission();
+  const canEditSetup = access?.isOwner === true && can("WEDDING_EDIT");
   const wedding = useQuery({
     queryKey: weddingKeys.detail(weddingId),
     queryFn: ({ signal }) => getWeddingSetup(api, weddingId, signal),
@@ -118,6 +122,45 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
     return <ErrorState error={wedding.error} retry={() => void wedding.refetch()} />;
   const data = wedding.data;
   const cover = resolveWeddingMediaUrl(data.coverImageUrl);
+  const coHostWorkAreas = [
+    {
+      permission: "GUEST_VIEW" as const,
+      slug: "guests",
+      title: "Khách mời",
+      description: "Tra cứu khách và thông tin trong phạm vi được giao.",
+      icon: Users,
+    },
+    {
+      permission: "INVITATION_SEND" as const,
+      slug: "invitations",
+      title: "Thiệp mời",
+      description: "Chuẩn bị và gửi thiệp theo quyền được cấp.",
+      icon: Send,
+    },
+    {
+      permission: "RSVP_VIEW" as const,
+      slug: "rsvp",
+      title: "Xác nhận tham dự",
+      description: "Theo dõi phản hồi RSVP và danh sách chờ.",
+      icon: ClipboardList,
+    },
+    {
+      permission: "SEATING_VIEW" as const,
+      slug: "seating",
+      title: "Sơ đồ chỗ ngồi",
+      description: can("SEATING_EDIT")
+        ? "Sắp xếp bàn trong phạm vi được chủ tiệc giao."
+        : "Chỉ xem sơ đồ trong phạm vi được chủ tiệc giao.",
+      icon: Armchair,
+    },
+    {
+      permission: "CHECKIN_MANAGE" as const,
+      slug: "check-in",
+      title: "Đón khách & check-in",
+      description: "Tra cứu và xác nhận khách đến trong ngày cưới.",
+      icon: ScanLine,
+    },
+  ].filter((area) => can(area.permission));
 
   return (
     <section className="mx-auto max-w-6xl space-y-7 pb-10 sm:space-y-9">
@@ -255,6 +298,109 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
           detail="Trang công khai cần được xuất bản riêng trước khi khách có thể xem."
         />
       </div>
+      {!access?.isOwner && access && (
+        <section className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/80 p-5 sm:p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b5960]">
+              Không gian Co-host
+            </p>
+            <h2 className="mt-1 font-display text-xl text-[#49383a]">Công việc được giao</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Mở trực tiếp khu vực bạn được chủ tiệc phân quyền. Mỗi thao tác vẫn được máy chủ kiểm
+              tra theo phạm vi đã cấp.
+            </p>
+          </div>
+          {coHostWorkAreas.length ? (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {coHostWorkAreas.map((area) => {
+                  const Icon = area.icon;
+                  return (
+                    <Link
+                      key={area.slug}
+                      href={`/weddings/${encodeURIComponent(weddingId)}/${area.slug}`}
+                      className="group rounded-xl border border-[#eee5de] bg-[#fffdfa] p-4 transition hover:border-[#cdb6a5] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span className="flex size-10 items-center justify-center rounded-lg bg-[#f6ece8] text-[#8b5960]">
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <span className="mt-3 flex items-center gap-2 font-semibold text-[#49383a]">
+                        {area.title}
+                        <ArrowUpRight
+                          className="size-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                        {area.description}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="rounded-xl border border-dashed border-[#d9cabe] bg-[#fffdfa] p-4 text-sm leading-6 text-muted-foreground">
+              Tài khoản này mới có quyền vào workspace. Hãy nhờ chủ tiệc cấp quyền khách mời, RSVP,
+              sơ đồ chỗ ngồi hoặc check-in để bắt đầu công việc.
+            </p>
+          )}
+          {can("SEATING_EDIT") && !can("SEATING_VIEW") && (
+            <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+              Bạn được cấp quyền sửa chỗ ngồi nhưng chưa có quyền xem sơ đồ. Hãy nhờ chủ tiệc cấp
+              thêm quyền xem với phạm vi bao phủ các nhóm được sửa.
+            </p>
+          )}
+          {can("SEATING_VIEW") && !can("SEATING_EDIT") && (
+            <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+              Bạn đang có quyền xem sơ đồ. Muốn sắp xếp bàn, hãy nhờ chủ tiệc cấp thêm quyền chỉnh
+              sửa chỗ ngồi trong cùng phạm vi.
+            </p>
+          )}
+          <div>
+            <h3 className="font-semibold text-[#49383a]">Phạm vi quyền hiện tại</h3>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {access.permissions.map((permission) => {
+                const scope = access.scopes?.find((item) => item.permission === permission);
+                const label: Record<string, string> = {
+                  WEDDING_VIEW: "Thông tin đám cưới & realtime",
+                  WEDDING_EDIT: "Chỉnh sửa thiết lập đám cưới",
+                  GUEST_VIEW: "Xem khách mời",
+                  GUEST_EDIT: "Sửa khách mời",
+                  INVITATION_SEND: "Gửi thiệp mời",
+                  RSVP_VIEW: "Xem phản hồi RSVP",
+                  SEATING_VIEW: "Xem sơ đồ bàn",
+                  SEATING_EDIT: "Sắp xếp bàn và chỗ ngồi",
+                  CHECKIN_MANAGE: "Tra cứu và check-in",
+                  GIFT_VIEW: "Xem sổ mừng cưới",
+                  GIFT_EDIT: "Quản lý sổ mừng cưới",
+                  ANALYTICS_VIEW: "Xem thống kê",
+                };
+                const scopeText =
+                  permission === "CHECKIN_MANAGE" || scope?.weddingWide
+                    ? "Toàn đám cưới"
+                    : scope?.groups.length
+                      ? scope.groups.map((group) => group.name).join(", ")
+                      : "Đang tải phạm vi quyền";
+                return (
+                  <li
+                    key={permission}
+                    className="rounded-xl border border-[#eee5de] bg-[#fffdfa] p-3"
+                  >
+                    <p className="font-medium text-[#49383a]">{label[permission] ?? permission}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{scopeText}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            {!access.permissions.length && (
+              <p className="rounded-lg bg-[#f8f3ef] p-3 text-sm text-muted-foreground">
+                Chưa có quyền nghiệp vụ nào được cấp ngoài quyền vào workspace.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
     </section>
   );
 }
