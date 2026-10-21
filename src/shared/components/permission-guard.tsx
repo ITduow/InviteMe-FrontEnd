@@ -5,6 +5,7 @@ export const WeddingAccessContext = createContext<WeddingAccess | null>(null);
 export function usePermission() {
   const access = useContext(WeddingAccessContext);
   return {
+    isOwner: access?.isOwner === true,
     can: (permission: WeddingPermission) => access?.permissions.includes(permission) ?? false,
   };
 }

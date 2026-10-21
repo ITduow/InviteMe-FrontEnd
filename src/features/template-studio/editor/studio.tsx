@@ -76,6 +76,8 @@ function Workspace({
   backHref,
   initialDocument,
   onSave,
+  onUploadImage,
+  loadImages,
 }: TemplateStudioProps) {
   const {
     actions,
@@ -131,8 +133,8 @@ function Workspace({
       append,
     });
     setCategory("image");
-    void fetch("/api/template-studio/assets")
-      .then((response) => (response.ok ? response.json() : []))
+    void (loadImages ? loadImages() : fetch("/api/template-studio/assets")
+      .then((response) => (response.ok ? response.json() : [])))
       .then(setUploads)
       .catch(() => setMessage("Không tải được thư viện ảnh."));
   }
@@ -156,12 +158,17 @@ function Workspace({
     setUploading(true);
     try {
       for (const file of Array.from(files).slice(0, 15)) {
-        const data = new FormData();
-        data.append("file", file);
-        const response = await fetch("/api/template-studio/assets", { method: "POST", body: data });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Không tải được ảnh.");
-        setUploads((current) => [...current, { src: result.src, name: file.name }]);
+        if (onUploadImage) {
+          const uploaded = await onUploadImage(file);
+          setUploads((current) => [...current, uploaded]);
+        } else {
+          const data = new FormData();
+          data.append("file", file);
+          const response = await fetch("/api/template-studio/assets", { method: "POST", body: data });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Không tải được ảnh.");
+          setUploads((current) => [...current, { src: result.src, name: file.name }]);
+        }
       }
       setMessage("Đã tải ảnh. Nhấp ảnh để thay thế hoặc thêm vào album.");
     } catch (error) {
@@ -461,7 +468,7 @@ function Workspace({
         JSON.stringify({ schemaVersion: 1, templateId, nodes: JSON.parse(query.serialize()) }),
       );
       await onSave(JSON.stringify(doc));
-      setMessage("Đã lưu thiệp và áp dụng cho các link cá nhân.");
+      setMessage("Đã lưu bản nháp. Thiệp khách đang xem chưa thay đổi.");
     } catch {
       setMessage(
         "Không lưu được thiệp. Nếu có người khác vừa sửa, hãy mở lại Studio để tải bản mới.",
@@ -512,7 +519,7 @@ function Workspace({
                 )}
                 {onSave && (
                   <button disabled={saving} onClick={() => void saveDesign()}>
-                    {saving ? "Đang lưu…" : "Lưu & áp dụng"}
+                    {saving ? "Đang lưu…" : "Lưu bản nháp"}
                   </button>
                 )}
                 <button
@@ -1964,6 +1971,8 @@ export function TemplateStudio({
   backHref,
   initialDocument,
   onSave,
+  onUploadImage,
+  loadImages,
 }: TemplateStudioProps) {
   const [focus, setFocus] = useState<PhotoFocus>(null);
   const [revision, setRevision] = useState(initialPreview ? 1 : 0);
@@ -1999,6 +2008,8 @@ export function TemplateStudio({
             backHref={backHref}
             initialDocument={initialDocument}
             onSave={onSave}
+            onUploadImage={onUploadImage}
+            loadImages={loadImages}
           />
         </Editor>
       </RevealReplayContext.Provider>

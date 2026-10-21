@@ -7,6 +7,7 @@ import {
   getInvitationDesign,
   saveInvitationDesign,
 } from "@/features/template-studio";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { SessionLoading } from "@/shared/feedback/session-loading";
@@ -14,6 +15,7 @@ import { ErrorState } from "@/shared/feedback/error-state";
 import { usePermission } from "@/shared/components/permission-guard";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
+import { listWeddingMedia, mediaUrl, uploadWeddingMedia } from "@/features/weddings";
 
 // Compose the guest management panel and design editor here to preserve feature boundaries.
 export function WeddingTemplateStudio({
@@ -65,8 +67,6 @@ function ConnectedStudio({
   ...props
 }: { weddingId: string } & React.ComponentProps<typeof TemplateStudio>) {
   const { api } = useRuntime();
-  const { can } = usePermission();
-  const cache = useQueryClient();
   const key = ["invitation-design", weddingId];
   const design = useQuery({
     queryKey: key,
@@ -75,23 +75,44 @@ function ConnectedStudio({
   if (design.isPending) return <SessionLoading />;
   if (design.isError)
     return <ErrorState error={design.error} retry={() => void design.refetch()} />;
-  return (
-    <TemplateStudio
+  return <StudioSession key={weddingId} weddingId={weddingId} snapshot={design.data} {...props} />;
+}
+
+function StudioSession({ weddingId, snapshot, ...props }: {
+  weddingId: string;
+  snapshot: Awaited<ReturnType<typeof getInvitationDesign>>;
+} & React.ComponentProps<typeof TemplateStudio>) {
+  const { api } = useRuntime();
+  const { can } = usePermission();
+  const cache = useQueryClient();
+  const [version, setVersion] = useState(snapshot.version);
+  const [initial, setInitial] = useState(snapshot.document ? JSON.stringify(snapshot.document) : undefined);
+  const [generation, setGeneration] = useState(0);
+  const remoteChanged = version !== snapshot.version;
+  return <>
+    {remoteChanged && <div role="alert" className="fixed left-1/2 top-20 z-[100] w-[min(90vw,650px)] -translate-x-1/2 rounded-xl border border-amber-500 bg-amber-50 p-4 text-sm text-amber-950 shadow-lg">
+      Thiết kế đã thay đổi ở tab khác. Bản đang chỉnh vẫn được giữ; tải bản mới trước khi lưu tiếp.
+      <button className="ml-2 underline" onClick={() => {
+        setVersion(snapshot.version);
+        setInitial(snapshot.document ? JSON.stringify(snapshot.document) : undefined);
+        setGeneration((value) => value + 1);
+      }}>Tải bản mới (bỏ sửa đổi chưa lưu)</button>
+    </div>}
+    <TemplateStudio key={generation}
       {...props}
-      initialDocument={design.data.document ? JSON.stringify(design.data.document) : undefined}
-      onSave={
-        can("INVITATION_SEND")
-          ? async (serialized) => {
-              const saved = await saveInvitationDesign(
-                api,
-                weddingId,
-                design.data.version,
-                serialized,
-              );
-              cache.setQueryData(key, saved);
-            }
-          : undefined
-      }
+      onUploadImage={async (file) => {
+        const media = await uploadWeddingMedia(api, weddingId, file);
+        return { src: mediaUrl(media.url) ?? media.url, name: file.name };
+      }}
+      loadImages={async () => (await listWeddingMedia(api, weddingId)).map((media) => ({
+        src: mediaUrl(media.url) ?? media.url, name: `Ảnh ${media.id.slice(0, 8)}`,
+      }))}
+      initialDocument={initial}
+      onSave={can("INVITATION_SEND") ? async (serialized) => {
+        const saved = await saveInvitationDesign(api, weddingId, version, serialized);
+        setVersion(saved.version);
+        cache.setQueryData(["invitation-design", weddingId], saved);
+      } : undefined}
     />
-  );
+  </>;
 }

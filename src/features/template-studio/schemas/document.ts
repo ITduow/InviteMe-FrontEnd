@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { isValidEventDate } from "../components/date-utils";
 
-const assetSource = z
+const builtinAssetSource = z
   .string()
   .regex(
     /^(?:\/images\/templates\/(?:invite-portrait|story-meadow)\.png|\/images\/template-studio\/minimalism-brown\/[a-z0-9-]+\.webp|\/images\/template-studio\/minimalism-burgundy\/(?:photo\.png|(?:envelope|paper|botanical)\.svg)|\/images\/template-studio\/collection\/[a-z0-9-]+\.(?:webp|svg)|\/images\/template-studio\/story-collection\/[a-z0-9-]+\.(?:webp|svg)|\/images\/template-studio\/story-red-velvet\/photo\.png|\/api\/template-studio\/assets\?id=[a-f0-9-]{36})$/,
   );
+const assetSource = z.string().refine((source) => builtinAssetSource.safeParse(source).success ||
+  source.startsWith("/media/") || /^https?:\/\//.test(source), "Nguồn ảnh không hợp lệ.");
 const props = z
   .object({
     cover: z

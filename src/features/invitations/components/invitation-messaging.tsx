@@ -144,7 +144,7 @@ function statusLabel(status: string) {
   );
 }
 
-export function InvitationMessaging({ weddingId }: { weddingId: string }) {
+export function InvitationMessaging({ weddingId, isPublished }: { weddingId: string; isPublished: boolean }) {
   const { api } = useRuntime();
   const { can } = usePermission();
   const canViewGuests = can("GUEST_VIEW");
@@ -348,6 +348,7 @@ export function InvitationMessaging({ weddingId }: { weddingId: string }) {
       : selectedIds.length;
   const canSend = Boolean(
     draftQuery.data &&
+    isPublished &&
     canViewGuests &&
     selectionCount > 0 &&
     selectionCount <= 180 &&
@@ -710,7 +711,7 @@ export function InvitationMessaging({ weddingId }: { weddingId: string }) {
               )}
               <Button
                 variant="outline"
-                disabled={testMutation.isPending || dirty}
+                disabled={testMutation.isPending || dirty || !isPublished}
                 onClick={() => {
                   if (
                     window.confirm(
@@ -940,6 +941,8 @@ export function InvitationMessaging({ weddingId }: { weddingId: string }) {
             {sendMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Send />} Xếp hàng
             gửi
           </Button>
+          {!isPublished &&
+            <p className="mt-2 text-sm text-muted-foreground">Publish thiết kế thiệp trước khi gửi link.</p>}
           {dirty && (
             <p className="mt-2 text-xs text-muted-foreground">Lưu bản nháp trước khi gửi.</p>
           )}
