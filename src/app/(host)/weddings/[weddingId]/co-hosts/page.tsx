@@ -1,7 +1,8 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+import { CoHostManagement } from "@/features/co-hosts";
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
       permission="WEDDING_EDIT"
@@ -12,7 +13,7 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder title="Co-hosts" description="Plan with the people you trust." />
+      <CoHostManagement weddingId={weddingId} />
     </PermissionGuard>
   );
 }
