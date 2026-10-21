@@ -12,4 +12,6 @@ export type TemplateStudioProps = {
   backHref?: string;
   initialDocument?: string;
   onSave?: (serialized: string) => Promise<void>;
+  onUploadImage?: (file: File) => Promise<{ src: string; name: string }>;
+  loadImages?: () => Promise<{ src: string; name: string }[]>;
 };

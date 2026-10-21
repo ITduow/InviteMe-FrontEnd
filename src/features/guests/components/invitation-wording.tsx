@@ -75,7 +75,7 @@ export function InvitationWording({
         settings={settings.data}
         compact={compact}
         onPreview={onPreview}
-        onSaved={() => setNotice("Đã lưu preset và cách gán danh xưng.")}
+        onSaved={() => setNotice("Đã lưu bản nháp lời mời. Publish thiệp để cập nhật cho khách.")}
       />
     </section>
   );
@@ -114,6 +114,7 @@ function WordingEditor({
     mutationFn: () => wordingApi.save(api, settings.weddingId, settings.version, draft),
     onSuccess: (data) => {
       cache.setQueryData(settingsKey(settings.weddingId), data);
+      void cache.invalidateQueries({ queryKey: ["invitation-design", settings.weddingId] });
       onSaved();
     },
   });
@@ -144,6 +145,7 @@ function WordingEditor({
     try {
       const data = await wordingApi.get(api, settings.weddingId);
       cache.setQueryData(settingsKey(settings.weddingId), data);
+      void cache.invalidateQueries({ queryKey: ["invitation-design", settings.weddingId] });
       setPresets(data.presets.map(editable));
       save.reset();
       preview.reset();

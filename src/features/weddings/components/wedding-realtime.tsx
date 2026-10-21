@@ -26,15 +26,23 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
     const invalidateSeating = () => {
       void queryClient.invalidateQueries({ queryKey: ["planning-seating", weddingId] });
     };
+    const invalidatePublication = () => {
+      void queryClient.invalidateQueries({ queryKey: ["website", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["invitation-design", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["invitation-wording", weddingId] });
+    };
     const unsubscribers = [
       realtime.onResync(() => {
         invalidateRsvp();
         invalidateSeating();
+        invalidatePublication();
       }),
       realtime.on(REALTIME_EVENTS.capacity, invalidate),
       realtime.on(REALTIME_EVENTS.rsvp, invalidateRsvp),
       realtime.on(REALTIME_EVENTS.waitlist, invalidateRsvp),
       realtime.onPlanningChange((change) => {
+        if (change.type === "WeddingSetupChanged") invalidate();
+        if (change.type.startsWith("WeddingWebsite") || change.type.startsWith("Invitation")) invalidatePublication();
         if (change.type.startsWith("Rsvp")) invalidateRsvp();
         if (change.type === "PlanningGuestsImported") invalidateRsvp();
         if (

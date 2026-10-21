@@ -19,6 +19,7 @@ export const WEDDING_PERMISSIONS = [
 export type WeddingPermission = (typeof WEDDING_PERMISSIONS)[number];
 export const weddingAccessSchema = z.object({
   weddingId: z.string(),
+  isOwner: z.boolean().optional(),
   permissions: z.array(z.enum(WEDDING_PERMISSIONS)),
 });
 export type WeddingAccess = z.infer<typeof weddingAccessSchema>;

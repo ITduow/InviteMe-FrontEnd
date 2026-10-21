@@ -1,5 +1,4 @@
-import { SavedInvitation } from "@/features/template-studio";
-import { InvitationMessaging } from "@/features/invitations";
+import { InvitationManagement } from "@/app/_components/invitation-management";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
 export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
@@ -19,8 +18,7 @@ export default async function Page({ params }: { params: Promise<{ weddingId: st
         <p className="max-w-2xl text-sm text-muted-foreground">
           Quản lý thiết kế, nội dung lời mời và gửi email/SMS cho khách của đám cưới.
         </p>
-        <SavedInvitation weddingId={weddingId} />
-        <InvitationMessaging weddingId={weddingId} />
+        <InvitationManagement weddingId={weddingId} />
       </section>
     </PermissionGuard>
   );
