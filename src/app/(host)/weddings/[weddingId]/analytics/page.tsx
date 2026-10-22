@@ -1,10 +1,11 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import { CheckInOverview } from "@/features/guests";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+export default async function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = await params;
   return (
     <PermissionGuard
-      permission="ANALYTICS_VIEW"
+      permission="RSVP_VIEW"
       fallback={
         <EmptyState
           title="Access restricted"
@@ -12,7 +13,7 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder title="Analytics" description="Understand your celebration." />
+      <CheckInOverview weddingId={weddingId} />
     </PermissionGuard>
   );
 }

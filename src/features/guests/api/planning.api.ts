@@ -141,19 +141,25 @@ export function listPlanningGuests(
   search: string,
   signal?: AbortSignal,
   archivedOnly = false,
+  filters: { side?: string; groupId?: string } = {},
 ) {
-  return api.request(
-    `${path(id)}/guests?${new URLSearchParams({ page: String(page), pageSize: "20", search, archivedOnly: String(archivedOnly) })}`,
-    {
-      signal,
-      schema: z.object({
-        items: z.array(planningGuestSchema),
-        page: z.number(),
-        pageSize: z.number(),
-        totalItems: z.number(),
-      }),
-    },
-  );
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: "20",
+    search,
+    archivedOnly: String(archivedOnly),
+  });
+  if (filters.side) params.set("side", filters.side);
+  if (filters.groupId) params.set("groupId", filters.groupId);
+  return api.request(`${path(id)}/guests?${params}`, {
+    signal,
+    schema: z.object({
+      items: z.array(planningGuestSchema),
+      page: z.number(),
+      pageSize: z.number(),
+      totalItems: z.number(),
+    }),
+  });
 }
 export function getPlanningGuest(
   api: ApiClient,

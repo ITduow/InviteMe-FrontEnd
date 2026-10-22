@@ -36,6 +36,8 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const [archivedOnly, setArchivedOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [side, setSide] = useState("");
+  const [groupId, setGroupId] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [editingGuest, setEditingGuest] = useState(false);
   const [notice, setNotice] = useState("");
@@ -50,8 +52,9 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const attempt = useRef<{ serialized: string; key: string } | null>(null);
   const createAttempt = useRef<{ serialized: string; key: string } | null>(null);
   const list = useQuery({
-    queryKey: ["guest-planning", weddingId, page, search, archivedOnly],
-    queryFn: ({ signal }) => listPlanningGuests(api, weddingId, page, search, signal, archivedOnly),
+    queryKey: ["guest-planning", weddingId, page, search, archivedOnly, side, groupId],
+    queryFn: ({ signal }) =>
+      listPlanningGuests(api, weddingId, page, search, signal, archivedOnly, { side, groupId }),
     enabled: can("GUEST_VIEW") && !importing,
   });
   const detail = useQuery({
@@ -62,7 +65,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const groups = useQuery({
     queryKey: ["guest-planning-groups", weddingId],
     queryFn: ({ signal }) => listPlanningGroups(api, weddingId, signal),
-    enabled: Boolean((selected && can("GUEST_EDIT") && can("GUEST_VIEW")) || creatingGuest),
+    enabled: can("GUEST_VIEW"),
   });
   const createGuest = useMutation({
     mutationFn: ({ input, key }: { input: PlanningGuestCreate; key: string }) =>
@@ -317,6 +320,49 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
               setPage(1);
             }}
           />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-sm">
+              Phía khách
+              <select
+                className="h-10 rounded-lg border bg-background px-3"
+                value={side}
+                onChange={(event) => {
+                  setSide(event.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">Tất cả hai bên</option>
+                {Object.entries(sideLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm">
+              Nhóm khách
+              <select
+                className="h-10 rounded-lg border bg-background px-3"
+                value={groupId}
+                onChange={(event) => {
+                  setGroupId(event.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">Tất cả nhóm</option>
+                {(groups.data?.items ?? []).map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {groups.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Không tải được nhóm khách; bộ lọc nhóm chưa khả dụng.
+            </p>
+          )}
           {list.isPending && <p role="status">Đang tải danh sách…</p>}
           {list.isError && (
             <div role="alert">

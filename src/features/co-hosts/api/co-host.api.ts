@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { ApiClient } from "@/core/api/api-client";
 
-const planningGroupGuestSchema = z.object({
-  group: z.object({ id: z.string(), name: z.string() }).nullable(),
+const planningGroupsSchema = z.object({
+  isWeddingWide: z.boolean(),
+  items: z.array(z.object({ id: z.string(), name: z.string() })),
 });
 
 export const CO_HOST_PERMISSIONS = [
@@ -81,31 +82,11 @@ export const listCoHostInvitations = (api: ApiClient, weddingId: string, signal?
   });
 
 export async function listPlanningGroups(api: ApiClient, weddingId: string, signal?: AbortSignal) {
-  const pageSize = 100;
-  const groups = new Map<string, string>();
-  let page = 1;
-  let totalItems = 0;
-  do {
-    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    const result = await api.request(`${path(weddingId)}/guest-planning/guests?${params}`, {
-      signal,
-      schema: z.object({
-        items: z.array(planningGroupGuestSchema),
-        page: z.number(),
-        pageSize: z.number(),
-        totalItems: z.number(),
-      }),
-    });
-    totalItems = result.totalItems;
-    for (const guest of result.items) {
-      if (guest.group) groups.set(guest.group.id, guest.group.name);
-    }
-    page += 1;
-  } while ((page - 1) * pageSize < totalItems && page <= 101);
-
-  return [...groups]
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  const result = await api.request(`${path(weddingId)}/guest-planning/groups`, {
+    signal,
+    schema: planningGroupsSchema,
+  });
+  return result.items.sort((a, b) => a.name.localeCompare(b.name, "vi"));
 }
 
 export const createCoHostInvitation = (

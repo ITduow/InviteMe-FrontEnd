@@ -19,6 +19,10 @@ export const planningChangeSchema = z.object({
   type: z.enum([
     "PlanningSeatingChanged",
     "PlanningGuestsImported",
+    "PlanningGuestCreated",
+    "PlanningGuestArchived",
+    "PlanningGuestUpdated",
+    "PlanningGuestRestored",
     "PlanningSeatingNeedsAttention",
     "PlanningSeatingPublished",
     "PlanningSeatingUnpublished",
