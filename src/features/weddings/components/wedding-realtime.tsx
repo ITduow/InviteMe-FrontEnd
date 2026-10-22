@@ -16,12 +16,19 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
       void queryClient.invalidateQueries({ queryKey: weddingKeys.detail(weddingId) });
       void queryClient.invalidateQueries({ queryKey: weddingKeys.lists() });
     };
-    const invalidateRsvp = () => {
+    const invalidateGuests = () => {
       void queryClient.invalidateQueries({ queryKey: ["host-rsvp", weddingId] });
       void queryClient.invalidateQueries({ queryKey: ["guests", weddingId] });
       void queryClient.invalidateQueries({ queryKey: ["guest-planning", weddingId] });
       void queryClient.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["guest-planning-groups", weddingId] });
+      void queryClient.invalidateQueries({ queryKey: ["co-hosts", weddingId, "groups"] });
       invalidate();
+    };
+    const invalidateRsvp = () => {
+      void queryClient.invalidateQueries({ queryKey: ["host-rsvp", weddingId] });
+      invalidateGuests();
+      void queryClient.invalidateQueries({ queryKey: ["check-in-summary", weddingId] });
     };
     const invalidateSeating = () => {
       void queryClient.invalidateQueries({ queryKey: ["planning-seating", weddingId] });
@@ -45,8 +52,19 @@ export function WeddingRealtime({ weddingId }: { weddingId: string }) {
         if (change.type.startsWith("WeddingWebsite") || change.type.startsWith("Invitation"))
           invalidatePublication();
         if (change.type.startsWith("Rsvp")) invalidateRsvp();
+        if (
+          change.type === "PlanningGuestCreated" ||
+          change.type === "PlanningGuestArchived" ||
+          change.type === "PlanningGuestUpdated" ||
+          change.type === "PlanningGuestRestored"
+        ) {
+          invalidateGuests();
+          invalidateSeating();
+        }
         if (change.type === "PlanningGuestsImported") invalidateRsvp();
         if (change.type === "PlanningWalkInAdded") invalidateRsvp();
+        if (change.type === "GuestCheckedIn" || change.type === "GuestCheckInVoided")
+          void queryClient.invalidateQueries({ queryKey: ["check-in-summary", weddingId] });
         if (
           change.type === "PlanningSeatingChanged" ||
           change.type === "PlanningGuestsImported" ||

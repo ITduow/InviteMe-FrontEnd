@@ -138,6 +138,35 @@ test("planning weddingChanged invalidations are scoped, validated and delivered 
   assert.deepEqual(received, [7, 0, 9]);
 });
 
+test("planning guest lifecycle changes are accepted and delivered to FE invalidation listeners", async () => {
+  const connection = new FakeConnection();
+  mock.method(
+    HubConnectionBuilder.prototype,
+    "build",
+    () => connection as unknown as HubConnection,
+  );
+  const client = new RealtimeClient("https://api.example.test/hub", async () => "token");
+  const changes: string[] = [];
+  client.onPlanningChange((change) => changes.push(change.type));
+  await client.activate("wedding-1");
+  const emit = connection.handlers.get("weddingChanged");
+  for (const type of [
+    "PlanningGuestCreated",
+    "PlanningGuestArchived",
+    "PlanningGuestUpdated",
+    "PlanningGuestRestored",
+  ]) {
+    emit?.({ type, entityId: "guest-1", version: 2 });
+  }
+  assert.deepEqual(changes, [
+    "PlanningGuestCreated",
+    "PlanningGuestArchived",
+    "PlanningGuestUpdated",
+    "PlanningGuestRestored",
+  ]);
+  await client.activate(null);
+});
+
 test("one active wedding connection; switching and logout stop prior connections", async () => {
   const connections: FakeConnection[] = [];
   mock.method(HubConnectionBuilder.prototype, "build", () => {

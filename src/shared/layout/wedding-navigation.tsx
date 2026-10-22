@@ -22,7 +22,8 @@ const sections: {
   { slug: "check-in", label: "Check-in", permission: "CHECKIN_MANAGE" },
   { slug: "gifts", label: "Gifts & wishes", permission: "GIFT_VIEW" },
   { slug: "thank-you", label: "Thank-you letters", permission: "GUEST_VIEW", ownerOnly: true },
-  { slug: "analytics", label: "Analytics", permission: "ANALYTICS_VIEW" },
+  { slug: "analytics", label: "Check-in overview", permission: "RSVP_VIEW" },
+  { slug: "audit-logs", label: "Activity history", permission: "WEDDING_VIEW", ownerOnly: true },
   { slug: "settings", label: "Settings", permission: "WEDDING_EDIT", ownerOnly: true },
   { slug: "co-hosts", label: "Co-hosts", permission: "WEDDING_EDIT", ownerOnly: true },
 ];
