@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   Check,
@@ -28,6 +28,15 @@ import {
 import { QrCameraScanner } from "./qr-camera-scanner";
 
 type CheckInOutcome = CheckInResult["places"][number]["result"];
+type CounterDisplayResult = {
+  recipientName: string;
+  honorific: string | null;
+  places: CheckInResult["places"];
+  walkIn: boolean;
+  overCapacity: boolean;
+};
+
+const COUNTER_DISPLAY_SECONDS = 8;
 
 function apiErrorMessage(error: unknown, action: "lookup" | "check-in" | "search" | "walk-in") {
   if (!(error instanceof ApiError))
@@ -110,11 +119,52 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
   const [exceptionReason, setExceptionReason] = useState("");
   const [lookupPending, setLookupPending] = useState(false);
   const [checkInPending, setCheckInPending] = useState(false);
+  const [counterDisplay, setCounterDisplay] = useState<CounterDisplayResult | null>(null);
+  const [returnCountdown, setReturnCountdown] = useState(COUNTER_DISPLAY_SECONDS);
+  const [resumeCameraOnReturn, setResumeCameraOnReturn] = useState(false);
+  const [autoStartCamera, setAutoStartCamera] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [forbidden, setForbidden] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  const displayHeading = useRef<HTMLHeadingElement>(null);
   const lookupBusy = useRef(false);
+
+  const returnToScanner = useCallback(() => {
+    setCounterDisplay(null);
+    setReturnCountdown(COUNTER_DISPLAY_SECONDS);
+    setMode("QR");
+    setCode("");
+    setLookupCode(null);
+    setGuest(null);
+    setSearchText("");
+    setSearchQuery("");
+    setSearchResults([]);
+    setActiveSearchQuery(null);
+    setWalkInGuestId(null);
+    setSelectedIds([]);
+    setOutcomes({});
+    setExceptionReason("");
+    setError("");
+    setMessage("");
+    setForbidden(false);
+    setAutoStartCamera(resumeCameraOnReturn);
+    setResumeCameraOnReturn(false);
+    window.setTimeout(() => input.current?.focus(), 0);
+  }, [resumeCameraOnReturn]);
+
+  useEffect(() => {
+    if (!counterDisplay) return;
+    displayHeading.current?.focus();
+    const countdown = window.setInterval(() => {
+      setReturnCountdown((current) => Math.max(0, current - 1));
+    }, 1000);
+    const returnTimer = window.setTimeout(returnToScanner, COUNTER_DISPLAY_SECONDS * 1000);
+    return () => {
+      window.clearInterval(countdown);
+      window.clearTimeout(returnTimer);
+    };
+  }, [counterDisplay, returnToScanner]);
 
   useEffect(() => input.current?.focus(), []);
 
@@ -189,6 +239,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
 
   function submitLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setResumeCameraOnReturn(false);
     void findGuest(code);
   }
 
@@ -227,6 +278,14 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
         selectedIds,
         selectedUnused ? reason : undefined,
       );
+      setCounterDisplay({
+        recipientName: result.recipientName,
+        honorific: result.honorific,
+        places: result.places,
+        walkIn: false,
+        overCapacity: false,
+      });
+      setReturnCountdown(COUNTER_DISPLAY_SECONDS);
       const resultById = Object.fromEntries(
         result.places.map((place) => [place.placeId, place.result]),
       ) as Record<string, CheckInOutcome>;
@@ -360,6 +419,14 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     try {
       const result = await addReceptionWalkIn(api, weddingId, input, walkInAttempt.current.key);
       walkInAttempt.current = null;
+      setCounterDisplay({
+        recipientName: result.recipientName,
+        honorific: result.honorific,
+        places: result.places,
+        walkIn: true,
+        overCapacity: result.overCapacity,
+      });
+      setReturnCountdown(COUNTER_DISPLAY_SECONDS);
       const seats = result.places.map((place) => ({
         placeId: place.placeId,
         position: place.position,
@@ -403,6 +470,127 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     guest?.seats.some((seat) => selectedIds.includes(seat.placeId) && seat.status === "UNUSED") ??
     false;
 
+  if (counterDisplay) {
+    const newlyCheckedIn = counterDisplay.places.filter(
+      (place) => place.result === "CHECKED_IN",
+    ).length;
+    const previouslyCheckedIn = counterDisplay.places.length - newlyCheckedIn;
+    const allAlreadyCheckedIn = newlyCheckedIn === 0 && previouslyCheckedIn > 0;
+
+    return (
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="counter-result-heading"
+        className="fixed inset-0 z-[100] grid overflow-y-auto bg-slate-950 p-4 text-white sm:p-8"
+      >
+        <div className="m-auto w-full max-w-5xl space-y-6 text-center sm:space-y-8">
+          <div
+            className={`mx-auto grid size-20 place-items-center rounded-full sm:size-28 ${allAlreadyCheckedIn ? "bg-amber-400/15 text-amber-300" : "bg-emerald-400/15 text-emerald-300"}`}
+          >
+            {allAlreadyCheckedIn ? (
+              <AlertCircle className="size-12 sm:size-16" aria-hidden="true" />
+            ) : (
+              <CircleCheck className="size-12 sm:size-16" aria-hidden="true" />
+            )}
+          </div>
+          <div className="space-y-3">
+            <p
+              className={`text-sm font-bold uppercase tracking-[0.2em] sm:text-lg ${allAlreadyCheckedIn ? "text-amber-300" : "text-emerald-300"}`}
+            >
+              {allAlreadyCheckedIn
+                ? "Khách đã check-in trước đó"
+                : counterDisplay.walkIn
+                  ? "Đã tiếp nhận khách"
+                  : "Check-in thành công"}
+            </p>
+            <h1
+              ref={displayHeading}
+              id="counter-result-heading"
+              tabIndex={-1}
+              className="text-4xl font-bold leading-tight tracking-tight outline-none sm:text-6xl lg:text-7xl"
+            >
+              {counterDisplay.honorific ? `${counterDisplay.honorific} ` : ""}
+              {counterDisplay.recipientName}
+            </h1>
+            <p className="text-lg text-slate-300 sm:text-2xl">
+              {newlyCheckedIn > 0
+                ? `${newlyCheckedIn} người vừa được ghi nhận${previouslyCheckedIn ? ` · ${previouslyCheckedIn} người đã check-in trước` : ""}`
+                : `${previouslyCheckedIn} người đã có check-in`}
+            </p>
+          </div>
+
+          <ul
+            aria-label="Kết quả check-in và số bàn"
+            className="mx-auto grid max-w-4xl gap-3 text-left sm:grid-cols-2"
+          >
+            {counterDisplay.places.map((place) => {
+              const alreadyCheckedIn = place.result === "ALREADY_CHECKED_IN";
+              return (
+                <li
+                  key={place.placeId}
+                  className={`flex min-h-24 items-center justify-between gap-4 rounded-2xl border p-4 sm:min-h-28 sm:p-6 ${alreadyCheckedIn ? "border-amber-300/40 bg-amber-300/10" : "border-emerald-300/30 bg-white/5"}`}
+                >
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                    {alreadyCheckedIn ? (
+                      <AlertCircle
+                        className="size-7 shrink-0 text-amber-300 sm:size-9"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <CircleCheck
+                        className="size-7 shrink-0 text-emerald-300 sm:size-9"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="break-words text-xl font-semibold sm:text-3xl">
+                        {place.personName ?? `Người thứ ${place.position}`}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-300 sm:text-base">
+                        {alreadyCheckedIn ? "Đã check-in trước đó" : "Vừa check-in"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs uppercase tracking-wider text-slate-400 sm:text-sm">
+                      Số bàn
+                    </p>
+                    <p className="mt-1 text-2xl font-bold sm:text-4xl">
+                      {place.table ?? "Chưa xếp bàn"}
+                    </p>
+                    {place.table && place.seatNumber !== null && (
+                      <p className="text-sm text-slate-300 sm:text-base">Ghế {place.seatNumber}</p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {counterDisplay.overCapacity && (
+            <p className="mx-auto max-w-3xl rounded-xl border border-amber-300/40 bg-amber-300/10 p-3 text-sm text-amber-100 sm:text-base">
+              Đã tiếp nhận vượt sức chứa theo ngoại lệ được ghi nhận.
+            </p>
+          )}
+
+          <div className="space-y-3 pt-2">
+            <Button
+              type="button"
+              onClick={returnToScanner}
+              className="h-14 min-w-64 bg-white px-8 text-lg font-semibold text-slate-950 hover:bg-slate-200"
+            >
+              Quét khách tiếp theo
+            </Button>
+            <p aria-live="off" className="text-sm text-slate-400">
+              Tự quay lại màn quét sau {returnCountdown} giây
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-3xl space-y-6 pb-8">
       <header>
@@ -432,6 +620,8 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 setMode(value);
                 setError("");
                 setMessage("");
+                setResumeCameraOnReturn(false);
+                setAutoStartCamera(false);
               }}
               className={`min-h-10 rounded-lg border px-4 text-sm font-medium ${mode === value ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
             >
@@ -444,7 +634,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
           <div className="space-y-4">
             <QrCameraScanner
               disabled={lookupPending || checkInPending}
+              autoStart={autoStartCamera}
               onDetected={(value) => {
+                setResumeCameraOnReturn(true);
                 setCode(value);
                 void findGuest(value);
               }}
