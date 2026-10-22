@@ -22,11 +22,13 @@ const kindOptions = [
 
 export function PlanningGuestCreateForm({
   groups,
+  isWeddingWide,
   busy,
   onCancel,
   onSave,
 }: {
   groups: { id: string; name: string }[];
+  isWeddingWide: boolean;
   busy: boolean;
   onCancel: () => void;
   onSave: (input: PlanningGuestCreate) => void;
@@ -39,7 +41,7 @@ export function PlanningGuestCreateForm({
       invitationKind: "INDIVIDUAL",
       expectedPeople: 1,
       side: "UNSPECIFIED",
-      groupId: null,
+      groupId: !isWeddingWide && groups.length === 1 ? (groups[0]?.id ?? null) : null,
       phone: "",
       note: "",
       email: "",
@@ -47,6 +49,13 @@ export function PlanningGuestCreateForm({
   });
 
   function submit(values: PlanningGuestCreate) {
+    if (!isWeddingWide && !values.groupId) {
+      form.setError("groupId", {
+        type: "manual",
+        message: "Chọn nhóm khách thuộc phạm vi được giao.",
+      });
+      return;
+    }
     onSave({
       ...values,
       honorific: values.honorific?.trim() || null,
@@ -141,11 +150,13 @@ export function PlanningGuestCreateForm({
         <FormField control={form.control} name="groupId" label="Nhóm khách">
           {(field) => (
             <select
+              {...field}
               value={String(field.value ?? "")}
               onChange={(event) => field.onChange(event.currentTarget.value || null)}
+              required={!isWeddingWide}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              <option value="">Chưa phân nhóm</option>
+              {isWeddingWide && <option value="">Chưa phân nhóm</option>}
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}

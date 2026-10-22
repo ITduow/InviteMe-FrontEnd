@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { importBody } from "../src/features/guests/api/planning.api";
+import {
+  importBody,
+  planningGuestCreateSchema,
+  planningGuestUpdateSchema,
+} from "../src/features/guests/api/planning.api";
 import { validateCoupleRows } from "../src/features/guests/utils/couple-import";
 import { normalizeHttpError } from "../src/core/api/api-error";
 test("contact columns are mapped to backend and email errors retain spreadsheet row", () => {
@@ -59,4 +63,35 @@ test("row errors preserve only allowed row and field metadata, never backend mes
   });
   assert.deepEqual(Object.keys(error.fieldErrors), ["rows.8.expectedPeople"]);
   assert.doesNotMatch(JSON.stringify(error.fieldErrors), /secret/);
+});
+
+test("manual create and edit share the backend phone validation rules", () => {
+  const create = {
+    recipientName: "Khách",
+    honorific: null,
+    invitationKind: "INDIVIDUAL" as const,
+    expectedPeople: 1,
+    side: "UNSPECIFIED" as const,
+    groupId: null,
+    phone: "+84 (900) 123-456",
+    note: null,
+    email: null,
+  };
+  const update = { ...create, expectedVersion: 1 };
+  assert.equal(planningGuestCreateSchema.safeParse(create).success, true);
+  assert.equal(planningGuestUpdateSchema.safeParse(update).success, true);
+  assert.equal(
+    planningGuestCreateSchema.safeParse({ ...create, phone: "0900abc123" }).success,
+    false,
+  );
+  assert.equal(
+    planningGuestUpdateSchema.safeParse({ ...update, phone: "0900abc123" }).success,
+    false,
+  );
+});
+
+test("group scope validation errors are recognized without exposing backend messages", () => {
+  const error = normalizeHttpError(400, { errors: { GroupId: ["sensitive details"] } });
+  assert.deepEqual(error.fieldErrors.GroupId, ["Please check this value."]);
+  assert.doesNotMatch(JSON.stringify(error.fieldErrors), /sensitive/);
 });
