@@ -21,6 +21,7 @@ const sections: {
   { slug: "seating", label: "Seating", permission: "SEATING_VIEW" },
   { slug: "check-in", label: "Check-in", permission: "CHECKIN_MANAGE" },
   { slug: "gifts", label: "Gifts & wishes", permission: "GIFT_VIEW" },
+  { slug: "thank-you", label: "Thank-you letters", permission: "GUEST_VIEW", ownerOnly: true },
   { slug: "analytics", label: "Analytics", permission: "ANALYTICS_VIEW" },
   { slug: "settings", label: "Settings", permission: "WEDDING_EDIT", ownerOnly: true },
   { slug: "co-hosts", label: "Co-hosts", permission: "WEDDING_EDIT", ownerOnly: true },

@@ -265,6 +265,10 @@ export function StudioAction(props: ItemProps) {
         <button
           disabled={enabled}
           onClick={() => {
+            if (kind === "gift" && guestToken && !enabled) {
+              window.dispatchEvent(new CustomEvent("inviteme:open-gift"));
+              return;
+            }
             setSubmitted(false);
             setOpen(true);
           }}
