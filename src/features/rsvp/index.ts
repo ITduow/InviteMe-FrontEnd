@@ -11,6 +11,7 @@ export type { GuestRsvpInput, Rsvp, RsvpRequest, RsvpWriteResponse } from "./api
 export { GuestRsvp } from "./components/guest-rsvp";
 export { HostRsvpDashboard } from "./components/host-rsvp-dashboard";
 export { HostRsvpQueues } from "./components/host-rsvp-queues";
+export { RsvpReminderCenter } from "./components/rsvp-reminder-center";
 export {
   exportRsvpGuests,
   getHostRsvp,

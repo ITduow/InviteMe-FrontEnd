@@ -9,12 +9,14 @@ const sections: {
   label: string;
   permission: WeddingPermission;
   ownerOnly?: boolean;
+  wideOnly?: boolean;
 }[] = [
   { slug: "overview", label: "Overview", permission: "WEDDING_VIEW" },
   { slug: "website", label: "Website", permission: "WEDDING_EDIT", ownerOnly: true },
   { slug: "guests", label: "Guests", permission: "GUEST_VIEW" },
   { slug: "invitations", label: "Invitations", permission: "INVITATION_SEND" },
   { slug: "rsvp", label: "RSVP", permission: "RSVP_VIEW" },
+  { slug: "rsvp/reminders", label: "RSVP reminders", permission: "RSVP_VIEW", wideOnly: true },
   { slug: "waitlist", label: "Waitlist", permission: "RSVP_VIEW" },
   { slug: "seating", label: "Seating", permission: "SEATING_VIEW" },
   { slug: "check-in", label: "Check-in", permission: "CHECKIN_MANAGE" },
@@ -24,12 +26,17 @@ const sections: {
   { slug: "co-hosts", label: "Co-hosts", permission: "WEDDING_EDIT", ownerOnly: true },
 ];
 export function WeddingNavigation({ weddingId }: { weddingId: string }) {
-  const { can, isOwner } = usePermission();
+  const { can, isOwner, isWeddingWide } = usePermission();
   const pathname = usePathname();
   return (
     <nav aria-label="Wedding sections" className="flex gap-2 overflow-x-auto border-b pb-4">
       {sections
-        .filter((section) => can(section.permission) && (!section.ownerOnly || isOwner))
+        .filter(
+          (section) =>
+            can(section.permission) &&
+            (!section.ownerOnly || isOwner) &&
+            (!section.wideOnly || isWeddingWide(section.permission)),
+        )
         .map((section) => {
           const href = `/weddings/${encodeURIComponent(weddingId)}/${section.slug}`;
           return (
