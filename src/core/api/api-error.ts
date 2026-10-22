@@ -60,6 +60,7 @@ export function normalizeHttpError(status: number, body: unknown): ApiError {
         "expectedPeople",
         "side",
         "group",
+        "groupId",
         "phone",
         "email",
         "note",

@@ -10,6 +10,7 @@ import { CoupleImport } from "./couple-import";
 import {
   archivePlanningGuest,
   createPlanningGuest,
+  restorePlanningGuest,
   importBody,
   importGuests,
   listPlanningGuests,
@@ -32,6 +33,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const cache = useQueryClient();
   const [importing, setImporting] = useState(false);
   const [creatingGuest, setCreatingGuest] = useState(false);
+  const [archivedOnly, setArchivedOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -48,13 +50,13 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const attempt = useRef<{ serialized: string; key: string } | null>(null);
   const createAttempt = useRef<{ serialized: string; key: string } | null>(null);
   const list = useQuery({
-    queryKey: ["guest-planning", weddingId, page, search],
-    queryFn: ({ signal }) => listPlanningGuests(api, weddingId, page, search, signal),
+    queryKey: ["guest-planning", weddingId, page, search, archivedOnly],
+    queryFn: ({ signal }) => listPlanningGuests(api, weddingId, page, search, signal, archivedOnly),
     enabled: can("GUEST_VIEW") && !importing,
   });
   const detail = useQuery({
-    queryKey: ["guest-planning-detail", weddingId, selected],
-    queryFn: ({ signal }) => getPlanningGuest(api, weddingId, selected ?? "", signal),
+    queryKey: ["guest-planning-detail", weddingId, selected, archivedOnly],
+    queryFn: ({ signal }) => getPlanningGuest(api, weddingId, selected ?? "", signal, archivedOnly),
     enabled: !!selected && can("GUEST_VIEW"),
   });
   const groups = useQuery({
@@ -70,7 +72,11 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
       setCreatingGuest(false);
       setSelected(guest.id);
       setEditingGuest(false);
-      setNotice("Đã tạo khách, tạo chỗ dự kiến và sinh link thiệp riêng.");
+      setNotice(
+        guest.possibleDuplicate
+          ? "Đã tạo khách và sinh link thiệp riêng. Lưu ý: có khách đang hoạt động trùng tên hoặc số điện thoại; hãy kiểm tra lại danh sách."
+          : "Đã tạo khách, tạo chỗ dự kiến và sinh link thiệp riêng.",
+      );
       await Promise.all([
         cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
         cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] }),
@@ -79,15 +85,19 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
     },
     onError: (error) => {
       setNotice(
-        error instanceof ApiError && error.status === 403
-          ? "Bạn không có quyền tạo khách trong wedding này."
-          : error instanceof ApiError && error.status === 404
-            ? "Nhóm khách không còn trong phạm vi được giao. Hãy tải lại nhóm rồi thử lại."
-            : error instanceof ApiError && error.status === 409
-              ? "Yêu cầu tạo khách bị xung đột. Hãy thử lại; hệ thống sẽ tránh tạo trùng khi gửi lại cùng yêu cầu."
-              : error instanceof ApiError && error.code === "network"
-                ? "Mất kết nối. Khách chưa được xác nhận đã tạo; có thể gửi lại an toàn."
-                : "Chưa tạo được khách. Hãy kiểm tra lại thông tin.",
+        error instanceof ApiError &&
+          error.status === 400 &&
+          Object.keys(error.fieldErrors).some((field) => field.toLowerCase() === "groupid")
+          ? "Hãy chọn nhóm khách thuộc phạm vi được giao."
+          : error instanceof ApiError && error.status === 403
+            ? "Bạn không có quyền tạo khách trong wedding này."
+            : error instanceof ApiError && error.status === 404
+              ? "Nhóm khách không còn trong phạm vi được giao. Hãy tải lại nhóm rồi thử lại."
+              : error instanceof ApiError && error.status === 409
+                ? "Yêu cầu tạo khách bị xung đột. Hãy thử lại; hệ thống sẽ tránh tạo trùng khi gửi lại cùng yêu cầu."
+                : error instanceof ApiError && error.code === "network"
+                  ? "Mất kết nối. Khách chưa được xác nhận đã tạo; có thể gửi lại an toàn."
+                  : "Chưa tạo được khách. Hãy kiểm tra lại thông tin.",
       );
     },
   });
@@ -128,7 +138,9 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
     onSuccess: async () => {
       setSelected(null);
       setEditingGuest(false);
-      setNotice("Đã lưu trữ khách và thu hồi link thiệp. Lịch sử nghiệp vụ được giữ lại.");
+      setNotice(
+        "Đã lưu trữ khách, thu hồi link thiệp và gỡ phân công bàn. Có thể xem hoặc khôi phục ở mục Đã lưu trữ.",
+      );
       await Promise.all([
         cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
         cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] }),
@@ -151,6 +163,33 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
               ? "Khách không còn trong phạm vi được giao hoặc đã được lưu trữ."
               : "Chưa lưu trữ được khách. Hãy tải lại chi tiết và thử lại.",
       );
+    },
+  });
+  const restoreGuest = useMutation({
+    mutationFn: ({ guestId, expectedVersion }: { guestId: string; expectedVersion: number }) =>
+      restorePlanningGuest(api, weddingId, guestId, expectedVersion),
+    onSuccess: async (guest) => {
+      setArchivedOnly(false);
+      setSelected(guest.id);
+      setEditingGuest(false);
+      setPage(1);
+      setNotice(
+        "Đã khôi phục khách. Link thiệp cũ đã bị thu hồi; link mới đã được tạo. Hãy xếp lại chỗ ngồi nếu cần.",
+      );
+      await Promise.all([
+        cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
+        cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] }),
+      ]);
+    },
+    onError: async (error) => {
+      setNotice(
+        error instanceof ApiError && error.status === 409
+          ? "Khách đã thay đổi ở nơi khác. Danh sách đã được tải lại; hãy mở lại khách rồi thử khôi phục."
+          : error instanceof ApiError && error.status === 403
+            ? "Bạn không có quyền khôi phục khách này."
+            : "Chưa khôi phục được khách. Hãy tải lại danh sách đã lưu trữ rồi thử lại.",
+      );
+      await cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] });
     },
   });
   function saveManualGuest(input: PlanningGuestCreate) {
@@ -184,7 +223,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
             <Link href={`/weddings/${weddingId}/seating`}>Xếp chỗ ngồi</Link>
           </Button>
         )}
-        {can("GUEST_EDIT") && (
+        {can("GUEST_EDIT") && !archivedOnly && (
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -218,9 +257,14 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
             <p role="status">Đang tải nhóm khách…</p>
           ) : groups.isError ? (
             <p role="alert">Không tải được nhóm khách trong phạm vi được cấp.</p>
+          ) : !groups.data?.isWeddingWide && groups.data?.items.length === 0 ? (
+            <p role="alert">
+              Bạn chưa được giao nhóm khách nào. Hãy nhờ Chủ tiệc cấp nhóm trước khi tạo khách.
+            </p>
           ) : (
             <PlanningGuestCreateForm
-              groups={groups.data ?? []}
+              groups={groups.data.items}
+              isWeddingWide={groups.data.isWeddingWide}
               busy={createGuest.isPending}
               onCancel={() => {
                 setCreatingGuest(false);
@@ -235,6 +279,34 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
         <p>Bạn không có quyền xem danh sách khách.</p>
       ) : (
         <>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái khách">
+            <Button
+              type="button"
+              variant={!archivedOnly ? "default" : "outline"}
+              aria-pressed={!archivedOnly}
+              onClick={() => {
+                setArchivedOnly(false);
+                setSelected(null);
+                setEditingGuest(false);
+                setPage(1);
+              }}
+            >
+              Đang hoạt động
+            </Button>
+            <Button
+              type="button"
+              variant={archivedOnly ? "default" : "outline"}
+              aria-pressed={archivedOnly}
+              onClick={() => {
+                setArchivedOnly(true);
+                setSelected(null);
+                setEditingGuest(false);
+                setPage(1);
+              }}
+            >
+              Đã lưu trữ
+            </Button>
+          </div>
           <input
             aria-label="Tìm người nhận"
             placeholder="Tìm tên người nhận…"
@@ -256,7 +328,9 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
           )}
           {list.data && (
             <>
-              <p className="text-sm">{list.data.totalItems} đầu mối nhận thiệp</p>
+              <p className="text-sm">
+                {list.data.totalItems} {archivedOnly ? "khách đã lưu trữ" : "đầu mối nhận thiệp"}
+              </p>
               {!list.data.items.length && (
                 <p>Chưa có khách phù hợp. Hãy nhập danh sách hoặc đổi từ khóa.</p>
               )}
@@ -291,6 +365,9 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                             {g.honorific ? `${g.honorific} ` : ""}
                             {g.recipientName}
                           </button>
+                          {g.archivedAt && (
+                            <span className="ml-2 text-xs text-muted-foreground">Đã lưu trữ</span>
+                          )}
                         </td>
                         <td className="p-3">{g.expectedPeople}</td>
                         <td className="p-3">{sideLabels[g.side]}</td>
@@ -360,7 +437,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
               )}
               {detail.data && (
                 <>
-                  {can("GUEST_EDIT") && !editingGuest && (
+                  {can("GUEST_EDIT") && !editingGuest && !detail.data.archivedAt && (
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" onClick={() => setEditingGuest(true)}>
                         Sửa thông tin
@@ -372,7 +449,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                           </Button>
                         }
                         title="Lưu trữ khách này?"
-                        description="Khách sẽ rời danh sách đang hoạt động và link thiệp bị thu hồi. RSVP, bàn, check-in và lịch sử liên quan vẫn được giữ trong hệ thống."
+                        description="Khách sẽ rời danh sách đang hoạt động và link thiệp bị thu hồi. Lịch sử RSVP được giữ lại, phân công bàn hiện tại sẽ bị gỡ. Khách đã check-in không thể lưu trữ."
                         cancelLabel="Hủy"
                         confirmLabel={archiveGuest.isPending ? "Đang lưu trữ…" : "Lưu trữ khách"}
                         onConfirm={() =>
@@ -383,6 +460,21 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                         }
                       />
                     </div>
+                  )}
+                  {can("GUEST_EDIT") && detail.data.archivedAt && !editingGuest && (
+                    <ConfirmDialog
+                      trigger={<Button disabled={restoreGuest.isPending}>Khôi phục khách</Button>}
+                      title="Khôi phục khách này?"
+                      description="Khách sẽ trở lại danh sách hoạt động và được cấp link thiệp mới. Link cũ vẫn bị thu hồi; bạn cần xếp lại chỗ ngồi nếu cần."
+                      cancelLabel="Hủy"
+                      confirmLabel={restoreGuest.isPending ? "Đang khôi phục…" : "Khôi phục khách"}
+                      onConfirm={() =>
+                        restoreGuest.mutate({
+                          guestId: detail.data.id,
+                          expectedVersion: detail.data.version,
+                        })
+                      }
+                    />
                   )}
                   {editingGuest && can("GUEST_EDIT") ? (
                     groups.isPending ? (
@@ -397,10 +489,10 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
                         guest={detail.data}
                         groups={[
                           ...(detail.data.group &&
-                          !groups.data.some((group) => group.id === detail.data.group?.id)
+                          !groups.data.items.some((group) => group.id === detail.data.group?.id)
                             ? [{ id: detail.data.group.id, name: detail.data.group.name }]
                             : []),
-                          ...(groups.data ?? []),
+                          ...groups.data.items,
                         ]}
                         busy={updateGuest.isPending}
                         onCancel={() => setEditingGuest(false)}

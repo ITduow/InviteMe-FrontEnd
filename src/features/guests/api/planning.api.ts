@@ -14,6 +14,8 @@ export const planningGuestSchema = z.object({
   group: group.nullable(),
   phone: z.string().nullable(),
   email: z.string().nullable().optional(),
+  archivedAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  possibleDuplicate: z.boolean().optional(),
   note: z.string().nullable(),
   invitationPath: z
     .string()
@@ -54,13 +56,26 @@ const result = z.object({
 });
 export type PlanningGuest = z.infer<typeof planningGuestSchema>;
 export type PlanningDetail = z.infer<typeof planningDetailSchema>;
+const phoneSchema = z
+  .string()
+  .trim()
+  .max(30)
+  .refine(
+    (value) =>
+      value.length === 0 ||
+      (/^\+?[0-9][0-9 ().-]*$/.test(value) &&
+        value.replace(/[^0-9]/g, "").length >= 7 &&
+        value.replace(/[^0-9]/g, "").length <= 15),
+    "Số điện thoại cần có 7–15 chữ số; có thể dùng dấu +, khoảng trắng, dấu chấm, gạch nối hoặc ngoặc.",
+  )
+  .nullable();
 export const planningGuestUpdateSchema = z.object({
   expectedVersion: z.number().int().positive(),
   recipientName: z.string().trim().min(1).max(150),
   honorific: z.string().trim().max(50).nullable(),
   side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
   groupId: z.string().nullable(),
-  phone: z.string().trim().max(30).nullable(),
+  phone: phoneSchema,
   note: z.string().trim().max(2000).nullable(),
   email: z.union([z.email(), z.literal("")]).nullable(),
 });
@@ -72,7 +87,7 @@ export const planningGuestCreateSchema = z.object({
   expectedPeople: z.number().int().min(1).max(500),
   side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
   groupId: z.string().nullable(),
-  phone: z.string().trim().max(30).nullable(),
+  phone: phoneSchema,
   note: z.string().trim().max(2000).nullable(),
   email: z.union([z.email(), z.literal("")]).nullable(),
 });
@@ -125,9 +140,10 @@ export function listPlanningGuests(
   page: number,
   search: string,
   signal?: AbortSignal,
+  archivedOnly = false,
 ) {
   return api.request(
-    `${path(id)}/guests?${new URLSearchParams({ page: String(page), pageSize: "20", search })}`,
+    `${path(id)}/guests?${new URLSearchParams({ page: String(page), pageSize: "20", search, archivedOnly: String(archivedOnly) })}`,
     {
       signal,
       schema: z.object({
@@ -144,11 +160,15 @@ export function getPlanningGuest(
   id: string,
   guestId: string,
   signal?: AbortSignal,
+  includeArchived = false,
 ) {
-  return api.request(`${path(id)}/guests/${encodeURIComponent(guestId)}`, {
-    signal,
-    schema: planningDetailSchema,
-  });
+  return api.request(
+    `${path(id)}/guests/${encodeURIComponent(guestId)}${includeArchived ? "?includeArchived=true" : ""}`,
+    {
+      signal,
+      schema: planningDetailSchema,
+    },
+  );
 }
 
 export function updatePlanningGuest(
@@ -196,6 +216,21 @@ export function archivePlanningGuest(
 export async function listPlanningGroups(api: ApiClient, id: string, signal?: AbortSignal) {
   return api.request(`${path(id)}/groups`, {
     signal,
-    schema: z.array(group),
+    schema: z.object({ isWeddingWide: z.boolean(), items: z.array(group) }),
   });
+}
+
+export function restorePlanningGuest(
+  api: ApiClient,
+  id: string,
+  guestId: string,
+  expectedVersion: number,
+) {
+  return api.request(
+    `${path(id)}/guests/${encodeURIComponent(guestId)}/restore?${new URLSearchParams({ expectedVersion: String(expectedVersion) })}`,
+    {
+      method: "POST",
+      schema: planningGuestSchema,
+    },
+  );
 }
