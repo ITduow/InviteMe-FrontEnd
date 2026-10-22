@@ -65,6 +65,18 @@ export const planningGuestUpdateSchema = z.object({
   email: z.union([z.email(), z.literal("")]).nullable(),
 });
 export type PlanningGuestUpdate = z.infer<typeof planningGuestUpdateSchema>;
+export const planningGuestCreateSchema = z.object({
+  recipientName: z.string().trim().min(1).max(150),
+  honorific: z.string().trim().max(50).nullable(),
+  invitationKind: z.enum(["INDIVIDUAL", "FAMILY", "GROUP"]),
+  expectedPeople: z.number().int().min(1).max(500),
+  side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
+  groupId: z.string().nullable(),
+  phone: z.string().trim().max(30).nullable(),
+  note: z.string().trim().max(2000).nullable(),
+  email: z.union([z.email(), z.literal("")]).nullable(),
+});
+export type PlanningGuestCreate = z.infer<typeof planningGuestCreateSchema>;
 export const sideLabels = {
   BRIDE: "Nhà gái",
   GROOM: "Nhà trai",
@@ -152,29 +164,38 @@ export function updatePlanningGuest(
   });
 }
 
+export function createPlanningGuest(
+  api: ApiClient,
+  id: string,
+  input: PlanningGuestCreate,
+  key: string,
+) {
+  return api.request(`${path(id)}/guests`, {
+    method: "POST",
+    body: planningGuestCreateSchema.parse(input),
+    headers: { "Idempotency-Key": key },
+    schema: planningGuestSchema,
+  });
+}
+
+export function archivePlanningGuest(
+  api: ApiClient,
+  id: string,
+  guestId: string,
+  expectedVersion: number,
+) {
+  return api.request(
+    `${path(id)}/guests/${encodeURIComponent(guestId)}?${new URLSearchParams({ expectedVersion: String(expectedVersion) })}`,
+    {
+      method: "DELETE",
+      schema: z.object({ id: z.string(), version: z.number(), archivedAt: z.string() }),
+    },
+  );
+}
+
 export async function listPlanningGroups(api: ApiClient, id: string, signal?: AbortSignal) {
-  const pageSize = 100;
-  const groups = new Map<string, string>();
-  let page = 1;
-  let totalItems = 0;
-  do {
-    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    const result = await api.request(`${path(id)}/guests?${params}`, {
-      signal,
-      schema: z.object({
-        items: z.array(planningGuestSchema),
-        page: z.number(),
-        pageSize: z.number(),
-        totalItems: z.number(),
-      }),
-    });
-    totalItems = result.totalItems;
-    for (const guest of result.items) {
-      if (guest.group) groups.set(guest.group.id, guest.group.name);
-    }
-    page += 1;
-  } while ((page - 1) * pageSize < totalItems && page <= 101);
-  return [...groups]
-    .map(([groupId, name]) => ({ id: groupId, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  return api.request(`${path(id)}/groups`, {
+    signal,
+    schema: z.array(group),
+  });
 }
