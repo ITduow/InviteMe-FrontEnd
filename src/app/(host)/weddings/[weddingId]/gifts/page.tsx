@@ -1,7 +1,10 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import { use } from "react";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
-export default function Page() {
+import { CoupleGiftManager } from "@/features/gifts";
+
+export default function Page({ params }: { params: Promise<{ weddingId: string }> }) {
+  const { weddingId } = use(params);
   return (
     <PermissionGuard
       permission="GIFT_VIEW"
@@ -12,10 +15,7 @@ export default function Page() {
         />
       }
     >
-      <FeaturePlaceholder
-        title="Gifts & wishes"
-        description="Kind words and thoughtful gestures."
-      />
+      <CoupleGiftManager weddingId={weddingId} />
     </PermissionGuard>
   );
 }
