@@ -5,8 +5,11 @@ import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
 import { usePermission } from "@/shared/components/permission-guard";
 import { Button } from "@/shared/ui/button";
+import { ConfirmDialog } from "@/shared/feedback/confirm-dialog";
 import { CoupleImport } from "./couple-import";
 import {
+  archivePlanningGuest,
+  createPlanningGuest,
   importBody,
   importGuests,
   listPlanningGuests,
@@ -14,18 +17,21 @@ import {
   listPlanningGroups,
   updatePlanningGuest,
   sideLabels,
+  type PlanningGuestCreate,
   type PlanningGuestUpdate,
 } from "../api/planning.api";
 import type { CoupleRow } from "../utils/couple-import";
 import Link from "next/link";
 import { Copy, ExternalLink } from "lucide-react";
 import { PlanningGuestEditForm } from "./planning-guest-edit-form";
+import { PlanningGuestCreateForm } from "./planning-guest-create-form";
 
 export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const { api } = useRuntime();
   const { can } = usePermission();
   const cache = useQueryClient();
   const [importing, setImporting] = useState(false);
+  const [creatingGuest, setCreatingGuest] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -40,6 +46,7 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
     }
   }
   const attempt = useRef<{ serialized: string; key: string } | null>(null);
+  const createAttempt = useRef<{ serialized: string; key: string } | null>(null);
   const list = useQuery({
     queryKey: ["guest-planning", weddingId, page, search],
     queryFn: ({ signal }) => listPlanningGuests(api, weddingId, page, search, signal),
@@ -53,7 +60,36 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
   const groups = useQuery({
     queryKey: ["guest-planning-groups", weddingId],
     queryFn: ({ signal }) => listPlanningGroups(api, weddingId, signal),
-    enabled: Boolean(selected && can("GUEST_EDIT") && can("GUEST_VIEW")),
+    enabled: Boolean((selected && can("GUEST_EDIT") && can("GUEST_VIEW")) || creatingGuest),
+  });
+  const createGuest = useMutation({
+    mutationFn: ({ input, key }: { input: PlanningGuestCreate; key: string }) =>
+      createPlanningGuest(api, weddingId, input, key),
+    onSuccess: async (guest) => {
+      createAttempt.current = null;
+      setCreatingGuest(false);
+      setSelected(guest.id);
+      setEditingGuest(false);
+      setNotice("Đã tạo khách, tạo chỗ dự kiến và sinh link thiệp riêng.");
+      await Promise.all([
+        cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
+        cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] }),
+        cache.invalidateQueries({ queryKey: ["guest-planning-groups", weddingId] }),
+      ]);
+    },
+    onError: (error) => {
+      setNotice(
+        error instanceof ApiError && error.status === 403
+          ? "Bạn không có quyền tạo khách trong wedding này."
+          : error instanceof ApiError && error.status === 404
+            ? "Nhóm khách không còn trong phạm vi được giao. Hãy tải lại nhóm rồi thử lại."
+            : error instanceof ApiError && error.status === 409
+              ? "Yêu cầu tạo khách bị xung đột. Hãy thử lại; hệ thống sẽ tránh tạo trùng khi gửi lại cùng yêu cầu."
+              : error instanceof ApiError && error.code === "network"
+                ? "Mất kết nối. Khách chưa được xác nhận đã tạo; có thể gửi lại an toàn."
+                : "Chưa tạo được khách. Hãy kiểm tra lại thông tin.",
+      );
+    },
   });
   const updateGuest = useMutation({
     mutationFn: ({ guestId, input }: { guestId: string; input: PlanningGuestUpdate }) =>
@@ -86,6 +122,43 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
       );
     },
   });
+  const archiveGuest = useMutation({
+    mutationFn: ({ guestId, expectedVersion }: { guestId: string; expectedVersion: number }) =>
+      archivePlanningGuest(api, weddingId, guestId, expectedVersion),
+    onSuccess: async () => {
+      setSelected(null);
+      setEditingGuest(false);
+      setNotice("Đã lưu trữ khách và thu hồi link thiệp. Lịch sử nghiệp vụ được giữ lại.");
+      await Promise.all([
+        cache.invalidateQueries({ queryKey: ["guest-planning", weddingId] }),
+        cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId] }),
+      ]);
+    },
+    onError: async (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        setNotice(
+          "Khách vừa được cập nhật ở nơi khác. Đã tải bản mới nhất; hãy mở lại rồi thử lưu trữ.",
+        );
+        await cache.invalidateQueries({ queryKey: ["guest-planning-detail", weddingId, selected] });
+        return;
+      }
+      setNotice(
+        error instanceof ApiError && error.status === 403
+          ? "Bạn không có quyền lưu trữ khách này."
+          : error instanceof ApiError && error.backendCode === "GUEST_ALREADY_CHECKED_IN"
+            ? "Khách đã check-in nên chưa thể lưu trữ. Hãy xử lý check-in trước."
+            : error instanceof ApiError && error.status === 404
+              ? "Khách không còn trong phạm vi được giao hoặc đã được lưu trữ."
+              : "Chưa lưu trữ được khách. Hãy tải lại chi tiết và thử lại.",
+      );
+    },
+  });
+  function saveManualGuest(input: PlanningGuestCreate) {
+    const serialized = JSON.stringify(input);
+    if (createAttempt.current?.serialized !== serialized)
+      createAttempt.current = { serialized, key: crypto.randomUUID() };
+    createGuest.mutate({ input, key: createAttempt.current.key });
+  }
   async function save(rows: CoupleRow[]) {
     const body = importBody(rows),
       serialized = JSON.stringify(body);
@@ -112,20 +185,51 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
           </Button>
         )}
         {can("GUEST_EDIT") && (
-          <Button
-            onClick={() => {
-              attempt.current = null;
-              setImporting(true);
-            }}
-          >
-            Nhập Excel / CSV
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                createAttempt.current = null;
+                setNotice("");
+                setCreatingGuest((value) => !value);
+              }}
+            >
+              {creatingGuest ? "Đóng form" : "Thêm khách"}
+            </Button>
+            <Button
+              onClick={() => {
+                attempt.current = null;
+                setImporting(true);
+              }}
+            >
+              Nhập Excel / CSV
+            </Button>
+          </div>
         )}
       </div>
       {notice && (
         <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
           {notice}
         </p>
+      )}
+      {creatingGuest && can("GUEST_EDIT") && (
+        <div className="space-y-3">
+          {groups.isPending ? (
+            <p role="status">Đang tải nhóm khách…</p>
+          ) : groups.isError ? (
+            <p role="alert">Không tải được nhóm khách trong phạm vi được cấp.</p>
+          ) : (
+            <PlanningGuestCreateForm
+              groups={groups.data ?? []}
+              busy={createGuest.isPending}
+              onCancel={() => {
+                setCreatingGuest(false);
+                createAttempt.current = null;
+              }}
+              onSave={saveManualGuest}
+            />
+          )}
+        </div>
       )}
       {!can("GUEST_VIEW") ? (
         <p>Bạn không có quyền xem danh sách khách.</p>
@@ -257,9 +361,28 @@ export function PlanningDashboard({ weddingId }: { weddingId: string }) {
               {detail.data && (
                 <>
                   {can("GUEST_EDIT") && !editingGuest && (
-                    <Button variant="outline" onClick={() => setEditingGuest(true)}>
-                      Sửa thông tin
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={() => setEditingGuest(true)}>
+                        Sửa thông tin
+                      </Button>
+                      <ConfirmDialog
+                        trigger={
+                          <Button variant="destructive" disabled={archiveGuest.isPending}>
+                            Lưu trữ khách
+                          </Button>
+                        }
+                        title="Lưu trữ khách này?"
+                        description="Khách sẽ rời danh sách đang hoạt động và link thiệp bị thu hồi. RSVP, bàn, check-in và lịch sử liên quan vẫn được giữ trong hệ thống."
+                        cancelLabel="Hủy"
+                        confirmLabel={archiveGuest.isPending ? "Đang lưu trữ…" : "Lưu trữ khách"}
+                        onConfirm={() =>
+                          archiveGuest.mutate({
+                            guestId: detail.data.id,
+                            expectedVersion: detail.data.version,
+                          })
+                        }
+                      />
+                    </div>
                   )}
                   {editingGuest && can("GUEST_EDIT") ? (
                     groups.isPending ? (
