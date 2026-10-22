@@ -12,12 +12,14 @@ type BarcodeDetectorConstructor = new (options: { formats: string[] }) => Barcod
 
 export function QrCameraScanner({
   disabled = false,
+  autoStart = false,
   onDetected,
 }: {
   disabled?: boolean;
+  autoStart?: boolean;
   onDetected: (value: string) => void;
 }) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(autoStart);
   const [error, setError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const onDetectedRef = useRef(onDetected);
@@ -42,7 +44,9 @@ export function QrCameraScanner({
       const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorConstructor })
         .BarcodeDetector;
       if (!Detector) {
-        setError("Trình duyệt này chưa hỗ trợ quét QR bằng camera. Hãy dán link hoặc dùng máy quét QR.");
+        setError(
+          "Trình duyệt này chưa hỗ trợ quét QR bằng camera. Hãy dán link hoặc dùng máy quét QR.",
+        );
         setActive(false);
         return;
       }
@@ -128,7 +132,10 @@ export function QrCameraScanner({
         </div>
       )}
       {error && (
-        <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+        <p
+          role="alert"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
+        >
           {error}
         </p>
       )}
