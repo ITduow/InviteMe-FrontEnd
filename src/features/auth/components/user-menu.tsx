@@ -6,16 +6,7 @@ import { LogOut, ShieldCheck, ChevronDown, User } from "lucide-react";
 import { useCurrentUser } from "../hooks/use-current-user";
 import { useLogout } from "../hooks/use-logout";
 import { cn } from "@/shared/lib/utils";
-
-function getInitials(name?: string): string {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0];
-  const last = parts[parts.length - 1];
-  if (!first) return "U";
-  if (parts.length === 1 || !last) return first.slice(0, 2).toUpperCase();
-  return (first.charAt(0) + last.charAt(0)).toUpperCase();
-}
+import { AccountAvatar } from "./account-avatar";
 
 export function UserMenu() {
   const { user, isLoading } = useCurrentUser();
@@ -66,7 +57,6 @@ export function UserMenu() {
     );
   }
 
-  const initials = getInitials(user.displayName);
   const isAdmin = user.role === "ADMIN";
   const inAdminSection = pathname.startsWith("/admin");
 
@@ -80,9 +70,7 @@ export function UserMenu() {
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2.5 rounded-full p-1.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 font-medium text-xs text-primary ring-1 ring-primary/20">
-          {initials}
-        </div>
+        <AccountAvatar name={user.displayName} imageUrl={user.avatarUrl} />
         <div className="hidden text-left sm:block">
           <p className="text-sm font-medium leading-none line-clamp-1">{user.displayName}</p>
         </div>
@@ -117,6 +105,15 @@ export function UserMenu() {
           </div>
 
           <div className="py-1">
+            <Link
+              href="/account"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <User className="size-4 text-muted-foreground" />
+              Tài khoản
+            </Link>
             {/* Navigation links based on role */}
             {isAdmin &&
               (inAdminSection ? (

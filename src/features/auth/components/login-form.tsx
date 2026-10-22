@@ -53,6 +53,11 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") ?? "/dashboard";
+  const accountNotice = searchParams.get("passwordChanged")
+    ? "Mật khẩu đã được cập nhật. Hãy đăng nhập bằng mật khẩu mới."
+    : searchParams.get("accountDeleted")
+      ? "Tài khoản đã được xóa và các phiên đăng nhập đã bị thu hồi."
+      : "";
 
   const [showPassword, setShowPassword] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
@@ -126,6 +131,11 @@ export function LoginForm() {
       {/* Header */}
       <div>
         <h1 className="font-display text-3xl">Đăng nhập</h1>
+        {accountNotice && (
+          <p role="status" className="mt-3 rounded-lg bg-primary/5 p-3 text-sm text-foreground">
+            {accountNotice}
+          </p>
+        )}
         <p className="mt-2 text-sm text-muted-foreground">
           Chào mừng trở lại! Đăng nhập để tiếp tục chuẩn bị ngày cưới.
         </p>

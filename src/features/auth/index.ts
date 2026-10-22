@@ -1,6 +1,9 @@
 export { AuthGuard } from "./components/auth-guard";
 export { RegisterForm } from "./components/register-form";
 export { ConfirmEmailForm } from "./components/confirm-email-form";
+export { ForgotPasswordForm } from "./components/forgot-password-form";
+export { ResetPasswordForm } from "./components/reset-password-form";
+export { AccountSettingsForm } from "./components/account-settings-form";
 export { LoginForm } from "./components/login-form";
 export { UserMenu } from "./components/user-menu";
 export { useCurrentUser, currentUserKeys } from "./hooks/use-current-user";

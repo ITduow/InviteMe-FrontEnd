@@ -9,8 +9,16 @@ const accountSchema = z.object({
   email: z.email(),
   role: z.enum(["USER", "ADMIN"]),
   emailConfirmed: z.boolean(),
+  phone: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
 });
 export type AccountDto = z.infer<typeof accountSchema>;
+
+export type ProfileInput = {
+  displayName: string;
+  phone: string | null;
+  avatarUrl: string | null;
+};
 
 /**
  * Response shape for POST /auth/login and POST /auth/google.
@@ -47,6 +55,23 @@ export const authApi = {
       method: "POST",
       auth: "none",
       body: { email, code },
+      schema: z.void(),
+    }),
+
+  forgotPassword: (api: ApiClient, email: string) =>
+    api.request("/auth/forgot-password", {
+      method: "POST",
+      auth: "none",
+      body: { email },
+      schema: z.void(),
+    }),
+
+  resetPassword: (api: ApiClient, input: { email: string; code: string; newPassword: string }) =>
+    api.request("/auth/reset-password", {
+      method: "POST",
+      auth: "none",
+      cookieAuth: true,
+      body: input,
       schema: z.void(),
     }),
 
@@ -87,6 +112,32 @@ export const authApi = {
       method: "GET",
       auth: "required",
       schema: accountSchema,
+    }),
+
+  updateProfile: (api: ApiClient, input: ProfileInput) =>
+    api.request("/auth/me", {
+      method: "PUT",
+      auth: "required",
+      body: input,
+      schema: accountSchema,
+    }),
+
+  changePassword: (api: ApiClient, input: { currentPassword: string; newPassword: string }) =>
+    api.request("/auth/change-password", {
+      method: "POST",
+      auth: "required",
+      cookieAuth: true,
+      body: input,
+      schema: z.void(),
+    }),
+
+  deleteAccount: (api: ApiClient, input: { password?: string; googleIdToken?: string }) =>
+    api.request("/auth/account", {
+      method: "DELETE",
+      auth: "required",
+      cookieAuth: true,
+      body: input,
+      schema: z.void(),
     }),
 
   /**
