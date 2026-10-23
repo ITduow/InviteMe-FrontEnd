@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, ShieldCheck, ChevronDown, User } from "lucide-react";
@@ -13,6 +13,7 @@ export function UserMenu() {
   const { logout, isLoggingOut } = useLogout();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
 
   // Close dropdown on click outside or Escape key
@@ -22,9 +23,10 @@ export function UserMenu() {
         setOpen(false);
       }
     }
-    function handleKeyDown(event: KeyboardEvent) {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
+        triggerRef.current?.focus();
       }
     }
     if (open) {
@@ -36,6 +38,38 @@ export function UserMenu() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [open]);
+
+  function handleMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Tab") {
+      setOpen(false);
+      return;
+    }
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+    );
+    if (items.length === 0) return;
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowDown")
+      nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
+    if (event.key === "ArrowUp")
+      nextIndex =
+        currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = items.length - 1;
+    if (nextIndex !== null) {
+      event.preventDefault();
+      items[nextIndex]?.focus();
+    }
+  }
 
   if (isLoading) {
     return (
@@ -50,7 +84,7 @@ export function UserMenu() {
     return (
       <Link
         href="/login"
-        className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         Đăng nhập
       </Link>
@@ -63,10 +97,12 @@ export function UserMenu() {
   return (
     <div className="relative" ref={menuRef}>
       <button
+        ref={triggerRef}
         type="button"
         id="user-menu-button"
         aria-expanded={open}
-        aria-haspopup="true"
+        aria-haspopup="menu"
+        aria-controls="user-menu-content"
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2.5 rounded-full p-1.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -85,17 +121,19 @@ export function UserMenu() {
 
       {open && (
         <div
+          id="user-menu-content"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="user-menu-button"
-          className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-border bg-card p-2 shadow-lg ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-150 z-50"
+          onKeyDown={handleMenuKeyDown}
+          className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-1.5rem))] origin-top-right rounded-xl border border-border bg-card p-2 shadow-lg ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none"
         >
           {/* User info header */}
           <div className="px-3 py-2 border-b border-border/60">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold truncate">{user.displayName}</p>
               {isAdmin && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary-hover">
                   <ShieldCheck className="size-3" />
                   Admin
                 </span>
@@ -108,11 +146,12 @@ export function UserMenu() {
             <Link
               href="/account"
               role="menuitem"
+              tabIndex={-1}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <User className="size-4 text-muted-foreground" />
-              Tài khoản
+              Hồ sơ & cài đặt
             </Link>
             {/* Navigation links based on role */}
             {isAdmin &&
@@ -120,8 +159,9 @@ export function UserMenu() {
                 <Link
                   href="/dashboard"
                   role="menuitem"
+                  tabIndex={-1}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                  className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <User className="size-4 text-muted-foreground" />
                   Không gian Cưới hỏi
@@ -130,8 +170,9 @@ export function UserMenu() {
                 <Link
                   href="/admin/dashboard"
                   role="menuitem"
+                  tabIndex={-1}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                  className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <ShieldCheck className="size-4 text-muted-foreground" />
                   Trang Quản trị (Admin)
@@ -145,12 +186,13 @@ export function UserMenu() {
               type="button"
               role="menuitem"
               id="user-logout-button"
+              tabIndex={-1}
               disabled={isLoggingOut}
               onClick={() => {
                 setOpen(false);
                 void logout();
               }}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+              className="flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
               <LogOut className="size-4" />
               {isLoggingOut ? "Đang đăng xuất…" : "Đăng xuất"}

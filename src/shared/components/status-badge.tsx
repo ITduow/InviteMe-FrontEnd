@@ -10,9 +10,9 @@ export function StatusBadge({
     <span
       className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-medium", {
         "bg-muted text-muted-foreground": tone === "neutral",
-        "bg-emerald-50 text-emerald-800": tone === "success",
-        "bg-amber-50 text-amber-800": tone === "warning",
-        "bg-red-50 text-red-800": tone === "danger",
+        "bg-success text-success-foreground": tone === "success",
+        "bg-warning text-warning-foreground": tone === "warning",
+        "bg-error-surface text-foreground": tone === "danger",
       })}
     >
       {label}

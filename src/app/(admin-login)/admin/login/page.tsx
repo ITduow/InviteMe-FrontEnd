@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminLoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập Admin | InviteMe",
+  title: "Đăng nhập Admin",
   description: "Đăng nhập vào cổng quản trị InviteMe.",
 };
 

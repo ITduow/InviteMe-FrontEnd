@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { WeddingRealtime, WeddingAccessProvider } from "@/features/weddings";
-import { WeddingNavigation } from "@/shared/layout/wedding-navigation";
+import { WeddingRealtime, WeddingAccessProvider, WeddingNavigation } from "@/features/weddings";
 export default async function Layout({
   children,
   params,

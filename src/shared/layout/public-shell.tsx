@@ -1,29 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/shared/components/brand-logo";
+import { PublicNavigation } from "./public-navigation";
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div className="public-shell">
-      <header className="public-nav">
-        <div className="public-nav__inner">
-          <BrandLogo
-            href="/"
-            size="lg"
-            className="public-nav__brand"
-            ariaLabel="InviteMe — Trang chủ"
-          />
-          <nav aria-label="Điều hướng chính" className="public-nav__links">
-            <Link href="/templates">Mẫu thiết kế</Link>
-            <Link href="/#features">Tính năng</Link>
-            <Link href="/#guide">Hướng dẫn</Link>
-            <Link href="/login">Đăng nhập</Link>
-            <Link href="/register" className="public-nav__cta">
-              Bắt đầu
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicNavigation />
       <main id="main-content" className="public-main">
         {children}
       </main>

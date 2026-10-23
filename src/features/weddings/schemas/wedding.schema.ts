@@ -88,6 +88,7 @@ export const weddingSummarySchema = z.object({
   participantCount: z.number().int().nonnegative(),
   maxCapacity: z.number().int().nonnegative(),
   version: z.number().int().nonnegative(),
+  coverImageUrl: z.string().nullable().optional(),
 });
 export const weddingListSchema = z.object({
   items: z.array(weddingSummarySchema),

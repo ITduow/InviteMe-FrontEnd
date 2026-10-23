@@ -18,6 +18,9 @@
   --color-popover-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-petal: var(--petal);
   --color-secondary: var(--muted);
   --color-secondary-foreground: var(--foreground);
   --color-muted: var(--muted);
@@ -25,9 +28,14 @@
   --color-accent: var(--muted);
   --color-accent-foreground: var(--foreground);
   --color-destructive: var(--destructive);
+  --color-error-surface: var(--error-surface);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--border);
-  --color-ring: var(--primary);
+  --color-ring: var(--ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -36,19 +44,29 @@
   --font-display: "Noto Serif", Georgia, serif;
 }
 :root {
-  --background: #ffe9e8;
-  --foreground: #4a2c2f;
-  --card: #fff6f6;
-  --primary: #ffadad;
-  --primary-foreground: #4a2c2f;
-  --muted: #ffdedd;
-  --muted-foreground: #79565a;
-  --destructive: #b42332;
-  --border: #ebc6c5;
-  --sage: #7c454c;
-  --sage-surface: #ffdedd;
-  --gold-accent: #b49b70;
-  --radius: 0.625rem;
+  --background: #fff9fa;
+  --foreground: #3b202b;
+  --card: #ffffff;
+  --primary: #efa3b3;
+  --primary-foreground: #3b202b;
+  --primary-hover: #a94b68;
+  --brand-soft: #f8c9d2;
+  --petal: #fdecef;
+  --muted: var(--petal);
+  --muted-foreground: #75535e;
+  --destructive: #9b3748;
+  --error-surface: #d97986;
+  --success: #b7cbb8;
+  --success-foreground: #31583d;
+  --warning: #e8cfa8;
+  --warning-foreground: #614720;
+  --border: #f3e3e7;
+  --ring: #a94b68;
+  --sage: #b7cbb8;
+  --sage-surface: #b7cbb8;
+  --gold-accent: #e8cfa8;
+  --radius: 0.75rem;
+  --radius-card: 1.25rem;
 }
 @layer base {
   * {
@@ -62,7 +80,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   ::selection {
-    background: #ffc2be;
+    background: var(--brand-soft);
+    color: #3b202b;
   }
 }
 body:has(.seating-details-dialog[open]) {
@@ -82,6 +101,7 @@ body:has(.seating-details-dialog[open]) {
   color: var(--foreground);
 }
 .public-nav__inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,8 +123,50 @@ body:has(.seating-details-dialog[open]) {
   gap: clamp(20px, 3vw, 42px);
   font-size: 0.85rem;
 }
-.public-nav__links a:hover {
-  opacity: 0.72;
+.public-nav__links a:not(.public-nav__cta) {
+  border-radius: 999px;
+  padding: 10px 4px;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+.public-nav__links a:not(.public-nav__cta):hover {
+  color: var(--primary-hover);
+}
+.public-nav__links a[aria-current="page"]:not(.public-nav__cta) {
+  color: var(--primary-hover);
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-underline-offset: 6px;
+}
+.public-nav__links a:focus-visible,
+.public-nav__toggle:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.public-nav__toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.public-nav__toggle:hover {
+  background: var(--muted);
+  border-color: var(--primary);
+}
+.public-nav__toggle svg {
+  width: 20px;
+  height: 20px;
 }
 .public-nav__cta {
   display: inline-flex;
@@ -116,9 +178,21 @@ body:has(.seating-details-dialog[open]) {
   padding: 0 22px;
   background: var(--primary);
   color: var(--primary-foreground);
-  border-color: var(--foreground);
+  border-color: transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.public-nav__cta:hover {
+  background: var(--primary-hover);
+  color: white;
 }
 .public-shell:has(.wedding-hero[data-theme="light"]) .public-nav {
+  color: white;
+}
+.public-shell:has(.wedding-hero[data-theme="light"]) .public-nav__brand > span:last-child,
+.public-shell:has(.wedding-hero[data-scene="initial"]) .public-nav__brand > span:last-child {
   color: white;
 }
 .public-shell:not(:has(.wedding-hero)) .public-nav {
@@ -191,7 +265,7 @@ body:has(.seating-details-dialog[open]) {
   font-style: italic;
 }
 .wedding-hero__copy--dark .wedding-hero__title span {
-  color: var(--sage);
+  color: var(--primary-hover);
 }
 .wedding-hero__description {
   max-width: 460px;
@@ -221,9 +295,18 @@ body:has(.seating-details-dialog[open]) {
 .wedding-hero__primary-cta {
   background: var(--primary);
   color: var(--primary-foreground);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 .wedding-hero__secondary-cta {
   border-color: var(--border);
+  background: var(--card);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 .wedding-hero__copy--light .wedding-hero__primary-cta {
   background: white;
@@ -233,12 +316,18 @@ body:has(.seating-details-dialog[open]) {
   border-color: #fff;
   background: rgb(0 0 0 / 12%);
 }
-.wedding-hero__actions a:hover {
-  opacity: 0.8;
+.wedding-hero__primary-cta:hover {
+  background: var(--primary-hover);
+  color: white;
+}
+.wedding-hero__secondary-cta:hover {
+  border-color: var(--primary-hover);
+  background: var(--muted);
+  color: var(--primary-hover);
 }
 .wedding-hero__actions a:focus-visible,
 .wedding-hero__playback:focus-visible {
-  outline: 3px solid #a0b996;
+  outline: 3px solid var(--primary-hover);
   outline-offset: 5px;
 }
 .wedding-hero__note {
@@ -499,7 +588,7 @@ body:has(.seating-details-dialog[open]) {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--sage);
+  color: var(--primary-hover);
 }
 .public-features h2 {
   font-family: var(--font-display);
@@ -522,7 +611,7 @@ body:has(.seating-details-dialog[open]) {
 .public-feature-card svg {
   width: 24px;
   height: 24px;
-  color: var(--sage);
+  color: var(--primary-hover);
 }
 .public-feature-card h3 {
   font-family: var(--font-display);
@@ -563,22 +652,21 @@ body:has(.seating-details-dialog[open]) {
 }
 @media (max-width: 1023px) {
   .wedding-hero {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 72px;
     padding: 120px 7vw 110px;
   }
   .wedding-hero__copy-stack {
+    min-width: 0;
     max-width: 650px;
   }
   .wedding-hero__visual {
     width: min(100%, 580px);
+    min-width: 0;
     justify-self: center;
   }
   .wedding-hero__title {
     font-size: clamp(2.5rem, 6vw, 3.8rem);
-  }
-  .public-nav__links a:nth-child(-n + 2) {
-    display: none;
   }
   .public-features__grid {
     grid-template-columns: 1fr;
@@ -591,16 +679,9 @@ body:has(.seating-details-dialog[open]) {
   .public-nav__brand {
     font-size: 1.45rem;
   }
-  .public-nav__links {
-    gap: 12px;
-    font-size: 0.72rem;
-  }
-  .public-nav__links a:nth-child(3) {
-    display: none;
-  }
   .public-nav__cta {
-    min-height: 40px;
-    padding: 0 15px;
+    min-height: 44px;
+    padding: 0 18px;
   }
   .wedding-hero {
     padding: 110px 22px 76px;
@@ -657,6 +738,82 @@ body:has(.seating-details-dialog[open]) {
   }
   #features {
     padding: 60px 22px;
+  }
+}
+
+@media (max-width: 760px) {
+  .public-nav {
+    padding: 14px clamp(16px, 5vw, 24px);
+  }
+  .public-nav__inner {
+    gap: 12px;
+  }
+  .public-nav__brand {
+    font-size: 1.35rem;
+  }
+  .public-nav__toggle {
+    display: inline-flex;
+  }
+  .public-nav__links {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: 0;
+    display: none;
+    align-items: stretch;
+    gap: 4px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 10px;
+    background: var(--card);
+    color: var(--foreground);
+    box-shadow: 0 16px 38px rgb(74 44 47 / 14%);
+    font-size: 0.9rem;
+  }
+  .public-nav[data-open="true"] .public-nav__links {
+    display: flex;
+    flex-direction: column;
+  }
+  .public-nav__links a:not(.public-nav__cta) {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    border-radius: 10px;
+    padding: 0 12px;
+  }
+  .public-nav__links a:not(.public-nav__cta):hover,
+  .public-nav__links a[aria-current="page"]:not(.public-nav__cta) {
+    background: var(--muted);
+    color: var(--primary-foreground);
+    text-decoration: none;
+  }
+  .public-nav__cta {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+    border-color: var(--primary);
+  }
+  .wedding-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wedding-hero__copy-stack,
+  .wedding-hero__copy,
+  .wedding-hero__visual {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .wedding-hero__title {
+    max-width: 100%;
+    text-wrap: balance;
+  }
+  .wedding-hero__actions a {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+  .wedding-hero__visual--reference {
+    width: 100%;
+    aspect-ratio: 1.4;
   }
 }
 
@@ -1103,7 +1260,7 @@ body:has(.seating-details-dialog[open]) {
   border-color: rgb(255 255 255 / 75%);
 }
 .wedding-hero__copy--dark .wedding-hero__eyebrow {
-  color: var(--sage);
+  color: var(--primary-hover);
 }
 .wedding-hero__copy--dark .wedding-hero__description,
 .wedding-hero__copy--dark .wedding-hero__note {
@@ -1144,7 +1301,7 @@ body:has(.seating-details-dialog[open]) {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
-  color: var(--sage);
+  color: var(--primary-hover);
   margin-bottom: 14px;
 }
 .landing-heading h2,
@@ -1371,7 +1528,7 @@ body:has(.seating-details-dialog[open]) {
 }
 .landing-content :is(a, button, summary):focus-visible,
 .public-footer a:focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--primary-hover);
   outline-offset: 4px;
 }
 .landing-caption {
@@ -1432,7 +1589,7 @@ body:has(.seating-details-dialog[open]) {
   margin-bottom: 15px;
 }
 .mini-rsvp > svg {
-  color: var(--sage);
+  color: var(--primary-hover);
   margin-bottom: 8px;
 }
 .mini-rsvp > span {
@@ -1483,7 +1640,7 @@ body:has(.seating-details-dialog[open]) {
 .landing-feature__body > svg {
   width: 22px;
   height: 22px;
-  color: var(--sage);
+  color: var(--primary-hover);
   margin-bottom: 14px;
 }
 .landing-feature__body h3,
@@ -1522,7 +1679,7 @@ body:has(.seating-details-dialog[open]) {
   width: 56px;
   height: 56px;
   margin: 20px auto 28px;
-  color: var(--sage);
+  color: var(--primary-hover);
 }
 .landing-faq {
   max-width: 860px;
@@ -1713,7 +1870,7 @@ body:has(.landing-dialog[open]) {
   margin: 8px 0;
 }
 .demo-rsvp input {
-  accent-color: var(--sage);
+  accent-color: var(--primary-hover);
 }
 .demo-rsvp p {
   margin-top: 15px;
@@ -1795,6 +1952,10 @@ body:has(.landing-dialog[open]) {
   .landing-template {
     transition: none;
   }
+  .public-nav__links a,
+  .public-nav__toggle {
+    transition: none;
+  }
   .landing-template:hover {
     transform: none;
   }
@@ -1819,11 +1980,6 @@ body:has(.landing-dialog[open]) {
 }
 .public-info-page .landing-button {
   margin-top: 24px;
-}
-@media (max-width: 600px) {
-  .public-nav__links a[href="/#guide"] {
-    display: none;
-  }
 }
 .landing-template__preview:has(.landing-category-image) {
   padding: 14px 14px 0;
@@ -1899,7 +2055,7 @@ body:has(.landing-dialog[open]) {
   margin-bottom: 28px;
 }
 .template-catalog :is(button, a):focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--primary-hover);
   outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {

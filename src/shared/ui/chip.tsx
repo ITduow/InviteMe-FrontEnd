@@ -3,8 +3,8 @@ import { cn } from "@/shared/lib/utils";
 
 const tones = {
   neutral: "border-foreground/10 bg-foreground/5 text-muted-foreground",
-  success: "border-emerald-100 bg-emerald-50 text-emerald-800",
-  danger: "border-destructive/15 bg-destructive/5 text-destructive",
+  success: "border-success/50 bg-success text-success-foreground",
+  danger: "border-error-surface/50 bg-error-surface text-foreground",
   accent: "border-primary/30 bg-primary/10 text-foreground",
 };
 

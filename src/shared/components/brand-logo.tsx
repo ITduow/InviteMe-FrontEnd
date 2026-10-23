@@ -22,6 +22,7 @@ type BrandLogoProps = {
   size?: BrandLogoSize;
   className?: string;
   ariaLabel?: string;
+  markOnly?: boolean;
 };
 
 export function BrandLogo({
@@ -29,6 +30,7 @@ export function BrandLogo({
   size = "md",
   className,
   ariaLabel = "InviteMe",
+  markOnly = false,
 }: BrandLogoProps) {
   const classes = sizeClasses[size];
   const content = (
@@ -50,12 +52,17 @@ export function BrandLogo({
           style={{ width: "245%", height: "245%", left: "-72.5%", top: "-56%" }}
         />
       </span>
-      <span
-        className={cn("font-display leading-none tracking-tight text-foreground", classes.wordmark)}
-        aria-hidden="true"
-      >
-        InviteMe
-      </span>
+      {!markOnly && (
+        <span
+          className={cn(
+            "font-display leading-none tracking-tight text-foreground",
+            classes.wordmark,
+          )}
+          aria-hidden="true"
+        >
+          InviteMe
+        </span>
+      )}
     </>
   );
 
