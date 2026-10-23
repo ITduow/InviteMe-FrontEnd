@@ -2,9 +2,18 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRuntime } from "@/core/config/runtime";
+import { listPublicTemplateVisibility, listPublicTemplates } from "../api/templates.api";
 import "@fontsource/eb-garamond/400.css";
 import "@fontsource/eb-garamond/400-italic.css";
-type Design = { id: string; name: string; description: string; preview: ReactNode };
+type Design = {
+  id: string;
+  name: string;
+  description: string;
+  preview: ReactNode;
+  story?: boolean;
+};
 export function TemplateCatalog({
   category,
   inviteTemplates = [],
@@ -14,12 +23,47 @@ export function TemplateCatalog({
   inviteTemplates?: Design[];
   storyTemplates?: Design[];
 }) {
+  const { api } = useRuntime();
+  const publicTemplates = useQuery({
+    queryKey: ["public-templates"],
+    queryFn: ({ signal }) => listPublicTemplates(api, signal),
+    staleTime: 60_000,
+  });
+  const visibility = useQuery({
+    queryKey: ["public-template-visibility"],
+    queryFn: ({ signal }) => listPublicTemplateVisibility(api, signal),
+    staleTime: 60_000,
+  });
+  const configured = visibility.data ?? [];
+  const published = publicTemplates.data ?? [];
+  const knownIds = new Set([...inviteTemplates, ...storyTemplates].map((template) => template.id));
+  const configuredStatic = [...inviteTemplates, ...storyTemplates].filter((template) => {
+    const saved = configured.find((item) => item.slug === template.id);
+    return saved?.visible !== false;
+  });
+  const dynamic = published
+    .filter((template) => !knownIds.has(template.slug))
+    .map((template) => ({
+      id: template.slug,
+      name: template.name,
+      description: template.theme || "InviteMe wedding template",
+      story: template.theme?.toUpperCase().includes("STORY") ?? false,
+      preview: template.previewUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={template.previewUrl} alt="" className="size-full object-cover" />
+      ) : (
+        <div className="flex size-full items-center justify-center bg-primary/10 p-6 text-center font-display text-2xl text-primary">
+          {template.name}
+        </div>
+      ),
+    }));
+  const catalog = [...configuredStatic, ...dynamic];
   const visible =
     category === "invite"
-      ? inviteTemplates
+      ? catalog.filter((template) => !template.story)
       : category === "story"
-        ? storyTemplates
-        : [...inviteTemplates, ...storyTemplates];
+        ? catalog.filter((template) => template.story)
+        : catalog;
   return (
     <div className="template-catalog template-catalog--invite">
       <Link href="/#templates" className="template-catalog__back">
@@ -67,7 +111,11 @@ export function TemplateCatalog({
             <div className="invite-template-card__overlay">
               <h2>{template.name}</h2>
               <p className="invite-template-card__tags">
-                <span>{template.id.startsWith("story-") ? "Wedding Story" : "Wedding Invite"}</span>
+                <span>
+                  {template.story || template.id.startsWith("story-")
+                    ? "Wedding Story"
+                    : "Wedding Invite"}
+                </span>
                 <span>Tùy chỉnh</span>
               </p>
               <div className="landing-actions">

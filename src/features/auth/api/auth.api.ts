@@ -88,6 +88,16 @@ export const authApi = {
       schema: tokenResponseSchema,
     }),
 
+  /** POST /admin/auth/login. The backend issues a session only for active Admin accounts. */
+  adminLogin: (api: ApiClient, input: LoginInput) =>
+    api.request("/admin/auth/login", {
+      method: "POST",
+      auth: "none",
+      cookieAuth: true,
+      body: { email: input.email, password: input.password },
+      schema: tokenResponseSchema,
+    }),
+
   /**
    * POST /auth/google — exchange a Google id_token for a session.
    * Backend validates the id_token, upserts the user, and sets the refresh cookie.

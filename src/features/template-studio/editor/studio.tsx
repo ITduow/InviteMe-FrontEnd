@@ -67,6 +67,8 @@ import {
   RevealPausedContext,
   type RevealPreset,
 } from "../components/reveal";
+import { useRuntime } from "@/core/config/runtime";
+import { z } from "zod";
 
 function Workspace({
   initialTemplate = false,
@@ -79,6 +81,7 @@ function Workspace({
   onUploadImage,
   loadImages,
 }: TemplateStudioProps) {
+  const { api } = useRuntime();
   const {
     actions,
     query,
@@ -110,7 +113,8 @@ function Workspace({
   const [templateId, setTemplateId] = useState<string | undefined>(() =>
     initialDocument
       ? parseStudioDocument(initialDocument).templateId
-      : findTemplate(initialTemplate)?.id,
+      : (findTemplate(initialTemplate)?.id ??
+        (typeof initialTemplate === "string" ? initialTemplate : undefined)),
   );
   const [coverOpen, setCoverOpen] = useState(false);
   const [preview, setPreview] = useState(initialPreview);
@@ -133,8 +137,13 @@ function Workspace({
       append,
     });
     setCategory("image");
-    void (loadImages ? loadImages() : fetch("/api/template-studio/assets")
-      .then((response) => (response.ok ? response.json() : [])))
+    void (
+      loadImages
+        ? loadImages()
+        : fetch("/api/template-studio/assets").then((response) =>
+            response.ok ? response.json() : [],
+          )
+    )
       .then(setUploads)
       .catch(() => setMessage("Không tải được thư viện ảnh."));
   }
@@ -164,7 +173,10 @@ function Workspace({
         } else {
           const data = new FormData();
           data.append("file", file);
-          const response = await fetch("/api/template-studio/assets", { method: "POST", body: data });
+          const response = await fetch("/api/template-studio/assets", {
+            method: "POST",
+            body: data,
+          });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || "Không tải được ảnh.");
           setUploads((current) => [...current, { src: result.src, name: file.name }]);
@@ -304,18 +316,47 @@ function Workspace({
         .deserialize(JSON.stringify(parseStudioDocument(JSON.stringify(template.document)).nodes));
       return;
     }
-    const root = (
-      <Element is={StudioFrame} canvas>
-        <StudioText />
-        <StudioImage />
-      </Element>
-    );
-    const tree = query.parseReactElement(root).toNodeTree((node, element) => {
-      if (element === root) node.id = "ROOT";
-    });
-    // Initialize after commit: Frame's JSX initializer mutates the store during render.
-    actions.history.ignore().addNodeTree(tree);
-  }, [actions, query, initialTemplate, initialDocument]);
+    const initializeBlank = () => {
+      if (query.getNodes().ROOT) return;
+      const root = (
+        <Element is={StudioFrame} canvas>
+          <StudioText />
+          <StudioImage />
+        </Element>
+      );
+      const tree = query.parseReactElement(root).toNodeTree((node, element) => {
+        if (element === root) node.id = "ROOT";
+      });
+      // Initialize after commit: Frame's JSX initializer mutates the store during render.
+      actions.history.ignore().addNodeTree(tree);
+    };
+    if (typeof initialTemplate === "string") {
+      let cancelled = false;
+      void api
+        .request("/templates", {
+          auth: "none",
+          schema: z.array(z.object({ slug: z.string(), configurationJson: z.string() })),
+        })
+        .then((templates) => {
+          if (cancelled) return;
+          const selectedTemplate = templates.find((item) => item.slug === initialTemplate);
+          if (!selectedTemplate) throw new Error("Template is hidden or unavailable.");
+          const parsed = parseStudioDocument(selectedTemplate.configurationJson);
+          actions.history.ignore().deserialize(JSON.stringify(parsed.nodes));
+          setTemplateId(initialTemplate);
+          setMessage("Đã tải mẫu " + initialTemplate + ".");
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setMessage("Không tải được mẫu này. Mẫu đã bị ẩn hoặc cấu hình Studio không hợp lệ.");
+          initializeBlank();
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+    initializeBlank();
+  }, [actions, api, query, initialTemplate, initialDocument]);
 
   const synchronizeTarget = useCallback(() => {
     const elements = stage.current?.querySelectorAll<HTMLElement>("[data-studio-node]");
