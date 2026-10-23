@@ -15,6 +15,7 @@ import { useLogout } from "../hooks/use-logout";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
+import { BrandLogo } from "@/shared/components/brand-logo";
 import { SessionLoading } from "@/shared/feedback/session-loading";
 
 function errorMessage(error: unknown) {
@@ -87,15 +88,7 @@ export function AdminLoginForm() {
 
   return (
     <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-sm sm:p-9">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 font-display text-2xl text-foreground"
-      >
-        <span className="flex size-9 items-center justify-center rounded-full bg-primary/30 text-primary-foreground">
-          <ShieldCheck className="size-5" aria-hidden="true" />
-        </span>
-        InviteMe
-      </Link>
+      <BrandLogo href="/" size="md" ariaLabel="InviteMe — Trang chủ" />
       <p className="mt-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         Cổng quản trị
       </p>
