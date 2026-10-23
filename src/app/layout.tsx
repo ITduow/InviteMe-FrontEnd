@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-card focus:p-4"
         >
-          Skip to content
+          Bỏ qua đến nội dung chính
         </a>
         <Providers>{children}</Providers>
       </body>

@@ -7,8 +7,14 @@ export default function Layout({ children }: { children: ReactNode }) {
     <AuthGuard>
       <DashboardShell
         navigation={[
-          { href: "/dashboard", label: "Dashboard" },
-          { href: "/weddings", label: "Weddings" },
+          {
+            label: "Workspace",
+            items: [{ href: "/dashboard", label: "Dashboard", icon: "dashboard" }],
+          },
+          {
+            label: "Wedding management",
+            items: [{ href: "/weddings", label: "Weddings", icon: "calendar" }],
+          },
         ]}
         account={<UserMenu />}
       >

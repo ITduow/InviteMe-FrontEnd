@@ -58,15 +58,17 @@ export function WeddingSlugField({
               ? "Đường dẫn này đã được sử dụng."
               : "";
   const statusTone =
-    unavailable || (!unchanged && availability.isError) ? "text-destructive" : "text-[#486a53]";
+    unavailable || (!unchanged && availability.isError)
+      ? "text-destructive"
+      : "text-success-foreground";
 
   return (
     <div className="space-y-2">
       <label htmlFor="wedding-slug" className="text-sm font-medium">
         Đường dẫn thiệp cưới <span aria-hidden="true">*</span>
       </label>
-      <div className="flex min-w-0 items-center overflow-hidden rounded-xl border border-[#d9cabe] bg-[#fffdfa] transition focus-within:border-[#bd9291] focus-within:ring-2 focus-within:ring-ring">
-        <span className="shrink-0 border-r border-[#e8ddd2] bg-[#f8f1eb] px-3 py-3 text-sm text-muted-foreground">
+      <div className="flex min-w-0 items-center overflow-hidden rounded-xl border border-border bg-card transition focus-within:border-primary-hover focus-within:ring-2 focus-within:ring-ring">
+        <span className="shrink-0 border-r border-border bg-muted px-3 py-3 text-sm text-muted-foreground">
           /wedding/
         </span>
         <Input

@@ -114,12 +114,12 @@ function WeddingSetupSkeleton() {
       <span className="sr-only">Đang tải thông tin lễ cưới…</span>
       <div
         aria-hidden="true"
-        className="h-4 w-36 animate-pulse rounded bg-[#e8ddd2] motion-reduce:animate-none"
+        className="h-4 w-36 animate-pulse rounded bg-muted motion-reduce:animate-none"
       />
-      <div aria-hidden="true" className="space-y-3 border-b border-[#e8ddd2] pb-6">
-        <div className="h-3 w-44 animate-pulse rounded bg-[#e8ddd2] motion-reduce:animate-none" />
-        <div className="h-10 w-2/3 max-w-lg animate-pulse rounded bg-[#e8ddd2] motion-reduce:animate-none" />
-        <div className="h-4 w-full max-w-xl animate-pulse rounded bg-[#e8ddd2] motion-reduce:animate-none" />
+      <div aria-hidden="true" className="space-y-3 border-b border-border pb-6">
+        <div className="h-3 w-44 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-10 w-2/3 max-w-lg animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-4 w-full max-w-xl animate-pulse rounded bg-muted motion-reduce:animate-none" />
       </div>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="space-y-4">
@@ -127,13 +127,13 @@ function WeddingSetupSkeleton() {
             <div
               key={index}
               aria-hidden="true"
-              className="h-40 animate-pulse rounded-2xl border border-[#e8ddd2] bg-white/80 motion-reduce:animate-none"
+              className="h-40 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none"
             />
           ))}
         </div>
         <div
           aria-hidden="true"
-          className="hidden h-72 animate-pulse rounded-2xl border border-[#e8ddd2] bg-white/80 motion-reduce:animate-none xl:block"
+          className="hidden h-72 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none xl:block"
         />
       </div>
     </section>
@@ -375,11 +375,11 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           <ArrowLeft className="size-4" aria-hidden="true" />
           Danh sách lễ cưới
         </Link>
-        <div className="rounded-3xl border border-[#e8ddd2] bg-white/85 p-6 shadow-sm sm:p-9">
-          <div className="mb-6 flex size-14 items-center justify-center rounded-full bg-[#eaf1e9] text-[#486a53]">
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-9">
+          <div className="mb-6 flex size-14 items-center justify-center rounded-full bg-success/20 text-success-foreground">
             <Check className="size-6" aria-hidden="true" />
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#486a53]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-success-foreground">
             Workspace đã sẵn sàng
           </p>
           <h1 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">{created.name}</h1>
@@ -390,7 +390,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           {serverError && (
             <p
               role="alert"
-              className="mt-5 rounded-xl border border-destructive/30 bg-[#fff5f3] p-4 text-sm leading-6 text-destructive"
+              className="mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
             >
               {serverError}
             </p>
@@ -400,7 +400,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               Tải dữ liệu mới nhất
             </Button>
           )}
-          <div className="mt-7 rounded-2xl border border-[#e8ddd2] bg-[#fffdfa] p-4 sm:p-5">
+          <div className="mt-7 rounded-2xl border border-border bg-card p-4 sm:p-5">
             {pendingCover && (
               <p className="mb-3 text-sm text-muted-foreground">
                 Ảnh đang chờ tải lên:{" "}
@@ -427,7 +427,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               </Button>
             )}
           </div>
-          <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[#eee5dc] pt-5 sm:flex-row sm:justify-end">
+          <div className="mt-7 flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
               className="min-h-11 rounded-xl px-5"
@@ -463,8 +463,8 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
         <ArrowLeft className="size-4" aria-hidden="true" />
         {isEdit ? "Quay lại workspace" : "Danh sách lễ cưới"}
       </Link>
-      <header className="border-b border-[#e8ddd2] pb-6 sm:pb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8b5960]">
+      <header className="border-b border-border pb-6 sm:pb-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-hover">
           {isEdit ? "THIẾT LẬP LỄ CƯỚI" : "BẮT ĐẦU WORKSPACE"}
         </p>
         <h1 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
@@ -479,7 +479,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
       {(serverError || conflict) && (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-2xl border border-destructive/30 bg-[#fff5f3] p-4 text-sm leading-6 text-destructive sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          className="flex flex-col gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive sm:flex-row sm:items-center sm:justify-between sm:p-5"
         >
           <span>
             {serverError ||
@@ -506,15 +506,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
         >
           <fieldset disabled={!canEdit || busy} className="space-y-4">
             <section
-              className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/85 p-5 shadow-sm sm:p-6"
+              className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
               aria-labelledby="wedding-basic-heading"
             >
-              <div className="flex items-start gap-3 border-b border-[#eee5dc] pb-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6ece8] text-[#8b5960]">
+              <div className="flex items-start gap-3 border-b border-border pb-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary-hover">
                   <Sparkles className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
                     01 · Nhận diện
                   </p>
                   <h2 id="wedding-basic-heading" className="mt-1 font-display text-xl">
@@ -533,7 +533,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     aria-required="true"
                     value={String(field.value ?? "")}
                     maxLength={200}
-                    className="h-12 rounded-xl bg-[#fffdfa]"
+                    className="h-12 rounded-xl bg-card"
                     placeholder="Ví dụ: Lễ cưới của Minh và Lan"
                     onChange={(event) => {
                       field.onChange(event);
@@ -558,15 +558,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
             </section>
 
             <section
-              className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/85 p-5 shadow-sm sm:p-6"
+              className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
               aria-labelledby="wedding-time-heading"
             >
-              <div className="flex items-start gap-3 border-b border-[#eee5dc] pb-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6ece8] text-[#8b5960]">
+              <div className="flex items-start gap-3 border-b border-border pb-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary-hover">
                   <CalendarDays className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
                     02 · Thời gian
                   </p>
                   <h2 id="wedding-time-heading" className="mt-1 font-display text-xl">
@@ -590,7 +590,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                       aria-required="true"
                       type="datetime-local"
                       value={String(field.value ?? "")}
-                      className="h-12 rounded-xl bg-[#fffdfa]"
+                      className="h-12 rounded-xl bg-card"
                     />
                   )}
                 </FormField>
@@ -606,7 +606,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                       aria-required="true"
                       type="datetime-local"
                       value={String(field.value ?? "")}
-                      className="h-12 rounded-xl bg-[#fffdfa]"
+                      className="h-12 rounded-xl bg-card"
                     />
                   )}
                 </FormField>
@@ -614,15 +614,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
             </section>
 
             <section
-              className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/85 p-5 shadow-sm sm:p-6"
+              className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
               aria-labelledby="wedding-venue-heading"
             >
-              <div className="flex items-start gap-3 border-b border-[#eee5dc] pb-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6ece8] text-[#8b5960]">
+              <div className="flex items-start gap-3 border-b border-border pb-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary-hover">
                   <MapPin className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
                     03 · Địa điểm
                   </p>
                   <h2 id="wedding-venue-heading" className="mt-1 font-display text-xl">
@@ -642,7 +642,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                       aria-required="true"
                       value={String(field.value ?? "")}
                       maxLength={200}
-                      className="h-12 rounded-xl bg-[#fffdfa]"
+                      className="h-12 rounded-xl bg-card"
                       placeholder="White Palace"
                     />
                   )}
@@ -655,7 +655,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                       aria-required="true"
                       value={String(field.value ?? "")}
                       maxLength={2000}
-                      className="h-12 rounded-xl bg-[#fffdfa]"
+                      className="h-12 rounded-xl bg-card"
                       placeholder="TP. Hồ Chí Minh"
                     />
                   )}
@@ -664,15 +664,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
             </section>
 
             <section
-              className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/85 p-5 shadow-sm sm:p-6"
+              className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
               aria-labelledby="wedding-capacity-heading"
             >
-              <div className="flex items-start gap-3 border-b border-[#eee5dc] pb-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6ece8] text-[#8b5960]">
+              <div className="flex items-start gap-3 border-b border-border pb-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary-hover">
                   <Users className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
                     04 · Khách mời
                   </p>
                   <h2 id="wedding-capacity-heading" className="mt-1 font-display text-xl">
@@ -695,7 +695,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     max={2_147_483_647}
                     step={1}
                     inputMode="numeric"
-                    className="h-12 max-w-xs rounded-xl bg-[#fffdfa]"
+                    className="h-12 max-w-xs rounded-xl bg-card"
                     placeholder="200"
                   />
                 )}
@@ -703,15 +703,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
             </section>
 
             <section
-              className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/85 p-5 shadow-sm sm:p-6"
+              className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
               aria-labelledby="wedding-cover-heading"
             >
-              <div className="flex items-start gap-3 border-b border-[#eee5dc] pb-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6ece8] text-[#8b5960]">
+              <div className="flex items-start gap-3 border-b border-border pb-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary-hover">
                   <Flower2 className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
                     05 · Ảnh bìa
                   </p>
                   <h2 id="wedding-cover-heading" className="mt-1 font-display text-xl">
@@ -743,7 +743,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               Bạn có quyền xem thông tin lễ cưới nhưng không có quyền chỉnh sửa.
             </p>
           )}
-          <div className="flex flex-col-reverse gap-3 rounded-2xl border border-[#e8ddd2] bg-white/80 p-4 shadow-sm sm:flex-row sm:justify-end sm:p-5">
+          <div className="flex flex-col-reverse gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:justify-end sm:p-5">
             {hasUnsavedChanges ? (
               <ConfirmDialog
                 trigger={
@@ -793,22 +793,22 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
 
         <aside className="hidden xl:block">
           <div className="sticky top-6 space-y-4">
-            <section className="overflow-hidden rounded-2xl border border-[#e8ddd2] bg-[#fffdfa] shadow-sm">
-              <div className="bg-[#f4ece5] px-5 py-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8b5960]">
+            <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="bg-muted px-5 py-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-hover">
                   Xem trước
                 </p>
-                <h2 className="mt-2 break-words font-display text-2xl leading-snug text-[#49383a]">
+                <h2 className="mt-2 break-words font-display text-2xl leading-snug text-foreground">
                   {watchedName?.trim() || "Tên lễ cưới"}
                 </h2>
-                <p className="mt-2 break-all text-xs text-[#806960]">
+                <p className="mt-2 break-all text-xs text-muted-foreground">
                   /wedding/{slugValue || "duong-dan-cua-ban"}
                 </p>
               </div>
               <div className="space-y-4 p-5">
                 <p className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
                   <CalendarDays
-                    className="mt-0.5 size-4 shrink-0 text-[#986d70]"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
                   {watchedEventDate
@@ -816,16 +816,22 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     : "Chưa chọn ngày tổ chức"}
                 </p>
                 <p className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-[#986d70]" aria-hidden="true" />
+                  <MapPin
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   {watchedVenue?.trim() || "Chưa nhập địa điểm"}
                 </p>
                 <p className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
-                  <Users className="mt-0.5 size-4 shrink-0 text-[#986d70]" aria-hidden="true" />
+                  <Users
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   {watchedCapacity ? `${watchedCapacity} khách tối đa` : "Chưa thiết lập sức chứa"}
                 </p>
               </div>
             </section>
-            <p className="rounded-2xl border border-[#e8ddd2] bg-white/65 p-4 text-xs leading-5 text-muted-foreground">
+            <p className="rounded-2xl border border-border bg-white/65 p-4 text-xs leading-5 text-muted-foreground">
               Đây là bản xem trước thông tin trong workspace. Đường dẫn công khai chỉ hoạt động sau
               khi trang cưới được xuất bản.
             </p>

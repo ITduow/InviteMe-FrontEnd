@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <main id="main-content" className="min-h-screen bg-[#f3f1e9] px-5 py-12">
+    <main id="main-content" className="min-h-screen bg-background px-5 py-12">
       <div className="mx-auto max-w-xl space-y-8">
         <BrandLogo size="md" className="mx-auto justify-center" />
         {children}

@@ -10,13 +10,26 @@ export default function Layout({ children }: { children: ReactNode }) {
         homeHref="/admin"
         account={<UserMenu />}
         navigation={[
-          { href: "/admin", label: "Dashboard" },
-          { href: "/admin/users", label: "Users" },
-          { href: "/admin/weddings", label: "Weddings" },
-          { href: "/admin/templates", label: "Templates" },
-          { href: "/admin/access-control", label: "Roles & permissions" },
-          { href: "/admin/plans", label: "Plans" },
-          { href: "/admin/audit-logs", label: "Audit logs" },
+          {
+            label: "Overview",
+            items: [{ href: "/admin", label: "Dashboard", icon: "dashboard" }],
+          },
+          {
+            label: "Management",
+            items: [
+              { href: "/admin/users", label: "Users", icon: "users" },
+              { href: "/admin/weddings", label: "Weddings", icon: "weddings" },
+              { href: "/admin/templates", label: "Templates", icon: "templates" },
+              { href: "/admin/plans", label: "Plans", icon: "plans" },
+            ],
+          },
+          {
+            label: "Security",
+            items: [
+              { href: "/admin/access-control", label: "Roles & permissions", icon: "permissions" },
+              { href: "/admin/audit-logs", label: "Audit logs", icon: "audit" },
+            ],
+          },
         ]}
       >
         {children}
