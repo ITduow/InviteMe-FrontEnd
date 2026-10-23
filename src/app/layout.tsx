@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
         ? "Create a wedding website and online invitations made for your celebration."
         : "Tạo website cưới và lời mời trực tuyến thật riêng cho ngày vui của hai bạn.",
     icons: {
-      icon: "/images/brand/inviteme-logo.png",
-      apple: "/images/brand/inviteme-logo.png",
+      icon: "/images/brand/inviteme-mark.png",
+      apple: "/images/brand/inviteme-mark.png",
     },
   };
 }
