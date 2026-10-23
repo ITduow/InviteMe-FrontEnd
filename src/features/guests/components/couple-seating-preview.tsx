@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Armchair, GripVertical, MoveRight, Sparkles, Check, X } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import type { CoupleRow } from "../utils/couple-import";
 import {
   groupKey,
   movePlaces,
-  recipientLabel,
   seatingParties,
   suggestSeating,
   tableOccupancy,
@@ -29,11 +29,21 @@ import {
 } from "../utils/seating-attendance";
 import { SeatingPersonDetails } from "./seating-person-details";
 import { SeatingTableDetails } from "./seating-table-details";
+import type { Language } from "@/i18n/config";
+import {
+  formatSeatingNumber,
+  formatGuestSide,
+  formatRecipientLabel,
+  seatingStrategyLabel,
+} from "../utils/seating-demo-i18n";
 
 const palette = ["#9B5972", "#577D78", "#A07840", "#7476A2", "#9B6552", "#587D9E"];
 type Selection = { partyId: string; place?: number };
 
 export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBack: () => void }) {
+  const { t, i18n } = useTranslation("guestPlanning", { keyPrefix: "seatingDemo" });
+  const language = (i18n.resolvedLanguage === "en" ? "en" : "vi") as Language;
+  const number = (value: number) => formatSeatingNumber(value, language);
   const parties = useMemo(() => seatingParties(rows), [rows]);
   const total = parties.reduce((sum, party) => sum + party.count, 0);
   const [capacity, setCapacity] = useState(10);
@@ -52,8 +62,6 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
     () => suggestSeating(parties, draftCapacity, draftTableCount, strategy),
     [parties, draftCapacity, draftTableCount, strategy],
   );
-  const strategyInfo =
-    seatingStrategies.find((item) => item.id === strategy) ?? seatingStrategies[0];
   const proposedUnplaced = Object.values(proposal).reduce(
     (sum, places) => sum + places.filter((table) => table === null).length,
     0,
@@ -112,15 +120,18 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
   function move(partyId: string, table: number | null, place?: number) {
     const next = movePlaces(plan, partyId, table, capacity, tableCount, place);
     if (!next) {
-      setNotice("Bàn này không còn đủ chỗ. Chọn bàn khác hoặc chuyển từng chỗ để chia nhóm.");
+      setNotice(t("moveCapacityError"));
       return;
     }
     setPlan(next);
     setManual(true);
     setNotice(
       table === null
-        ? "Đã đưa chỗ về danh sách chưa xếp."
-        : `Đã chuyển ${place === undefined ? "nhóm" : "một chỗ dự kiến"} tới Bàn ${table + 1}. Tổng số người không thay đổi.`,
+        ? t("movedToQueue")
+        : t("movedToTable", {
+            what: place === undefined ? t("party") : t("oneExpectedSeat"),
+            table: number(table + 1),
+          }),
     );
   }
   function applySuggestion() {
@@ -134,52 +145,54 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
     setOpenPanel(false);
     setManual(false);
     setNotice(
-      `Đã áp dụng: ${strategyInfo?.label}. ${total - proposedUnplaced}/${total} chỗ được bố trí; ${proposedUnplaced} chỗ chưa xếp.`,
+      t("suggestionApplied", {
+        strategy: seatingStrategyLabel(strategy, t),
+        assigned: number(total - proposedUnplaced),
+        total: number(total),
+        unassigned: number(proposedUnplaced),
+      }),
     );
   }
 
   return (
     <section className="min-w-0 space-y-5">
       <Button variant="ghost" onClick={onBack}>
-        <ArrowLeft /> Về danh sách xem trước
+        <ArrowLeft /> {t("back")}
       </Button>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Sau khi nhập danh sách · Bản thử
-          </p>
-          <h1 className="mt-2 font-serif text-3xl sm:text-4xl">Để mọi người ngồi gần nhau</h1>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("eyebrow")}</p>
+          <h1 className="mt-2 font-serif text-3xl sm:text-4xl">{t("title")}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {parties.length} nhóm nhận thiệp · {total} chỗ dự kiến. Kéo nhóm vào bàn hoặc bấm một
-            ghế để chuyển riêng chỗ đó.
+            {t("summary", { groups: number(parties.length), places: number(total) })}
           </p>
         </div>
-        <span className="rounded-full border bg-card px-3 py-2 text-xs">
-          Thử trên thiết bị · chưa lưu
-        </span>
+        <span className="rounded-full border bg-card px-3 py-2 text-xs">{t("devicePreview")}</span>
       </header>
       <section
         className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4"
-        aria-label="Màu ghế theo RSVP"
+        aria-label={t("legendAria")}
       >
         <div className="space-y-2">
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
             <span className="flex items-center gap-2">
               <span className="size-3 rounded border border-emerald-700 bg-emerald-400" />
-              Xác nhận tham dự
+              {t("confirmed")}
             </span>
             <span className="flex items-center gap-2">
               <span className="size-3 rounded border border-gray-400 bg-gray-200" />
-              Chưa phản hồi / chưa có tên
+              {t("pendingOrUnnamed")}
             </span>
             <span className="flex items-center gap-2">
               <span className="size-3 rounded border border-dashed border-gray-400 bg-white" />
-              Ghế trống
+              {t("emptySeat")}
             </span>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            {confirmedCount} người xác nhận trong {demoRsvp ? "dữ liệu RSVP minh họa" : "bản thử"}.
-            Trạng thái tính riêng từng người, không áp dụng thay cả gia đình.
+            {t("confirmedSummary", {
+              count: number(confirmedCount),
+              source: demoRsvp ? t("sampleRsvp") : t("devicePreview"),
+            })}
           </p>
         </div>
         <div className="max-w-sm">
@@ -189,16 +202,12 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
               setPeople(exampleSeatPeople(parties));
               setDemoRsvp(true);
               setOpenPanel(false);
-              setNotice(
-                "Đã nạp RSVP minh họa: một số đại diện xác nhận, người đi cùng chưa có tên vẫn chưa xác nhận. Đây không phải phản hồi thật.",
-              );
+              setNotice(t("sampleRsvpNotice"));
             }}
           >
-            {demoRsvp ? "Nạp lại RSVP minh họa" : "Thử RSVP minh họa"}
+            {demoRsvp ? t("reloadSampleRsvp") : t("sampleRsvp")}
           </Button>
-          <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
-            Nạp mẫu sẽ thay thông tin người và RSVP đang thử. Không ghi dữ liệu vào hệ thống.
-          </p>
+          <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{t("sampleRsvpHelp")}</p>
         </div>
       </section>
       <section
@@ -208,14 +217,12 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
             <h2 id="suggestions-title" className="flex items-center gap-2 font-serif text-xl">
-              <Sparkles className="size-5" /> Chọn cách gợi ý xếp bàn
+              <Sparkles className="size-5" /> {t("chooseSuggestion")}
             </h2>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              Xem cách xếp và phương án trước. Sơ đồ hiện tại chỉ thay đổi khi bạn bấm Áp dụng.
-            </p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">{t("suggestionHelp")}</p>
           </div>
           <Button variant="outline" onClick={() => setShowSuggestions(!showSuggestions)}>
-            {showSuggestions ? "Thu gọn gợi ý" : "Xem các cách gợi ý"}
+            {showSuggestions ? t("collapseSuggestions") : t("showSuggestions")}
           </Button>
         </div>
         {showSuggestions && (
@@ -223,7 +230,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
             <div
               className="grid grid-cols-3 gap-1 border-y bg-background p-2"
               role="tablist"
-              aria-label="Cách gợi ý xếp bàn"
+              aria-label={t("suggestionTabs")}
             >
               {seatingStrategies.map((item) => (
                 <button
@@ -258,7 +265,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   }}
                   className={`min-w-0 rounded-lg px-2 py-3 text-xs leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-primary sm:px-4 sm:text-sm ${strategy === item.id ? "bg-foreground text-card" : "text-muted-foreground hover:bg-muted"}`}
                 >
-                  {item.label}
+                  {seatingStrategyLabel(item.id, t)}
                 </button>
               ))}
             </div>
@@ -269,11 +276,11 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
               className="space-y-5 p-5"
             >
               <div>
-                <h3 className="text-base font-semibold">{strategyInfo?.label}</h3>
+                <h3 className="text-base font-semibold">{seatingStrategyLabel(strategy, t)}</h3>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                  {strategyInfo?.description}
+                  {t(`${strategy}.description`)}
                 </p>
-                <p className="mt-2 text-xs font-medium">{strategyInfo?.source}</p>
+                <p className="mt-2 text-xs font-medium">{t(`${strategy}.source`)}</p>
               </div>
               {strategy === "affinity" && (
                 <div className="flex flex-wrap gap-2">
@@ -285,8 +292,8 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                         key={key}
                         className="rounded-full border bg-background px-3 py-1 text-xs"
                       >
-                        {entry.group} · {entry.side || "Chưa xác định phía"} ·{" "}
-                        {members.reduce((sum, party) => sum + party.count, 0)} người
+                        {entry.group} · {formatGuestSide(entry.side, t)} ·{" "}
+                        {number(members.reduce((sum, party) => sum + party.count, 0))} {t("people")}
                       </span>
                     );
                   })}
@@ -294,7 +301,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
               )}
               <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-background p-4">
                 <label className="space-y-1 text-xs text-muted-foreground">
-                  <span className="block">Chỗ mỗi bàn</span>
+                  <span className="block">{t("seatsPerTable")}</span>
                   <select
                     className="h-10 rounded-lg border bg-background px-3 text-sm text-foreground"
                     value={draftCapacity}
@@ -302,13 +309,13 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   >
                     {[6, 8, 10, 12].map((n) => (
                       <option key={n} value={n}>
-                        {n} chỗ
+                        {number(n)} {t("seats")}
                       </option>
                     ))}
                   </select>
                 </label>
                 <label className="space-y-1 text-xs text-muted-foreground">
-                  <span className="block">Số bàn</span>
+                  <span className="block">{t("tableCount")}</span>
                   <select
                     className="h-10 rounded-lg border bg-background px-3 text-sm text-foreground"
                     value={draftTableCount}
@@ -316,18 +323,21 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   >
                     {Array.from({ length: 30 }, (_, i) => (
                       <option key={i} value={i + 1}>
-                        {i + 1} bàn
+                        {t("table", { number: number(i + 1) })}
                       </option>
                     ))}
                   </select>
                 </label>
                 <p className="flex-1 text-xs leading-5 text-muted-foreground">
-                  Cấu hình này chỉ dùng cho bản gợi ý. Chưa thay đổi bàn hoặc chỗ đã xếp.
+                  {t("previewConfigHelp")}
                 </p>
               </div>
               <div>
                 <p className="mb-3 text-sm font-medium">
-                  Phương án xem trước · {total - proposedUnplaced}/{total} chỗ bố trí được
+                  {t("proposal", {
+                    assigned: number(total - proposedUnplaced),
+                    total: number(total),
+                  })}
                 </p>
                 <div className="grid max-h-80 gap-3 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
                   {Array.from({ length: draftTableCount }, (_, table) => {
@@ -336,31 +346,39 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                     return (
                       <article key={table} className="rounded-xl border bg-background p-4">
                         <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-serif text-lg">Bàn {table + 1}</h4>
+                          <h4 className="font-serif text-lg">
+                            {t("table", { number: number(table + 1) })}
+                          </h4>
                           <span className="text-xs">
-                            {tableOccupancy(proposal, table)}/{draftCapacity} chỗ
+                            {t("seatsHeld", {
+                              occupied: number(tableOccupancy(proposal, table)),
+                              capacity: number(draftCapacity),
+                            })}
                           </span>
                         </div>
                         <ul className="mt-3 space-y-1 text-xs leading-5">
                           {assigned.map((party) => (
                             <li key={party.id}>
-                              {recipientLabel(party)} · {party.count} chỗ
+                              {formatRecipientLabel(party, t, language)} · {number(party.count)}{" "}
+                              {t("seats")}
                             </li>
                           ))}
                         </ul>
                         {assigned.length > 0 && (
                           <p className="mt-2 text-xs text-muted-foreground">
-                            Phía: {assigned[0]?.side || "Chưa xác định"}
+                            {t("tableSide", { side: formatGuestSide(assigned[0]?.side, t) })}
                           </p>
                         )}
                         <p className="mt-3 border-t pt-2 text-xs leading-5 text-muted-foreground">
                           {!assigned.length
-                            ? "Bàn còn trống."
+                            ? t("tableEmpty")
                             : strategy === "affinity"
-                              ? `Nhóm khách: ${labels.join(" · ")}.`
+                              ? t("groupsOnTable", { groups: labels.join(" · ") })
                               : strategy === "party"
-                                ? "Giữ nguyên nhóm đi cùng, theo thứ tự danh sách."
-                                : `Ưu tiên lấp chỗ trống; còn ${draftCapacity - tableOccupancy(proposal, table)} chỗ.`}
+                                ? t("partyOrder")
+                                : t("fillRemaining", {
+                                    count: number(draftCapacity - tableOccupancy(proposal, table)),
+                                  })}
                         </p>
                       </article>
                     );
@@ -369,27 +387,20 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
               </div>
               {proposedUnplaced > 0 && (
                 <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-                  Còn {proposedUnplaced} chỗ chưa xếp: nhóm có thể lớn hơn sức chứa hoặc các bàn
-                  không còn đủ chỗ. Thử tăng số bàn/sức chứa hoặc chia nhóm thủ công.
+                  {t("unplacedWarning", { count: number(proposedUnplaced) })}
                 </p>
               )}
               <p className="text-xs leading-5 text-muted-foreground">
-                {parties.some((party) => party.note)
-                  ? "Ghi chú đặc biệt chưa được tự động áp dụng. "
-                  : ""}
-                Các cách gợi ý đều giữ riêng Nhà gái / Nhà trai / Chung / Chưa xác định, nên có thể
-                cần thêm bàn dù còn chỗ trống bên khác. Giữ nhóm đi cùng nếu vừa bàn. Bạn có thể
-                chia chỗ thủ công sau khi áp dụng.
+                {parties.some((party) => party.note) ? t("notesNotApplied") : ""}
+                {t("sideRules")}
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                 <p className="max-w-xl text-xs leading-5 text-muted-foreground">
-                  {total - unplaced > 0
-                    ? "Áp dụng sẽ thay thế sơ đồ hiện tại, kể cả các chỗ đã chỉnh tay. "
-                    : "Chưa áp dụng: sơ đồ bên dưới vẫn để trống. "}
-                  Chỉ thay đổi bản thử trên thiết bị.
+                  {total - unplaced > 0 ? t("replacePlan") : t("planStillEmpty")}
+                  {t("previewOnly")}
                 </p>
                 <Button disabled={proposedUnplaced === total} onClick={applySuggestion}>
-                  <Check /> Áp dụng gợi ý này
+                  <Check /> {t("applySuggestion")}
                 </Button>
               </div>
             </div>
@@ -401,14 +412,19 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
         <div>
           <p className="text-sm font-medium">
             {manual
-              ? "Sơ đồ hiện tại · đã chỉnh tay"
+              ? t("currentManual")
               : appliedStrategy
-                ? `Sơ đồ hiện tại · ${seatingStrategies.find((item) => item.id === appliedStrategy)?.label}`
-                : "Sơ đồ hiện tại · chưa áp dụng gợi ý"}
+                ? t("currentSuggested", {
+                    strategy: seatingStrategyLabel(appliedStrategy, t),
+                  })
+                : t("currentUnchanged")}
           </p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {total - unplaced}/{total} chỗ đã bố trí · {unplaced} chưa xếp. Bấm giữa bàn để xem danh
-            sách; bấm ghế để xem người ngồi và RSVP.
+            {t("planSummary", {
+              assigned: number(total - unplaced),
+              total: number(total),
+              unassigned: number(unplaced),
+            })}
           </p>
         </div>
       </div>
@@ -418,21 +434,24 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
         </p>
       )}
       <div className="grid items-start gap-5 xl:grid-cols-[220px_minmax(0,1fr)_260px]">
-        <aside className="space-y-3 rounded-2xl border bg-card p-4" aria-label="Nhóm nhận thiệp">
+        <aside
+          className="space-y-3 rounded-2xl border bg-card p-4"
+          aria-label={t("recipientGroups")}
+        >
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl">Nhóm mời</h2>
-            <span className="text-xs text-muted-foreground">{parties.length} nhóm</span>
+            <h2 className="font-serif text-xl">{t("recipientGroups")}</h2>
+            <span className="text-xs text-muted-foreground">
+              {t("groupsCount", { count: number(parties.length) })}
+            </span>
           </div>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Kéo cả nhóm tới bàn. Dùng nút “Phân bổ” để chuyển bằng lựa chọn bàn.
-          </p>
+          <p className="text-xs leading-5 text-muted-foreground">{t("dragGroupHelp")}</p>
           <div className="max-h-[260px] space-y-2 overflow-y-auto xl:max-h-[680px]">
             {parties.map((party) => {
               const places = plan[party.id] ?? [];
               const distribution = [...new Set(places)]
                 .map(
                   (table) =>
-                    `${table === null ? "Chưa xếp" : `B${table + 1}`}: ${places.filter((t) => t === table).length}`,
+                    `${table === null ? t("unassigned") : t("tableShort", { number: number(table + 1) })}: ${number(places.filter((t) => t === table).length)}`,
                 )
                 .join(" · ");
               return (
@@ -449,12 +468,14 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   <div className="flex items-start gap-2">
                     <GripVertical className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
-                      <p className="break-words text-sm font-medium">{recipientLabel(party)}</p>
+                      <p className="break-words text-sm font-medium">
+                        {formatRecipientLabel(party, t, language)}
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {party.group} · {party.side || "Chưa xác định phía"}
+                        {party.group} · {formatGuestSide(party.side, t)}
                       </p>
                       <p className="mt-2 text-xs">
-                        {party.count} chỗ · {distribution}
+                        {number(party.count)} {t("seats")} · {distribution}
                       </p>
                     </div>
                   </div>
@@ -463,7 +484,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                     className="mt-2 w-full rounded-md border py-1.5 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"
                     onClick={() => select(party.id)}
                   >
-                    Phân bổ nhóm
+                    {t("assignGroup")}
                   </button>
                 </article>
               );
@@ -472,10 +493,10 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
         </aside>
         <section
           className="min-w-0 overflow-hidden rounded-2xl border bg-[#F8F5EF]"
-          aria-label="Sơ đồ bàn thử"
+          aria-label={t("title")}
         >
           <div className="border-b bg-white/60 px-5 py-3 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
-            Sân khấu · vị trí minh họa
+            {t("floorStage")}
           </div>
           <div className="flex flex-wrap justify-center gap-x-3 gap-y-6 p-3 py-7 sm:p-6">
             {Array.from({ length: tableCount }, (_, table) => {
@@ -517,7 +538,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                     />
                     <button
                       type="button"
-                      aria-label={`Xem danh sách Bàn ${table + 1}`}
+                      aria-label={t("viewTable", { number: number(table + 1) })}
                       onClick={() => {
                         setInspectedTable(table);
                         setSelection(null);
@@ -525,17 +546,19 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                       }}
                       className="absolute left-1/2 top-1/2 flex size-[58%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full pt-5 transition-colors hover:bg-white/40 focus-visible:outline-2 focus-visible:outline-primary"
                     >
-                      <h3 className="font-serif text-xl">Bàn {table + 1}</h3>
+                      <h3 className="font-serif text-xl">
+                        {t("table", { number: number(table + 1) })}
+                      </h3>
                       <p className="text-[10px] text-muted-foreground">
                         {[
-                          ...new Set(occupied.map(({ party }) => party.side || "Chưa xác định")),
-                        ].join(" · ") || "Chưa có khách"}
+                          ...new Set(occupied.map(({ party }) => formatGuestSide(party.side, t))),
+                        ].join(" · ") || t("noGuestAtTable")}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {occupied.length}/{capacity} chỗ
+                        {number(occupied.length)}/{number(capacity)} {t("seats")}
                       </p>
                       <span className="mt-3 rounded-full border border-[#D9CDB8] bg-white/70 px-2 py-1 text-[10px]">
-                        {tableConfirmed} xác nhận
+                        {t("tableConfirmed", { count: number(tableConfirmed) })}
                       </span>
                     </button>
                     {Array.from({ length: capacity }, (_, seat) => {
@@ -567,8 +590,15 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                           type="button"
                           style={style}
                           className={`absolute h-[12%] w-[10%] -translate-x-1/2 -translate-y-1/2 rounded-md transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-primary ${selection?.partyId === occupant.party.id && selection.place === occupant.place ? "ring-2 ring-primary ring-offset-2" : ""}`}
-                          aria-label={`Bàn ${table + 1}, ghế ${seat + 1}: ${person?.fullName || `chỗ dự kiến của ${occupant.party.name}`}, ${appearance.label}`}
-                          title={`${person?.fullName || "Chỗ chưa có tên"} · ${appearance.label}`}
+                          aria-label={t("moveGuestAria", {
+                            table: number(table + 1),
+                            seat: number(seat + 1),
+                            name:
+                              person?.fullName ||
+                              t("unnamedExpectedPlace", { name: occupant.party.name }),
+                            status: t(`status.${person?.attendanceStatus ?? "PENDING"}`),
+                          })}
+                          title={`${person?.fullName || t("unnamedPlace")} · ${t(`status.${person?.attendanceStatus ?? "PENDING"}`)}`}
                           onClick={() => select(occupant.party.id, occupant.place)}
                         >
                           {chair}
@@ -578,7 +608,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                           key={seat}
                           style={style}
                           className="pointer-events-none absolute h-[12%] w-[10%] -translate-x-1/2 -translate-y-1/2"
-                          title={`Ghế ${seat + 1} trống`}
+                          title={t("emptySeatTitle", { number: number(seat + 1) })}
                         >
                           {chair}
                         </span>
@@ -593,13 +623,14 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                             className="mt-1.5 size-2 shrink-0 rounded-full"
                             style={{ background: colorFor(label) }}
                           />
-                          {label} · {occupied.filter(({ party }) => party.group === label).length}{" "}
-                          chỗ
+                          {label} ·{" "}
+                          {number(occupied.filter(({ party }) => party.group === label).length)}{" "}
+                          {t("seats")}
                         </p>
                       ))
                     ) : (
                       <p className="text-center text-xs text-muted-foreground">
-                        Kéo nhóm vào bàn này
+                        {t("dropGroupHere")}
                       </p>
                     )}
                   </div>
@@ -608,21 +639,20 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
             })}
           </div>
           <p className="border-t px-5 py-3 text-xs leading-5 text-muted-foreground">
-            Ghế xanh lá: người đã xác nhận tham dự. Ghế xám nhạt: chưa phản hồi hoặc chưa có tên.
-            Ghế nét đứt: chưa giữ cho ai. Bấm bàn để xem danh sách, bấm ghế để xem chi tiết.
+            {t("chairLegend")}
           </p>
         </section>
         <aside
           className={`rounded-2xl border bg-card p-5 ${(selected || inspectedTable !== null) && openPanel ? "fixed inset-x-3 bottom-3 z-40 max-h-[70dvh] overflow-y-auto shadow-xl xl:static xl:max-h-none xl:shadow-none" : "hidden xl:block"}`}
-          aria-label="Chi tiết phân bổ"
+          aria-label={t("detailsAria")}
         >
           {inspectedTable !== null && openPanel ? (
             <>
               <div className="sticky -top-5 z-10 -mx-5 -mt-5 flex items-start justify-between gap-2 border-b bg-card px-5 py-4">
-                <span className="text-xs">Khách trong bàn</span>
+                <span className="text-xs">{t("guestsAtTable")}</span>
                 <button
                   type="button"
-                  aria-label="Đóng chi tiết"
+                  aria-label={t("closeDetails")}
                   onClick={() => setOpenPanel(false)}
                 >
                   <X className="size-4" />
@@ -641,11 +671,11 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
             <>
               <div className="sticky -top-5 z-10 -mx-5 -mt-5 flex items-start justify-between gap-2 border-b bg-card px-5 py-4">
                 <span className="rounded-full bg-muted px-2 py-1 text-[10px]">
-                  {selection?.place !== undefined ? "Thông tin chỗ ngồi" : "Nhóm nhận thiệp"}
+                  {selection?.place !== undefined ? t("seatDetails") : t("invitationGroup")}
                 </span>
                 <button
                   type="button"
-                  aria-label="Đóng chi tiết"
+                  aria-label={t("closeDetails")}
                   onClick={() => setOpenPanel(false)}
                 >
                   <X className="size-4" />
@@ -661,21 +691,29 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   onSave={(input) => {
                     try {
                       setPeople(setPlacePerson(people, selected, selection.place ?? 0, input));
-                      setNotice(
-                        `Đã cập nhật ${input.fullName.trim()} trong bản thử. Tổng số chỗ không đổi.`,
-                      );
+                      setNotice(t("personUpdated", { name: input.fullName.trim() }));
                       return null;
                     } catch (error) {
-                      return error instanceof Error
-                        ? error.message
-                        : "Chưa cập nhật được thông tin.";
+                      if (!(error instanceof Error)) return t("details.updateFailed");
+                      const errors: Record<string, string> = {
+                        "Chỗ này không thuộc nhóm mời.": "details.invalidSeat",
+                        "Trạng thái hoặc vai trò không hợp lệ.": "details.invalidStatus",
+                        "Nhập tên trước khi cập nhật RSVP cho một người.": "details.enterName",
+                        "Tên tối đa 150 ký tự.": "details.nameTooLong",
+                        "Người đại diện đã có chỗ trong nhóm. Hãy chuyển chỗ hiện tại thay vì tạo thêm.":
+                          "details.duplicatePrimary",
+                        "Đây là chỗ của người đại diện. Hãy chọn chỗ khác để thêm người đi cùng.":
+                          "details.primaryRole",
+                      };
+                      const translationKey = errors[error.message];
+                      return translationKey ? t(translationKey) : error.message;
                     }
                   }}
                 />
               ) : (
                 <>
                   <h2 className="mt-4 break-words font-serif text-xl">
-                    {recipientLabel(selected)}
+                    {formatRecipientLabel(selected, t, language)}
                   </h2>
                   <p className="mt-2 text-xs text-muted-foreground">{selected.group}</p>
                 </>
@@ -683,38 +721,46 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
               {selection?.place === undefined && (
                 <dl className="my-5 space-y-3 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Tổng dự kiến</dt>
-                    <dd>{selected.count} người</dd>
+                    <dt className="text-muted-foreground">{t("expectedTotal")}</dt>
+                    <dd>
+                      {number(selected.count)} {t("people")}
+                    </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Đã có tên</dt>
-                    <dd>{selectedMembers.length} người</dd>
+                    <dt className="text-muted-foreground">{t("namedCount")}</dt>
+                    <dd>
+                      {number(selectedMembers.length)} {t("people")}
+                    </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Chưa khai báo tên</dt>
-                    <dd>{selected.count - selectedMembers.length} người</dd>
+                    <dt className="text-muted-foreground">{t("unnamedCount")}</dt>
+                    <dd>
+                      {number(selected.count - selectedMembers.length)} {t("people")}
+                    </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">RSVP</dt>
+                    <dt className="text-muted-foreground">{t("rsvp")}</dt>
                     <dd>
                       {
                         selectedMembers.filter((person) => person.attendanceStatus === "ATTENDING")
                           .length
                       }{" "}
-                      xác nhận
+                      {t("confirmedCount")}
                     </dd>
                   </div>
                 </dl>
               )}
               {selection?.place === undefined && (
                 <div className="rounded-xl bg-background p-3">
-                  <p className="text-xs text-muted-foreground">Cách ghi người nhận trên thiệp</p>
-                  <p className="mt-2 text-sm">Kính gửi {recipientLabel(selected)}</p>
+                  <p className="text-xs text-muted-foreground">{t("invitationSalutation")}</p>
+                  <p className="mt-2 text-sm">
+                    {t("greeting", { name: formatRecipientLabel(selected, t, language) })}
+                  </p>
                 </div>
               )}
               {selected.note && (
                 <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950">
-                  <p className="text-xs font-medium">Ghi chú · cần xác nhận</p>
+                  <p className="text-xs font-medium">{t("noteNeedsReview")}</p>
                   <p className="mt-1 text-xs leading-5">{selected.note}</p>
                 </div>
               )}
@@ -722,9 +768,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                 className="mb-2 mt-5 block text-xs text-muted-foreground"
                 htmlFor="move-destination"
               >
-                {selection?.place !== undefined
-                  ? "Chuyển riêng chỗ này tới"
-                  : "Chuyển toàn bộ nhóm tới"}
+                {selection?.place !== undefined ? t("moveSeatTo") : t("moveGroupTo")}
               </label>
               <select
                 id="move-destination"
@@ -732,10 +776,11 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
               >
-                <option value="unplaced">Danh sách chưa xếp</option>
+                <option value="unplaced">{t("unassignedList")}</option>
                 {Array.from({ length: tableCount }, (_, table) => (
                   <option key={table} value={table}>
-                    Bàn {table + 1} · {tableOccupancy(plan, table)}/{capacity}
+                    {t("table", { number: number(table + 1) })} ·{" "}
+                    {number(tableOccupancy(plan, table))}/{number(capacity)}
                   </option>
                 ))}
               </select>
@@ -749,7 +794,7 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                   )
                 }
               >
-                <MoveRight /> Chuyển {selection?.place !== undefined ? "chỗ" : "nhóm"}
+                <MoveRight /> {selection?.place !== undefined ? t("moveSeat") : t("moveGroup")}
               </Button>
               {selection?.place === undefined && selected.count > 1 && (
                 <Button
@@ -760,22 +805,16 @@ export function CoupleSeatingPreview({ rows, onBack }: { rows: CoupleRow[]; onBa
                     select(selected.id, unassigned < 0 ? 0 : unassigned);
                   }}
                 >
-                  Chuyển riêng một chỗ dự kiến
+                  {t("moveOneExpectedSeat")}
                 </Button>
               )}
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                Có thể chia chỗ của nhóm sang nhiều bàn. Cần xác nhận người giám hộ trước khi tách
-                trẻ nhỏ khỏi gia đình.
-              </p>
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">{t("guardianWarning")}</p>
             </>
           ) : (
             <div className="py-8 text-center">
               <Armchair className="mx-auto mb-4 size-8 text-muted-foreground" />
-              <h2 className="font-serif text-xl">Chọn một nhóm hoặc ghế</h2>
-              <p className="mt-3 text-xs leading-6 text-muted-foreground">
-                Xem người nhận thiệp, số chỗ dự kiến và thử chuyển chỗ. Chọn từng ghế để chia nhóm
-                sang bàn khác.
-              </p>
+              <h2 className="font-serif text-xl">{t("selectGroupOrSeat")}</h2>
+              <p className="mt-3 text-xs leading-6 text-muted-foreground">{t("panelHelp")}</p>
             </div>
           )}
         </aside>

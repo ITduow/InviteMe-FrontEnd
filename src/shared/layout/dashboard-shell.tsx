@@ -31,8 +31,10 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/shared/ui/button";
 import { BrandLogo } from "@/shared/components/brand-logo";
+import { LanguageSwitcher } from "@/shared/components/language-switcher";
 import { useUiStore } from "@/shared/stores/ui.store";
 import { cn } from "@/shared/lib/utils";
+import { useTranslation } from "react-i18next";
 import {
   WorkspaceContextProvider,
   useWorkspaceContext,
@@ -85,6 +87,45 @@ const weddingRouteLabels: Record<string, string> = {
   settings: "Cài đặt đám cưới",
   "co-hosts": "Co-host",
 };
+
+function localizeNavigationLabel(label: string, t: (key: string) => string) {
+  const translations: Record<string, string> = {
+    "Không gian làm việc": t("workspace"),
+    Workspace: t("workspace"),
+    "Lễ cưới": t("weddings"),
+    Weddings: t("weddings"),
+    "Tất cả lễ cưới": t("allWeddings"),
+    "Tổng quan": t("dashboard"),
+    Dashboard: t("dashboard"),
+    Overview: t("adminOverview"),
+    Administration: t("management"),
+    Management: t("management"),
+    Security: t("security"),
+    Users: t("users"),
+    Templates: t("templates"),
+    Plans: t("plans"),
+    "Roles & permissions": t("rolesPermissions"),
+    "Audit logs": t("auditLogs"),
+    "Website đám cưới": t("weddingWebsite"),
+    "Khách mời": t("guests"),
+    "Thiệp mời": t("invitations"),
+    "Nhắc RSVP": t("rsvpReminders"),
+    "Danh sách chờ": t("waitlist"),
+    "Sơ đồ bàn": t("seating"),
+    "Check-in": t("checkIn"),
+    "Quà mừng & lời chúc": t("gifts"),
+    "Thư cảm ơn": t("thankYou"),
+    "Tổng quan check-in": t("checkInOverview"),
+    "Nhật ký hoạt động": t("activityHistory"),
+    "Cài đặt đám cưới": t("weddingSettings"),
+    "Cài đặt tài khoản": t("accountSettings"),
+    "Không gian cưới": t("weddingSpace"),
+    "Khách mời & RSVP": t("guestsAndRsvp"),
+    "Tiệc cưới": t("reception"),
+    "Quản lý": t("manage"),
+  };
+  return translations[label] ?? label;
+}
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/admin") return pathname === "/admin" || pathname === "/admin/dashboard";
@@ -161,13 +202,14 @@ function WorkspaceBreadcrumbs({
   homeHref: string;
 }) {
   const { wedding } = useWorkspaceContext();
+  const { t } = useTranslation("navigation");
   const crumbs = useMemo(
     () => createBreadcrumbs(pathname, navigation, title, homeHref, wedding),
     [homeHref, navigation, pathname, title, wedding],
   );
 
   return (
-    <nav aria-label="Breadcrumb" className="min-w-0">
+    <nav aria-label={t("crumbSeparator")} className="min-w-0">
       <ol className="flex min-w-0 items-center gap-1.5 text-sm">
         {crumbs.map((crumb, index) => {
           const current = index === crumbs.length - 1;
@@ -184,7 +226,7 @@ function WorkspaceBreadcrumbs({
                   href={crumb.href}
                   className="hidden shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline"
                 >
-                  {crumb.label}
+                  {localizeNavigationLabel(crumb.label, t)}
                 </Link>
               ) : (
                 <span
@@ -193,9 +235,9 @@ function WorkspaceBreadcrumbs({
                     "min-w-0 truncate",
                     current ? "font-semibold text-foreground" : "text-muted-foreground sm:hidden",
                   )}
-                  title={crumb.label}
+                  title={localizeNavigationLabel(crumb.label, t)}
                 >
-                  {crumb.label}
+                  {localizeNavigationLabel(crumb.label, t)}
                 </span>
               )}
             </li>
@@ -219,6 +261,7 @@ function DashboardShellFrame({
   title: string;
   homeHref: string;
 }) {
+  const { t } = useTranslation("navigation");
   const pathname = usePathname();
   const { wedding, weddingNavigation } = useWorkspaceContext();
   const open = useUiStore((state) => state.sidebarOpen);
@@ -296,7 +339,7 @@ function DashboardShellFrame({
         <button
           type="button"
           className="fixed inset-0 z-40 cursor-default bg-foreground/30 backdrop-blur-[2px] md:hidden"
-          aria-label="Đóng menu điều hướng"
+          aria-label={t("closeMenu")}
           onClick={() => setOpen(false)}
         />
       )}
@@ -306,7 +349,7 @@ function DashboardShellFrame({
         id="dashboard-navigation"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        aria-label={title}
+        aria-label={localizeNavigationLabel(title, t)}
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-2rem))] flex-col border-r border-border/80 bg-card px-4 py-4 shadow-xl transition-[transform,visibility,width] duration-200 motion-reduce:transition-none md:sticky md:top-0 md:z-auto md:h-screen md:w-auto md:translate-x-0 md:shadow-none",
           open
@@ -328,7 +371,7 @@ function DashboardShellFrame({
               variant="ghost"
               size="icon"
               className="size-11 md:hidden"
-              aria-label="Đóng menu điều hướng"
+              aria-label={t("closeMenu")}
               onClick={() => {
                 setOpen(false);
                 menuButtonRef.current?.focus();
@@ -340,8 +383,8 @@ function DashboardShellFrame({
               variant="ghost"
               size="icon"
               className="hidden size-10 shrink-0 md:inline-flex"
-              aria-label={collapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
-              title={collapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+              aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+              title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
               aria-expanded={!collapsed}
               aria-controls="dashboard-navigation"
               onClick={() => setCollapsed((value) => !value)}
@@ -361,10 +404,10 @@ function DashboardShellFrame({
             collapsed && "md:sr-only",
           )}
         >
-          {title}
+          {localizeNavigationLabel(title, t)}
         </p>
         <nav
-          aria-label="Điều hướng chính"
+          aria-label={t("mainNavigation")}
           className="min-h-0 flex-1 space-y-6 overflow-y-auto pb-3"
         >
           {navigation.map((group) => (
@@ -375,7 +418,7 @@ function DashboardShellFrame({
                   collapsed && "md:sr-only",
                 )}
               >
-                {group.label}
+                {localizeNavigationLabel(group.label, t)}
               </h2>
               <div className="space-y-1">
                 {group.items.map((item) => {
@@ -386,7 +429,7 @@ function DashboardShellFrame({
                       key={item.href}
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      title={collapsed ? item.label : undefined}
+                      title={collapsed ? localizeNavigationLabel(item.label, t) : undefined}
                       onClick={() => setOpen(false)}
                       className={cn(
                         "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -398,7 +441,9 @@ function DashboardShellFrame({
                       )}
                     >
                       <Icon className="size-[1.125rem] shrink-0" aria-hidden="true" />
-                      <span className={cn(collapsed && "md:sr-only")}>{item.label}</span>
+                      <span className={cn(collapsed && "md:sr-only")}>
+                        {localizeNavigationLabel(item.label, t)}
+                      </span>
                     </Link>
                   );
                 })}
@@ -406,14 +451,14 @@ function DashboardShellFrame({
             </section>
           ))}
           {routeWeddingId && (
-            <section aria-label="Các mục trong đám cưới">
+            <section aria-label={t("weddingSections")}>
               <h2
                 className={cn(
                   "mb-2 px-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground",
                   collapsed && "md:sr-only",
                 )}
               >
-                Quản lý đám cưới
+                {t("manageWedding")}
               </h2>
               <div className="mb-2 rounded-xl bg-background px-3 py-2.5">
                 <p
@@ -422,18 +467,18 @@ function DashboardShellFrame({
                     collapsed && "md:sr-only",
                   )}
                 >
-                  {wedding?.id === routeWeddingId ? wedding.name : "Đang tải đám cưới…"}
+                  {wedding?.id === routeWeddingId ? wedding.name : t("loadingWedding")}
                 </p>
                 <Link
                   href="/weddings"
-                  title={collapsed ? "Tất cả lễ cưới" : undefined}
+                  title={collapsed ? t("allWeddings") : undefined}
                   onClick={() => setOpen(false)}
                   className={cn(
                     "mt-1 inline-flex min-h-8 items-center text-xs font-medium text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     collapsed && "md:sr-only",
                   )}
                 >
-                  ← Tất cả lễ cưới
+                  ← {t("allWeddings")}
                 </Link>
               </div>
               {contextualNavigation ? (
@@ -457,7 +502,7 @@ function DashboardShellFrame({
                               key={item.href}
                               href={item.href}
                               aria-current={active ? "page" : undefined}
-                              title={collapsed ? item.label : undefined}
+                              title={collapsed ? localizeNavigationLabel(item.label, t) : undefined}
                               onClick={() => setOpen(false)}
                               className={cn(
                                 "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -469,7 +514,7 @@ function DashboardShellFrame({
                             >
                               <Icon className="size-[1.125rem] shrink-0" aria-hidden="true" />
                               <span className={cn("truncate", collapsed && "md:sr-only")}>
-                                {item.label}
+                                {localizeNavigationLabel(item.label, t)}
                               </span>
                             </Link>
                           );
@@ -480,7 +525,7 @@ function DashboardShellFrame({
                 </div>
               ) : (
                 <div role="status" className="space-y-2 px-2 py-1">
-                  <span className="sr-only">Đang tải quyền và menu của đám cưới</span>
+                  <span className="sr-only">{t("loadingWeddingAccess")}</span>
                   <div className="h-10 animate-pulse rounded-xl bg-petal motion-reduce:animate-none" />
                   <div className="h-10 w-4/5 animate-pulse rounded-xl bg-petal motion-reduce:animate-none" />
                 </div>
@@ -489,10 +534,13 @@ function DashboardShellFrame({
           )}
         </nav>
         <div className="mt-3 border-t border-border/80 pt-3">
+          <div className="mb-2 px-1 sm:hidden">
+            <LanguageSwitcher className="w-full" />
+          </div>
           <Link
             href="/account"
             aria-current={isActiveRoute(pathname, "/account") ? "page" : undefined}
-            title={collapsed ? "Cài đặt tài khoản" : undefined}
+            title={collapsed ? t("accountSettings") : undefined}
             onClick={() => setOpen(false)}
             className={cn(
               "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -503,7 +551,7 @@ function DashboardShellFrame({
             )}
           >
             <Settings className="size-[1.125rem] shrink-0" aria-hidden="true" />
-            <span className={cn(collapsed && "md:sr-only")}>Cài đặt tài khoản</span>
+            <span className={cn(collapsed && "md:sr-only")}>{t("accountSettings")}</span>
           </Link>
         </div>
       </aside>
@@ -516,7 +564,7 @@ function DashboardShellFrame({
               variant="ghost"
               size="icon"
               className="size-11 shrink-0 md:hidden"
-              aria-label="Mở menu điều hướng"
+              aria-label={t("openMenu")}
               aria-expanded={open}
               aria-controls="dashboard-navigation"
               onClick={() => setOpen(true)}
@@ -531,7 +579,10 @@ function DashboardShellFrame({
               homeHref={homeHref}
             />
           </div>
-          <div className="shrink-0">{account}</div>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <LanguageSwitcher className="hidden sm:inline-flex" />
+            {account}
+          </div>
         </header>
         <main
           id="main-content"

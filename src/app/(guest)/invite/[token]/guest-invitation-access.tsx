@@ -8,6 +8,7 @@ import { useRuntime } from "@/core/config/runtime";
 import { env } from "@/core/config/env";
 import { ApiError } from "@/core/api/api-error";
 import { getGuestSeats } from "@/features/rsvp";
+import { useTranslation } from "react-i18next";
 
 function qrUrl(token: string, download = false) {
   if (!env.apiUrl) return null;
@@ -18,6 +19,7 @@ function qrUrl(token: string, download = false) {
 }
 
 export function GuestInvitationAccess({ token }: { token: string }) {
+  const { t } = useTranslation("guests");
   const { api } = useRuntime();
   const [open, setOpen] = useState(false);
   const [qrFailed, setQrFailed] = useState(false);
@@ -88,7 +90,7 @@ export function GuestInvitationAccess({ token }: { token: string }) {
         aria-controls="guest-access-dialog"
       >
         <QrCode aria-hidden="true" />
-        QR & số bàn
+        {t("qrAndSeating")}
       </button>
 
       {open && (
@@ -112,10 +114,10 @@ export function GuestInvitationAccess({ token }: { token: string }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Dành riêng cho bạn
+                  {t("forYou")}
                 </p>
                 <h2 id="guest-access-title" className="mt-1 font-display text-2xl">
-                  Mã QR & chỗ ngồi
+                  {t("qrAndSeatInfo")}
                 </h2>
               </div>
               <button
@@ -126,21 +128,19 @@ export function GuestInvitationAccess({ token }: { token: string }) {
                   triggerRef.current?.focus();
                 }}
                 className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                aria-label="Đóng"
+                aria-label={t("closeDialog")}
               >
                 <X aria-hidden="true" />
               </button>
             </div>
 
             <div className="mt-5 rounded-xl border border-border bg-card p-4 text-center">
-              <h3 className="font-semibold">QR check-in cá nhân</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Lưu mã này vào điện thoại hoặc tải xuống để in và đưa tại quầy đón khách.
-              </p>
+              <h3 className="font-semibold">{t("personalCheckInQr")}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t("saveQrHint")}</p>
               {imageUrl && !qrFailed ? (
                 <Image
                   src={imageUrl}
-                  alt="Mã QR thiệp mời cá nhân"
+                  alt={t("invitationQrAlt")}
                   width={224}
                   height={224}
                   unoptimized
@@ -152,9 +152,7 @@ export function GuestInvitationAccess({ token }: { token: string }) {
                   role="alert"
                   className="mt-4 rounded-lg bg-destructive/15 p-3 text-sm text-foreground"
                 >
-                  {qrFailed
-                    ? "Chưa tải được mã QR. Vui lòng thử lại sau."
-                    : "Chưa cấu hình được địa chỉ API để tải mã QR."}
+                  {qrFailed ? t("qrLoadFailed") : t("qrApiMissing")}
                 </p>
               )}
               {downloadUrl && !qrFailed && (
@@ -163,30 +161,28 @@ export function GuestInvitationAccess({ token }: { token: string }) {
                   className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   <Download aria-hidden="true" />
-                  Tải QR dạng PNG
+                  {t("downloadPng")}
                 </a>
               )}
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
-              <h3 className="font-semibold">Bàn của bạn</h3>
+              <h3 className="font-semibold">{t("yourTable")}</h3>
               {seats.isPending ? (
-                <p className="mt-2 text-sm text-muted-foreground">Đang kiểm tra sơ đồ bàn…</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("checkingSeating")}</p>
               ) : seats.isError ? (
                 <div className="mt-2 space-y-2 text-sm">
                   <p role="alert" className="text-foreground">
                     {seats.error instanceof ApiError && seats.error.status === 404
-                      ? "Liên kết khách mời không còn khả dụng."
-                      : "Chưa tải được thông tin chỗ ngồi."}
+                      ? t("guestLinkUnavailable")
+                      : t("seatInfoUnavailable")}
                   </p>
                   <button type="button" onClick={() => void seats.refetch()} className="underline">
-                    Thử tải lại
+                    {t("reload")}
                   </button>
                 </div>
               ) : !seats.data?.published ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sơ đồ bàn chưa được công bố. Khi có thông tin, bàn sẽ hiện tại đây.
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("seatingNotPublished")}</p>
               ) : (
                 <div className="mt-3 space-y-2">
                   {seats.data.seats
@@ -194,20 +190,18 @@ export function GuestInvitationAccess({ token }: { token: string }) {
                     .map((seat) => (
                       <p key={seat.position} className="rounded-lg bg-muted p-3 text-sm">
                         <span className="font-medium">
-                          {seat.personName ?? `Khách thứ ${seat.position}`}
+                          {seat.personName ?? t("guestNumber", { number: seat.position })}
                         </span>
                         <span>
                           {" · "}
                           {seat.table
-                            ? `${seat.table}${seat.seatNumber ? `, ghế ${seat.seatNumber}` : ""}`
-                            : "Chưa được xếp bàn"}
+                            ? `${seat.table}${seat.seatNumber ? `, ${t("seatNumber", { number: seat.seatNumber })}` : ""}`
+                            : t("notAssigned")}
                         </span>
                       </p>
                     ))}
                   {seats.data.seats.every((seat) => seat.status === "UNUSED") && (
-                    <p className="text-sm text-muted-foreground">
-                      Hiện chưa có chỗ ngồi dành cho khách này.
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t("noSeatYet")}</p>
                   )}
                 </div>
               )}

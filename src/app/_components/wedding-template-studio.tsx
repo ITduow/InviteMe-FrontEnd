@@ -16,6 +16,7 @@ import { usePermission } from "@/shared/components/permission-guard";
 import { PermissionGuard } from "@/shared/components/permission-guard";
 import { EmptyState } from "@/shared/feedback/empty-state";
 import { listWeddingMedia, mediaUrl, uploadWeddingMedia } from "@/features/weddings";
+import { useTranslation } from "react-i18next";
 
 // Compose the guest management panel and design editor here to preserve feature boundaries.
 export function WeddingTemplateStudio({
@@ -29,6 +30,7 @@ export function WeddingTemplateStudio({
   preview?: boolean;
   wording?: boolean;
 }) {
+  const { t } = useTranslation("screens");
   return (
     <AuthGuard>
       <WeddingAccessProvider weddingId={weddingId}>
@@ -36,8 +38,8 @@ export function WeddingTemplateStudio({
           permission="WEDDING_EDIT"
           fallback={
             <EmptyState
-              title="Không có quyền chỉnh sửa thiệp"
-              description="Cần quyền chỉnh sửa wedding để mở Studio."
+              title={t("studioAccessDenied")}
+              description={t("studioAccessDescription")}
             />
           }
         >
@@ -50,7 +52,7 @@ export function WeddingTemplateStudio({
             wordingPanel={({ onPreview }) => (
               <PermissionGuard
                 permission="INVITATION_SEND"
-                fallback={<p>Cần quyền quản lý lời mời để xem preset của wedding.</p>}
+                fallback={<p>{t("invitationPermissionRequired")}</p>}
               >
                 <InvitationWording weddingId={weddingId} compact onPreview={onPreview} />
               </PermissionGuard>
@@ -78,41 +80,68 @@ function ConnectedStudio({
   return <StudioSession key={weddingId} weddingId={weddingId} snapshot={design.data} {...props} />;
 }
 
-function StudioSession({ weddingId, snapshot, ...props }: {
+function StudioSession({
+  weddingId,
+  snapshot,
+  ...props
+}: {
   weddingId: string;
   snapshot: Awaited<ReturnType<typeof getInvitationDesign>>;
 } & React.ComponentProps<typeof TemplateStudio>) {
+  const { t } = useTranslation("screens");
   const { api } = useRuntime();
   const { can } = usePermission();
   const cache = useQueryClient();
   const [version, setVersion] = useState(snapshot.version);
-  const [initial, setInitial] = useState(snapshot.document ? JSON.stringify(snapshot.document) : undefined);
+  const [initial, setInitial] = useState(
+    snapshot.document ? JSON.stringify(snapshot.document) : undefined,
+  );
   const [generation, setGeneration] = useState(0);
   const remoteChanged = version !== snapshot.version;
-  return <>
-    {remoteChanged && <div role="alert" className="fixed left-1/2 top-20 z-[100] w-[min(90vw,650px)] -translate-x-1/2 rounded-xl border border-amber-500 bg-amber-50 p-4 text-sm text-amber-950 shadow-lg">
-      Thiết kế đã thay đổi ở tab khác. Bản đang chỉnh vẫn được giữ; tải bản mới trước khi lưu tiếp.
-      <button className="ml-2 underline" onClick={() => {
-        setVersion(snapshot.version);
-        setInitial(snapshot.document ? JSON.stringify(snapshot.document) : undefined);
-        setGeneration((value) => value + 1);
-      }}>Tải bản mới (bỏ sửa đổi chưa lưu)</button>
-    </div>}
-    <TemplateStudio key={generation}
-      {...props}
-      onUploadImage={async (file) => {
-        const media = await uploadWeddingMedia(api, weddingId, file);
-        return { src: mediaUrl(media.url) ?? media.url, name: file.name };
-      }}
-      loadImages={async () => (await listWeddingMedia(api, weddingId)).map((media) => ({
-        src: mediaUrl(media.url) ?? media.url, name: `Ảnh ${media.id.slice(0, 8)}`,
-      }))}
-      initialDocument={initial}
-      onSave={can("INVITATION_SEND") ? async (serialized) => {
-        const saved = await saveInvitationDesign(api, weddingId, version, serialized);
-        setVersion(saved.version);
-        cache.setQueryData(["invitation-design", weddingId], saved);
-      } : undefined}
-    />
-  </>;
+  return (
+    <>
+      {remoteChanged && (
+        <div
+          role="alert"
+          className="fixed left-1/2 top-20 z-[100] w-[min(90vw,650px)] -translate-x-1/2 rounded-xl border border-amber-500 bg-amber-50 p-4 text-sm text-amber-950 shadow-lg"
+        >
+          {t("studioConflict")}
+          <button
+            className="ml-2 underline"
+            onClick={() => {
+              setVersion(snapshot.version);
+              setInitial(snapshot.document ? JSON.stringify(snapshot.document) : undefined);
+              setGeneration((value) => value + 1);
+            }}
+          >
+            {t("studioReloadDiscard")}
+          </button>
+        </div>
+      )}
+      <TemplateStudio
+        key={generation}
+        {...props}
+        onUploadImage={async (file) => {
+          const media = await uploadWeddingMedia(api, weddingId, file);
+          return { src: mediaUrl(media.url) ?? media.url, name: file.name };
+        }}
+        loadImages={async () =>
+          (await listWeddingMedia(api, weddingId)).map((media) => ({
+            src: mediaUrl(media.url) ?? media.url,
+            name: t("uploadedPhoto", { id: media.id.slice(0, 8) }),
+          }))
+        }
+        initialDocument={initial}
+        onSave={
+          can("INVITATION_SEND")
+            ? async (serialized) => {
+                const saved = await saveInvitationDesign(api, weddingId, version, serialized);
+                setVersion(saved.version);
+                cache.setQueryData(["invitation-design", weddingId], saved);
+              }
+            : undefined
+        }
+      />
+    </>
+  );
 }

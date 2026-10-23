@@ -1,15 +1,17 @@
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 const seats = [
-  { image: "chair-confirmed.svg", label: "Đã xác nhận tham dự" },
-  { image: "chair-pending.svg", label: "Chưa xác nhận / chưa có tên" },
-  { image: "chair-empty.svg", label: "Ghế trống" },
+  { image: "chair-confirmed.svg", label: "confirmed" },
+  { image: "chair-pending.svg", label: "pending" },
+  { image: "chair-empty.svg", label: "empty" },
 ];
 
 export function SeatingLegend() {
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.legend" });
   return (
     <ul
-      aria-label="Chú giải trạng thái ghế"
+      aria-label={t("aria")}
       className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground"
     >
       {seats.map((seat) => (
@@ -21,7 +23,7 @@ export function SeatingLegend() {
             height={28}
             className="h-7 w-6 shrink-0"
           />
-          <span>{seat.label}</span>
+          <span>{t(seat.label)}</span>
         </li>
       ))}
     </ul>

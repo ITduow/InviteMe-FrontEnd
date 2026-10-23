@@ -1,10 +1,13 @@
 "use client";
 
 import { useId, useMemo, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useDraggable } from "@dnd-kit/core";
 import { ChevronDown, GripVertical, Plus, Users } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { sideLabels, type PlanningGuest } from "../api/planning.api";
+import { formatNumber } from "@/i18n/format";
+import { useLanguage } from "@/i18n/language-context";
+import type { PlanningGuest } from "../api/planning.api";
 import type { SeatingPlan } from "../api/planning-seating.api";
 import { DraggingLabel, useSeatingDragLock } from "./seating-drag-presence";
 
@@ -19,10 +22,14 @@ type QueueProps = {
   onTable: (id: string) => void;
 };
 
-export function queuePlaceName(place: Place, guest: PlanningGuest) {
+export function queuePlaceName(
+  place: Place,
+  guest: PlanningGuest,
+  companionName: (position: number) => string = (position) => `Người đi kèm ${position}`,
+) {
   return (
     place.person?.fullName ||
-    (place.position === 1 ? guest.recipientName : `Người đi kèm ${place.position}`)
+    (place.position === 1 ? guest.recipientName : companionName(place.position))
   );
 }
 
@@ -43,6 +50,7 @@ function QueueDrag({
   onSelect: () => void;
   children: ReactNode;
 }) {
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.queue" });
   const lock = useSeatingDragLock(ids);
   const unavailable = disabled || !!lock;
   const { setNodeRef, setActivatorNodeRef, attributes, listeners, isDragging } = useDraggable({
@@ -63,7 +71,7 @@ function QueueDrag({
         {...attributes}
         {...listeners}
         disabled={unavailable}
-        aria-label={`Kéo ${label}`}
+        aria-label={t("drag", { name: label })}
         className="shrink-0 touch-none rounded p-1 text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       >
         <GripVertical className="size-4" aria-hidden="true" />
@@ -73,7 +81,7 @@ function QueueDrag({
         onClick={onSelect}
         disabled={unavailable}
         aria-pressed={selected}
-        aria-label={`Chọn ${label}`}
+        aria-label={t("select", { name: label })}
         onPointerDown={(event) => listeners?.onPointerDown?.(event)}
         className={cn(
           "flex min-w-0 flex-1 touch-pan-y items-center gap-2 rounded-lg py-2 pr-2 text-left focus-visible:outline-2 focus-visible:outline-primary",
@@ -94,12 +102,13 @@ function QueueDrag({
 }
 
 function TableChip({ table, onTable }: { table?: Table; onTable: QueueProps["onTable"] }) {
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.queue" });
   if (!table) return null;
   return (
     <button
       type="button"
       onClick={() => onTable(table.id)}
-      aria-label={`Tới ${table.name}`}
+      aria-label={t("goToTable", { table: table.name })}
       className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-medium text-foreground hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-primary"
     >
       {table.name}
@@ -126,7 +135,8 @@ function GuestRow({
   onTable: QueueProps["onTable"];
   individual?: boolean;
 }) {
-  const name = queuePlaceName(place, guest);
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.queue" });
+  const name = queuePlaceName(place, guest, (position) => t("companion", { position }));
   const placeholder = !place.person && place.position > 1;
   return (
     <div
@@ -165,7 +175,16 @@ function GuestRow({
             </span>
             {individual && (
               <span className="block truncate text-[11px] text-muted-foreground">
-                {guest.group?.name ?? sideLabels[guest.side]}
+                {guest.group?.name ??
+                  t(
+                    guest.side === "GROOM"
+                      ? "groom"
+                      : guest.side === "BRIDE"
+                        ? "bride"
+                        : guest.side === "MUTUAL"
+                          ? "shared"
+                          : "unspecified",
+                  )}
               </span>
             )}
           </span>
@@ -193,6 +212,8 @@ function GroupCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const detailId = useId();
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.queue" });
+  const { language } = useLanguage();
   const { guest, places } = entry;
   const ids = places.map((p) => p.id);
   const lock = useSeatingDragLock(ids);
@@ -205,7 +226,7 @@ function GroupCard({
   const selected = ids.length > 0 && ids.every((id) => selection.includes(id));
   const assignedCount = places.filter((p) => tablesByPlace.has(p.id)).length;
   const tableCount = new Set(places.flatMap((p) => tablesByPlace.get(p.id)?.id ?? [])).size;
-  const name = `${guest.invitationKind === "FAMILY" ? "Gia đình" : "Nhóm"} ${guest.honorific ? guest.honorific.toLocaleLowerCase("vi") + " " : ""}${guest.recipientName}`;
+  const name = `${t(guest.invitationKind === "FAMILY" ? "family" : "group")} ${guest.honorific ? guest.honorific.toLocaleLowerCase(language === "en" ? "en-US" : "vi-VN") + " " : ""}${guest.recipientName}`;
   return (
     <article
       ref={setNodeRef}
@@ -233,7 +254,7 @@ function GroupCard({
             {...listeners}
             type="button"
             disabled={unavailable}
-            aria-label={`Kéo ${name}`}
+            aria-label={t("drag", { name })}
             className="shrink-0 cursor-grab rounded p-1 text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
           >
             <GripVertical className="size-4" aria-hidden="true" />
@@ -243,7 +264,7 @@ function GroupCard({
             data-group-drag-target=""
             disabled={unavailable}
             aria-pressed={selected}
-            aria-label={`Chọn ${name}`}
+            aria-label={t("select", { name })}
             onClick={() => onSelect(ids)}
             className="min-w-0 flex-1 cursor-grab rounded-lg py-2 text-left focus-visible:outline-2 focus-visible:outline-primary"
           >
@@ -256,7 +277,7 @@ function GroupCard({
             data-no-group-drag=""
             aria-expanded={expanded}
             aria-controls={detailId}
-            aria-label={`${expanded ? "Thu gọn" : "Mở"} ${name}`}
+            aria-label={t(expanded ? "collapse" : "open", { name })}
             onClick={() => setExpanded(!expanded)}
             className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-primary"
           >
@@ -267,19 +288,33 @@ function GroupCard({
           </button>
         </div>
         <div className="flex flex-wrap gap-1 px-1 text-[10px] text-muted-foreground">
-          <span className="rounded-full bg-muted px-2 py-0.5">{sideLabels[guest.side]}</span>
+          <span className="rounded-full bg-muted px-2 py-0.5">
+            {t(
+              guest.side === "GROOM"
+                ? "groom"
+                : guest.side === "BRIDE"
+                  ? "bride"
+                  : guest.side === "MUTUAL"
+                    ? "shared"
+                    : "unspecified",
+            )}
+          </span>
           {guest.group && (
             <span className="rounded-full bg-muted px-2 py-0.5">{guest.group.name}</span>
           )}
           {tableCount > 1 && (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800">
-              Tách {tableCount} bàn
+              {t("splitTables", { count: formatNumber(tableCount, language) })}
             </span>
           )}
         </div>
         <div className="mt-2 flex w-full items-center gap-2 px-1 text-left text-[11px] text-muted-foreground">
           <span>
-            {places.length} người · {assignedCount}/{places.length} đã xếp
+            {t("peopleAssigned", {
+              people: formatNumber(places.length, language),
+              assigned: formatNumber(assignedCount, language),
+              total: formatNumber(places.length, language),
+            })}
           </span>
           <span
             className="ml-auto h-1 w-10 overflow-hidden rounded-full bg-muted"
@@ -324,6 +359,8 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"unassigned" | "assigned" | "all">("unassigned");
   const [side, setSide] = useState<PlanningGuest["side"] | "all">("all");
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seating.queue" });
+  const { language } = useLanguage();
   const { entries, tablesByPlace } = useMemo(() => {
     const byGuest = new Map<string, Place[]>();
     for (const place of plan.places) {
@@ -348,9 +385,17 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
   const searched = entries.filter(
     ({ guest, places }) =>
       (side === "all" || guest.side === side) &&
-      `${guest.recipientName} ${guest.group?.name ?? ""} ${sideLabels[guest.side]} ${places.map((p) => p.person?.fullName ?? "").join(" ")}`
-        .toLocaleLowerCase("vi")
-        .includes(search.trim().toLocaleLowerCase("vi")),
+      `${guest.recipientName} ${guest.group?.name ?? ""} ${t(
+        guest.side === "GROOM"
+          ? "groom"
+          : guest.side === "BRIDE"
+            ? "bride"
+            : guest.side === "MUTUAL"
+              ? "shared"
+              : "unspecified",
+      )} ${places.map((p) => p.person?.fullName ?? "").join(" ")}`
+        .toLocaleLowerCase(language === "en" ? "en-US" : "vi-VN")
+        .includes(search.trim().toLocaleLowerCase(language === "en" ? "en-US" : "vi-VN")),
   );
   const counts = {
     unassigned: searched.reduce(
@@ -374,21 +419,21 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
     <>
       <h2 className="flex items-center gap-2 text-base font-semibold">
         <Users className="size-4" aria-hidden="true" />
-        Hàng chờ xếp chỗ
+        {t("title")}
       </h2>
       <input
-        aria-label="Tìm nhóm hoặc người nhận"
+        aria-label={t("searchAria")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Tìm tên, nhóm, phía…"
+        placeholder={t("searchPlaceholder")}
         className="w-full rounded-lg border bg-white p-2 text-sm"
       />
-      <div className="flex flex-wrap gap-1" role="group" aria-label="Trạng thái xếp chỗ">
+      <div className="flex flex-wrap gap-1" role="group" aria-label={t("filterAria")}>
         {(
           [
-            ["unassigned", "Chưa xếp"],
-            ["assigned", "Đã xếp"],
-            ["all", "Tất cả"],
+            ["unassigned", t("unassigned")],
+            ["assigned", t("assigned")],
+            ["all", t("all")],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -403,18 +448,18 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
                 : "border-transparent text-muted-foreground",
             )}
           >
-            {label} ({counts[value]})
+            {label} ({formatNumber(counts[value], language)})
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap gap-1" role="group" aria-label="Phía khách">
+      <div className="flex flex-wrap gap-1" role="group" aria-label={t("sideAria")}>
         {(
           [
-            ["all", "Mọi phía"],
-            ["GROOM", "Nhà trai"],
-            ["BRIDE", "Nhà gái"],
-            ["MUTUAL", "Chung"],
-            ["UNSPECIFIED", "Chưa rõ"],
+            ["all", t("allSides")],
+            ["GROOM", t("side.GROOM")],
+            ["BRIDE", t("side.BRIDE")],
+            ["MUTUAL", t("side.MUTUAL")],
+            ["UNSPECIFIED", t("side.UNSPECIFIED")],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -431,12 +476,10 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        Số đếm theo người. Kéo tay cầm hoặc bấm chọn rồi bấm bàn.
-      </p>
+      <p className="text-[11px] text-muted-foreground">{t("countHint")}</p>
       <div
         className="max-h-[360px] space-y-2 overflow-y-auto p-0.5 lg:max-h-[620px]"
-        aria-label="Danh sách chờ xếp chỗ"
+        aria-label={t("listAria")}
       >
         {visible.map((entry) => {
           const firstPlace = entry.places[0];
@@ -469,10 +512,10 @@ export function SeatingQueue({ plan, disabled, selection, onSelect, onTable }: Q
         {!visible.length && (
           <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
             {!plan.guests.length
-              ? "Chưa có khách. Nhập danh sách để bắt đầu."
+              ? t("noGuests")
               : filter === "unassigned" && !search && side === "all"
-                ? "Đã xếp hết khách. Bạn có thể xem ở Đã xếp."
-                : "Không có khách phù hợp bộ lọc."}
+                ? t("allAssigned")
+                : t("noFilterMatch")}
           </p>
         )}
       </div>

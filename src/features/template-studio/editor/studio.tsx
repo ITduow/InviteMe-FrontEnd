@@ -69,6 +69,9 @@ import {
 } from "../components/reveal";
 import { useRuntime } from "@/core/config/runtime";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/i18n/format";
+import { useLanguage } from "@/i18n/language-context";
 
 function Workspace({
   initialTemplate = false,
@@ -82,6 +85,8 @@ function Workspace({
   loadImages,
 }: TemplateStudioProps) {
   const { api } = useRuntime();
+  const { t } = useTranslation("templateStudio");
+  const { language } = useLanguage();
   const {
     actions,
     query,
@@ -108,7 +113,7 @@ function Workspace({
   });
   const { replay } = useContext(RevealReplayContext);
   const [json, setJson] = useState("");
-  const [message, setMessage] = useState("Dữ liệu thử nghiệm · chưa lưu vào server");
+  const [message, setMessage] = useState(() => t("status.initial"));
   const [saving, setSaving] = useState(false);
   const [templateId, setTemplateId] = useState<string | undefined>(() =>
     initialDocument
@@ -145,7 +150,7 @@ function Workspace({
           )
     )
       .then(setUploads)
-      .catch(() => setMessage("Không tải được thư viện ảnh."));
+      .catch(() => setMessage(t("status.imagesLoadFailed")));
   }
   function chooseImage(src: string) {
     if (!replacement || !query.getNodes()[replacement.id]) return;
@@ -161,7 +166,7 @@ function Workspace({
         value.images = images;
       }
     });
-    setMessage(replacement.append ? "Đã thêm ảnh vào album." : "Đã thay ảnh.");
+    setMessage(t(replacement.append ? "status.imageAdded" : "status.imageReplaced"));
   }
   async function uploadImages(files: FileList | File[]) {
     setUploading(true);
@@ -178,13 +183,13 @@ function Workspace({
             body: data,
           });
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "Không tải được ảnh.");
+          if (!response.ok) throw new Error(t("status.imageUploadFailed"));
           setUploads((current) => [...current, { src: result.src, name: file.name }]);
         }
       }
-      setMessage("Đã tải ảnh. Nhấp ảnh để thay thế hoặc thêm vào album.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Lỗi tải ảnh.");
+      setMessage(t("status.imageUploaded"));
+    } catch {
+      setMessage(t("status.imageUploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -344,11 +349,11 @@ function Workspace({
           const parsed = parseStudioDocument(selectedTemplate.configurationJson);
           actions.history.ignore().deserialize(JSON.stringify(parsed.nodes));
           setTemplateId(initialTemplate);
-          setMessage("Đã tải mẫu " + initialTemplate + ".");
+          setMessage(t("status.templateLoaded", { name: initialTemplate }));
         })
         .catch(() => {
           if (cancelled) return;
-          setMessage("Không tải được mẫu này. Mẫu đã bị ẩn hoặc cấu hình Studio không hợp lệ.");
+          setMessage(t("status.templateLoadFailed"));
           initializeBlank();
         });
       return () => {
@@ -356,7 +361,7 @@ function Workspace({
       };
     }
     initializeBlank();
-  }, [actions, api, query, initialTemplate, initialDocument]);
+  }, [actions, api, query, initialTemplate, initialDocument, t]);
 
   const synchronizeTarget = useCallback(() => {
     const elements = stage.current?.querySelectorAll<HTMLElement>("[data-studio-node]");
@@ -409,7 +414,7 @@ function Workspace({
     // Story widgets use the same Craft document and placement logic.
   ) {
     if (items.length >= 100) {
-      setMessage("Bản thử hỗ trợ tối đa 100 item.");
+      setMessage(t("status.itemLimit"));
       return;
     }
     const component =
@@ -480,7 +485,7 @@ function Workspace({
     }
     actions.addNodeTree(node, "ROOT");
     actions.selectNode(node.rootNodeId);
-    setMessage(`Đã thêm ${newItem?.data.displayName ?? "item"} vào vùng đang xem.`);
+    setMessage(t("status.itemAdded"));
   }
   function moveLayer(direction: "up" | "down") {
     if (!selection || layerIndex < 0) return;
@@ -498,7 +503,7 @@ function Workspace({
       2,
     );
     setJson(value);
-    setMessage("Đã lấy JSON hiện tại. Bạn có thể sao chép hoặc nhập lại.");
+    setMessage(t("status.jsonExported"));
     return value;
   }
   async function saveDesign() {
@@ -509,11 +514,9 @@ function Workspace({
         JSON.stringify({ schemaVersion: 1, templateId, nodes: JSON.parse(query.serialize()) }),
       );
       await onSave(JSON.stringify(doc));
-      setMessage("Đã lưu bản nháp. Thiệp khách đang xem chưa thay đổi.");
+      setMessage(t("status.draftSaved"));
     } catch {
-      setMessage(
-        "Không lưu được thiệp. Nếu có người khác vừa sửa, hãy mở lại Studio để tải bản mới.",
-      );
+      setMessage(t("status.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -525,9 +528,9 @@ function Workspace({
       actions.deserialize(JSON.stringify(document.nodes));
       actions.selectNode();
       setJson(value);
-      setMessage("Đã mở document JSON. Chưa lưu server.");
+      setMessage(t("status.jsonOpened"));
     } catch {
-      setMessage("Không mở được: JSON sai cấu trúc hoặc có item chưa hỗ trợ.");
+      setMessage(t("status.jsonOpenFailed"));
     }
   }
 
@@ -555,18 +558,18 @@ function Workspace({
               <div className={styles.buttons}>
                 {backHref && (
                   <Link href={backHref} className={styles.backLink}>
-                    Về wedding
+                    {t("header.backWedding")}
                   </Link>
                 )}
                 {onSave && (
                   <button disabled={saving} onClick={() => void saveDesign()}>
-                    {saving ? "Đang lưu…" : "Lưu bản nháp"}
+                    {saving ? t("header.saving") : t("header.saveDraft")}
                   </button>
                 )}
                 <button
                   className={styles.historyButton}
-                  aria-label="Undo"
-                  title="Undo · Ctrl+Z"
+                  aria-label={t("header.undo")}
+                  title={`${t("header.undo")} · Ctrl+Z`}
                   aria-keyshortcuts="Control+Z Meta+Z"
                   disabled={!canUndo}
                   onClick={() => actions.history.undo()}
@@ -575,8 +578,8 @@ function Workspace({
                 </button>
                 <button
                   className={styles.historyButton}
-                  aria-label="Redo"
-                  title="Redo · Ctrl+Shift+Z / Ctrl+Y"
+                  aria-label={t("header.redo")}
+                  title={`${t("header.redo")} · Ctrl+Shift+Z / Ctrl+Y`}
                   aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
                   disabled={!canRedo}
                   onClick={() => actions.history.redo()}
@@ -595,7 +598,7 @@ function Workspace({
                     setPreview(!preview);
                   }}
                 >
-                  {preview ? "Về editor" : "Xem trước"}
+                  {preview ? t("header.backEditor") : t("header.preview")}
                 </button>
               </div>
             </header>
@@ -612,26 +615,26 @@ function Workspace({
               setPreview(false);
             }}
           >
-            <Pencil size={15} aria-hidden="true" /> Edit
+            <Pencil size={15} aria-hidden="true" /> {t("header.edit")}
           </button>
         )}
         <div className={styles.layout}>
-          <aside className={styles.library} aria-label="Thư viện thiết kế">
-            <nav className={styles.rail} aria-label="Danh mục thiết kế">
+          <aside className={styles.library} aria-label={t("categories.libraryAria")}>
+            <nav className={styles.rail} aria-label={t("categories.navAria")}>
               {[
-                { id: "cover", label: "Bìa thiệp", icon: Mail },
-                { id: "text", label: "Văn bản", icon: Type },
-                { id: "image", label: "Hình ảnh", icon: ImageIcon },
-                { id: "stock", label: "Stock", icon: Library },
-                { id: "shapes", label: "Hình dạng", icon: Shapes },
-                { id: "background", label: "Nền", icon: Paintbrush },
-                { id: "music", label: "Âm nhạc", icon: Music },
-                { id: "utilities", label: "Tiện ích", icon: CalendarDays },
-                { id: "presets", label: "Lời mời", icon: Mail },
-                { id: "templates", label: "Mẫu", icon: LayoutTemplate },
-                { id: "effects", label: "Hiệu ứng", icon: WandSparkles },
-                { id: "layers", label: "Các lớp", icon: Layers },
-              ].map(({ id, label, icon: Icon }) => (
+                { id: "cover", icon: Mail },
+                { id: "text", icon: Type },
+                { id: "image", icon: ImageIcon },
+                { id: "stock", icon: Library },
+                { id: "shapes", icon: Shapes },
+                { id: "background", icon: Paintbrush },
+                { id: "music", icon: Music },
+                { id: "utilities", icon: CalendarDays },
+                { id: "presets", icon: Mail },
+                { id: "templates", icon: LayoutTemplate },
+                { id: "effects", icon: WandSparkles },
+                { id: "layers", icon: Layers },
+              ].map(({ id, icon: Icon }) => (
                 <button
                   key={id}
                   aria-pressed={category === id}
@@ -643,52 +646,52 @@ function Workspace({
                   }}
                 >
                   <Icon size={22} />
-                  <span>{label}</span>
+                  <span>{t(`categories.${id}`)}</span>
                 </button>
               ))}
             </nav>
             <div className={styles.libraryContent}>
               {category === "utilities" && (
                 <>
-                  <h2>Tiện ích</h2>
-                  <p>Chọn tiện ích để thêm vào thiết kế.</p>
+                  <h2>{t("categories.utilities")}</h2>
+                  <p>{t("library.utilitiesHelp")}</p>
                   <div className={styles.utilityGrid}>
                     {[
-                      { label: "Lịch", icon: CalendarDays, kind: "calendar" as const },
-                      { label: "Đếm ngược", icon: Timer, kind: "countdown" as const },
-                      { label: "Bản đồ", icon: MapPin, kind: "map" as const },
-                      { label: "Nút gọi", icon: Phone },
-                      { label: "Thêm lời nhắc", icon: Bell, kind: "reminder" as const },
+                      { key: "calendar", icon: CalendarDays, kind: "calendar" as const },
+                      { key: "countdown", icon: Timer, kind: "countdown" as const },
+                      { key: "map", icon: MapPin, kind: "map" as const },
+                      { key: "call", icon: Phone },
+                      { key: "reminder", icon: Bell, kind: "reminder" as const },
                       {
-                        label: "Form xác nhận tham dự",
+                        key: "rsvp",
                         icon: ClipboardCheck,
                         kind: "rsvp" as const,
                       },
-                      { label: "Form tùy chỉnh", icon: ClipboardCheck },
-                      { label: "Tên khách tự động", icon: Type },
-                      { label: "QR Box", icon: QrCode },
-                      { label: "Hiệu ứng phong bì thư", icon: Mail },
-                      { label: "Album ảnh", icon: Images, kind: "album" as const },
-                      { label: "Sổ lưu bút", icon: ClipboardCheck, kind: "wishes" as const },
-                      { label: "Interview", icon: ClipboardCheck, kind: "interview" as const },
-                      { label: "Timeline", icon: Timer, kind: "timeline" as const },
-                      { label: "Hộp quà mừng", icon: Mail, kind: "gift" as const },
-                      { label: "Carousel ảnh", icon: GalleryHorizontal },
-                      { label: "Video YouTube", icon: Youtube },
-                      { label: "Hiệu ứng hạt", icon: Sparkles },
-                    ].map(({ label, icon: Icon, ...item }) => {
+                      { key: "customForm", icon: ClipboardCheck },
+                      { key: "guestName", icon: Type },
+                      { key: "qr", icon: QrCode },
+                      { key: "envelope", icon: Mail },
+                      { key: "album", icon: Images, kind: "album" as const },
+                      { key: "wishes", icon: ClipboardCheck, kind: "wishes" as const },
+                      { key: "interview", icon: ClipboardCheck, kind: "interview" as const },
+                      { key: "timeline", icon: Timer, kind: "timeline" as const },
+                      { key: "gift", icon: Mail, kind: "gift" as const },
+                      { key: "carousel", icon: GalleryHorizontal },
+                      { key: "youtube", icon: Youtube },
+                      { key: "particles", icon: Sparkles },
+                    ].map(({ key, icon: Icon, ...item }) => {
                       const kind = "kind" in item ? item.kind : undefined;
                       return (
                         <button
-                          key={label}
+                          key={key}
                           disabled={preview || !kind}
                           onClick={() => {
                             if (kind) add(kind);
                           }}
                         >
                           <Icon size={32} />
-                          <span>{label}</span>
-                          {!kind && <small>Sắp có</small>}
+                          <span>{t(`utilities.${key}`)}</span>
+                          {!kind && <small>{t("utilities.comingSoon")}</small>}
                         </button>
                       );
                     })}
@@ -697,17 +700,17 @@ function Workspace({
               )}
               {category === "text" && (
                 <>
-                  <h2>Văn bản</h2>
-                  <p>Thêm chữ, sau đó chỉnh nội dung ở Thuộc tính.</p>
+                  <h2>{t("categories.text")}</h2>
+                  <p>{t("library.textHelp")}</p>
                   <button className={styles.addCard} disabled={preview} onClick={() => add("text")}>
                     <Type size={30} />
-                    Thêm văn bản
+                    {t("library.addText")}
                   </button>
                 </>
               )}
               {category === "image" && (
                 <>
-                  <h2>Hình ảnh</h2>
+                  <h2>{t("categories.image")}</h2>
                   <label
                     className={styles.uploadBox}
                     onDragOver={(event) => event.preventDefault()}
@@ -717,10 +720,12 @@ function Workspace({
                     }}
                   >
                     <ImageIcon size={36} />
-                    <strong>{uploading ? "Đang tải ảnh…" : "Kéo thả hoặc nhấn để tải ảnh"}</strong>
-                    <small>PNG, JPG, WebP · tối đa 10 MB/ảnh · 15 ảnh/lượt</small>
+                    <strong>
+                      {uploading ? t("library.loadingImage") : t("library.uploadImage")}
+                    </strong>
+                    <small>{t("library.imageLimits")}</small>
                     <input
-                      aria-label="Tải ảnh lên"
+                      aria-label={t("library.uploadAria")}
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
                       multiple
@@ -734,11 +739,13 @@ function Workspace({
                   <p>
                     {replacement
                       ? replacement.append
-                        ? "Chọn ảnh để thêm vào album"
-                        : "Hãy chọn ảnh bạn muốn thay thế"
-                      : "Chọn ảnh trên thiệp rồi bấm Đổi ảnh"}
+                        ? t("library.chooseAlbumImage")
+                        : t("library.chooseReplacement")
+                      : t("library.selectCanvasImage")}
                   </p>
-                  <h3>Tệp đã tải lên ({uploads.length})</h3>
+                  <h3>
+                    {t("library.uploadedFiles", { count: formatNumber(uploads.length, language) })}
+                  </h3>
                   <div className={styles.uploadGrid}>
                     {uploads.map((image) => (
                       <button key={image.src} onClick={() => chooseImage(image.src)}>
@@ -747,14 +754,19 @@ function Workspace({
                       </button>
                     ))}
                   </div>
-                  <h3>Ảnh có sẵn</h3>
+                  <h3>{t("library.availableImages")}</h3>
                   <div className={styles.uploadGrid}>
                     {Array.from({ length: 8 }, (_, index) => {
                       const src = `/images/template-studio/collection/${index % 2 ? "photo-traditional" : "photo-garden"}.webp`;
                       return (
                         <button key={src} onClick={() => chooseImage(src)}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={src} alt={`Ảnh mẫu ${index + 1}`} />
+                          <img
+                            src={src}
+                            alt={t("library.sampleImageAlt", {
+                              number: formatNumber(index + 1, language),
+                            })}
+                          />
                         </button>
                       );
                     })}
@@ -764,14 +776,14 @@ function Workspace({
                     disabled={preview}
                     onClick={() => add("image")}
                   >
-                    Thêm item ảnh
+                    {t("library.addImageItem")}
                   </button>
                 </>
               )}
               {category === "layers" && (
                 <>
-                  <h2>Các lớp</h2>
-                  <p>Lớp trên cùng nằm đầu danh sách.</p>
+                  <h2>{t("categories.layers")}</h2>
+                  <p>{t("library.layersHelp")}</p>
                   {[...items].reverse().map((id) => (
                     <button
                       key={id}
@@ -787,10 +799,10 @@ function Workspace({
               )}
               {category === "background" && (
                 <>
-                  <h2>Nền thiết kế</h2>
+                  <h2>{t("library.designBackground")}</h2>
                   <ColorControl
                     key={`background-${background}`}
-                    label="Nền khung"
+                    label={t("library.frameBackground")}
                     value={background}
                     disabled={preview}
                     onChange={(color) =>
@@ -803,8 +815,12 @@ function Workspace({
               )}
               {category === "templates" && (
                 <>
-                  <h2>Mẫu thiết kế · {templateCatalog.length} mẫu</h2>
-                  <p>Ảnh người hư cấu và họa tiết riêng. Widget InviteMe dùng chung.</p>
+                  <h2>
+                    {t("library.templatesCount", {
+                      count: formatNumber(templateCatalog.length, language),
+                    })}
+                  </h2>
+                  <p>{t("library.templateHelp")}</p>
                   {templateCatalog.map((template) => (
                     <div className={styles.templateCard} key={template.id}>
                       <TemplateThumbnail document={template.document} />
@@ -817,11 +833,11 @@ function Workspace({
                             JSON.stringify({ ...template.document, templateId: template.id }),
                           );
                           setCoverOpen(false);
-                          setMessage("Đã mở mẫu " + template.name + ". Undo để quay lại.");
+                          setMessage(t("status.templateApplied", { name: template.name }));
                           stage.current?.parentElement?.scrollTo({ top: 0 });
                         }}
                       >
-                        Dùng mẫu {template.name.replace(" · ", " ")}
+                        {t("library.useTemplate", { name: template.name.replace(" · ", " ") })}
                       </button>
                     </div>
                   ))}
@@ -829,11 +845,8 @@ function Workspace({
               )}
               {category === "cover" && (
                 <fieldset className={styles.coverControls} disabled={preview}>
-                  <h2>Bìa thiệp</h2>
-                  <p>
-                    Đang chỉnh bìa và nền. Chọn Văn bản hoặc mục khác để quay lại nội dung bên
-                    trong.
-                  </p>
+                  <h2>{t("library.cover")}</h2>
+                  <p>{t("library.coverHelp")}</p>
                   <label>
                     <input
                       type="checkbox"
@@ -850,12 +863,12 @@ function Workspace({
                         })
                       }
                     />{" "}
-                    Dùng bìa trước nội dung
+                    {t("library.useCover")}
                   </label>
                   {cover?.enabled && (
                     <>
                       <ColorControl
-                        label="Màu nền bìa"
+                        label={t("library.coverBackground")}
                         value={cover.background}
                         onChange={(background) =>
                           actions.setProp("ROOT", (value: ItemProps) => {
@@ -864,7 +877,7 @@ function Workspace({
                         }
                       />
                       <label>
-                        Tên trên bìa
+                        {t("library.coverNames")}
                         <textarea
                           value={cover.names}
                           onChange={(event) =>
@@ -887,24 +900,21 @@ function Workspace({
                             })
                           }
                         />
-                        Sử dụng lời mời cá nhân hóa
+                        {t("library.personalizedWording")}
                       </label>
                       {cover.greetingBinding && (
                         <>
-                          <p>
-                            Chỉnh preset và chọn khách ngay bên dưới. Dùng chung với lời mời bên
-                            trong thiệp.
-                          </p>
+                          <p>{t("library.wordingBindingHelp")}</p>
                         </>
                       )}
                       <label>
-                        Lời mời trên bìa
+                        {t("library.coverGreeting")}
                         <textarea
                           maxLength={300}
                           readOnly={!!cover.greetingBinding}
-                          aria-label="Lời mời trên bìa"
+                          aria-label={t("library.coverGreetingAria")}
                           value={resolveCoverGreeting(cover, wordingPreview)}
-                          placeholder="Ví dụ: Trân trọng kính mời"
+                          placeholder={t("library.coverGreetingPlaceholder")}
                           onChange={(event) =>
                             actions.setProp("ROOT", (value: ItemProps) => {
                               if (value.cover) value.cover.greeting = event.target.value;
@@ -913,7 +923,7 @@ function Workspace({
                         />
                       </label>
                       <label>
-                        Kiểu bìa
+                        {t("library.coverStyle")}
                         <select
                           value={cover.style ?? "floral"}
                           onChange={(event) =>
@@ -925,13 +935,13 @@ function Workspace({
                             })
                           }
                         >
-                          <option value="floral">Hoa trên giấy kem</option>
-                          <option value="traditional">Chữ hỷ truyền thống</option>
-                          <option value="botanical">Hoa lá</option>
+                          <option value="floral">{t("library.coverFloral")}</option>
+                          <option value="traditional">{t("library.coverTraditional")}</option>
+                          <option value="botanical">{t("library.coverBotanical")}</option>
                         </select>
                       </label>
                       <label>
-                        Hiệu ứng nền
+                        {t("library.backgroundEffect")}
                         <select
                           value={cover.particles ?? "hearts"}
                           onChange={(event) =>
@@ -943,14 +953,14 @@ function Workspace({
                             })
                           }
                         >
-                          <option value="none">Không</option>
-                          <option value="hearts">Tim</option>
-                          <option value="leaves">Lá</option>
-                          <option value="happiness">Chữ hỷ</option>
+                          <option value="none">{t("library.none")}</option>
+                          <option value="hearts">{t("library.hearts")}</option>
+                          <option value="leaves">{t("library.leaves")}</option>
+                          <option value="happiness">{t("library.happiness")}</option>
                         </select>
                       </label>
                       <label>
-                        Animation mở
+                        {t("library.openingAnimation")}
                         <select
                           value={cover.opening ?? "seal"}
                           onChange={(event) =>
@@ -962,13 +972,13 @@ function Workspace({
                             })
                           }
                         >
-                          <option value="seal">Con dấu bung rồi bìa bay lên</option>
-                          <option value="fly">Bìa bay lên</option>
-                          <option value="fade">Tan dần</option>
+                          <option value="seal">{t("library.sealOpening")}</option>
+                          <option value="fly">{t("library.flyOpening")}</option>
+                          <option value="fade">{t("library.fadeOpening")}</option>
                         </select>
                       </label>
                       <label>
-                        Ngày trên bìa
+                        {t("library.coverDate")}
                         <input
                           value={cover.date}
                           onChange={(event) =>
@@ -989,7 +999,7 @@ function Workspace({
                           setPreview(true);
                         }}
                       >
-                        Xem bìa
+                        {t("library.previewCover")}
                       </button>
                     </>
                   )}
@@ -1002,9 +1012,9 @@ function Workspace({
                 }
                 className={styles.wordingPanel}
                 role="region"
-                aria-label="Cấu hình lời mời"
+                aria-label={t("library.wordingConfigAria")}
               >
-                <h2>Lời mời cá nhân hóa</h2>
+                <h2>{t("library.personalizedInvitation")}</h2>
                 {category === "presets" && (
                   <>
                     <button
@@ -1012,27 +1022,24 @@ function Workspace({
                       disabled={preview}
                       onClick={() => add("wording")}
                     >
-                      Thêm khối lời mời vào thiệp
+                      {t("library.addWordingBlock")}
                     </button>
-                    <p>
-                      Khối này tự đổi nội dung khi chọn khách xem trước; có thể chỉnh font, màu và
-                      vị trí trên thiệp.
-                    </p>
+                    <p>{t("library.wordingBlockHelp")}</p>
                   </>
                 )}
                 {wordingPanel ? (
                   wordingPanel({ onPreview: setWordingPreview })
                 ) : (
                   <p>
-                    Mở Studio từ wedding để cấu hình preset và chọn khách.{" "}
-                    <Link href="/weddings">Đến danh sách wedding</Link>
+                    {t("library.openFromWedding")}{" "}
+                    <Link href="/weddings">{t("library.weddingList")}</Link>
                   </p>
                 )}
               </div>
               {category === "effects" && (
                 <>
-                  <h2>Hiệu ứng toàn trang</h2>
-                  <p>Áp dụng khi cuộn ngay trong editor. Item có lựa chọn riêng sẽ được ưu tiên.</p>
+                  <h2>{t("library.wholePageEffects")}</h2>
+                  <p>{t("library.wholePageEffectsHelp")}</p>
                   <div className={styles.uploadGrid}>
                     {(
                       [
@@ -1058,7 +1065,7 @@ function Workspace({
                     ))}
                   </div>
                   <label>
-                    Thời lượng hiệu ứng (ms)
+                    {t("library.effectDuration")}
                     <input
                       type="number"
                       min={100}
@@ -1075,10 +1082,7 @@ function Workspace({
                       }
                     />
                   </label>
-                  <p>
-                    Bấm preset rồi cuộn: từng item chạy khi xuất hiện trong khung. Bấm lại preset để
-                    bắt đầu lượt mới.
-                  </p>
+                  <p>{t("library.effectHelp")}</p>
                 </>
               )}
               {["stock", "shapes", "music"].includes(category) && (
@@ -1087,22 +1091,26 @@ function Workspace({
                     {
                       (
                         {
-                          stock: "Stock",
-                          shapes: "Hình dạng",
-                          music: "Âm nhạc",
-                          presets: "Preset",
-                          templates: "Mẫu",
-                          effects: "Hiệu ứng",
+                          stock: t("categories.stock"),
+                          shapes: t("categories.shapes"),
+                          music: t("categories.music"),
+                          presets: t("categories.presets"),
+                          templates: t("categories.templates"),
+                          effects: t("categories.effects"),
                         } as Record<string, string>
                       )[category]
                     }
                   </h2>
-                  <p>Mục này sẽ được bổ sung ở bước tiếp theo.</p>
+                  <p>{t("library.contentComingSoon")}</p>
                 </>
               )}
             </div>
           </aside>
-          <section ref={workspace} className={styles.workspace} aria-label="Khung thiết kế">
+          <section
+            ref={workspace}
+            className={styles.workspace}
+            aria-label={t("library.workspaceAria")}
+          >
             <RevealPausedContext.Provider value={showingCover}>
               <div
                 ref={stage}
@@ -1196,14 +1204,14 @@ function Workspace({
             )}
           </section>
           <aside ref={propertyPanel} className={styles.panel} hidden={editingCover}>
-            <h2>Thuộc tính</h2>
+            <h2>{t("properties.title")}</h2>
             {!selection ? (
-              <p>Chọn một item trong khung để chỉnh thuộc tính.</p>
+              <p>{t("properties.selectItem")}</p>
             ) : (
               <fieldset disabled={preview}>
                 <div className={styles.layerControls}>
                   <button
-                    title="Delete / Backspace · Ctrl+Z để khôi phục"
+                    title={t("properties.deleteTitle")}
                     aria-keyshortcuts="Delete Backspace"
                     className={styles.deleteButton}
                     onClick={() => {
@@ -1211,25 +1219,28 @@ function Workspace({
                       setTarget(null);
                     }}
                   >
-                    Xóa item
+                    {t("properties.delete")}
                   </button>
                   <span>
-                    Thứ tự lớp · {layerIndex + 1}/{items.length} (lớp trên có số lớn hơn)
+                    {t("properties.layerOrder", {
+                      current: formatNumber(layerIndex + 1, language),
+                      total: formatNumber(items.length, language),
+                    })}
                   </span>
                   <div className={styles.buttons}>
                     <button
                       disabled={layerIndex >= items.length - 1}
                       onClick={() => moveLayer("up")}
                     >
-                      ↑ Lên 1 lớp
+                      {t("properties.moveUp")}
                     </button>
                     <button disabled={layerIndex <= 0} onClick={() => moveLayer("down")}>
-                      ↓ Xuống 1 lớp
+                      {t("properties.moveDown")}
                     </button>
                   </div>
                 </div>
                 <label>
-                  Hiệu ứng item
+                  {t("properties.itemEffect")}
                   <select
                     value={props.revealPreset ?? "inherit"}
                     onChange={(event) => {
@@ -1240,15 +1251,15 @@ function Workspace({
                         });
                     }}
                   >
-                    <option value="inherit">Theo toàn trang</option>
-                    <option value="none">Không hiệu ứng</option>
-                    <option value="fade">Hiện dần</option>
-                    <option value="slide-up">Trượt lên</option>
-                    <option value="scale-in">Phóng lớn</option>
+                    <option value="inherit">{t("properties.inheritEffect")}</option>
+                    <option value="none">{t("properties.noEffect")}</option>
+                    <option value="fade">{t("properties.fadeIn")}</option>
+                    <option value="slide-up">{t("properties.slideUp")}</option>
+                    <option value="scale-in">{t("properties.scaleIn")}</option>
                   </select>
                 </label>
                 <label>
-                  Độ trễ hiệu ứng (ms)
+                  {t("properties.effectDelay")}
                   <input
                     type="number"
                     min={0}
@@ -1264,25 +1275,37 @@ function Workspace({
                 {selected?.node?.data.name === "StudioAlbum" && (
                   <>
                     <h2>
-                      Ảnh trong album · {albumIndex + 1}/{albumImages.length}
+                      {t("properties.albumImageCount", {
+                        current: formatNumber(albumIndex + 1, language),
+                        total: formatNumber(albumImages.length, language),
+                      })}
                     </h2>
                     <div className={styles.albumSlots}>
                       {albumImages.map((src, index) => (
                         <button
                           key={index}
-                          aria-label={`Chọn ảnh album ${index + 1}`}
+                          aria-label={t("properties.selectAlbumImage", {
+                            number: formatNumber(index + 1, language),
+                          })}
                           aria-pressed={albumIndex === index}
                           onClick={() => selectPhoto(selection, index)}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={src} alt={`Album ${index + 1}`} />
+                          <img
+                            src={src}
+                            alt={t("properties.albumImageAlt", {
+                              number: formatNumber(index + 1, language),
+                            })}
+                          />
                           <span>{index + 1}</span>
                         </button>
                       ))}
                     </div>
-                    <button onClick={() => openImages()}>Đổi ảnh đang chọn</button>
+                    <button onClick={() => openImages()}>
+                      {t("properties.replaceSelectedImage")}
+                    </button>
                     <button disabled={albumImages.length >= 100} onClick={() => openImages(true)}>
-                      + Thêm ảnh vào album
+                      {t("properties.addAlbumImage")}
                     </button>
                     <button
                       disabled={albumImages.length <= 1}
@@ -1291,7 +1314,7 @@ function Workspace({
                         selectPhoto(selection, Math.max(0, albumIndex - 1));
                       }}
                     >
-                      Xóa ảnh đang chọn
+                      {t("properties.removeSelectedImage")}
                     </button>
                   </>
                 )}
@@ -1301,23 +1324,23 @@ function Workspace({
                     <img
                       className={styles.imagePreview}
                       src={props.src ?? "/images/templates/invite-portrait.png"}
-                      alt="Ảnh đang chọn"
+                      alt={t("properties.selectedImageAlt")}
                     />
-                    <button onClick={() => openImages()}>Đổi ảnh</button>
+                    <button onClick={() => openImages()}>{t("properties.replaceImage")}</button>
                     <label>
-                      Hiển thị ảnh
+                      {t("properties.imageDisplay")}
                       <select
                         value={props.objectFit ?? "cover"}
                         onChange={(event) =>
                           update({ objectFit: event.target.value as ItemProps["objectFit"] })
                         }
                       >
-                        <option value="cover">Lấp đầy / crop</option>
-                        <option value="contain">Giữ nguyên ảnh</option>
+                        <option value="cover">{t("properties.coverCrop")}</option>
+                        <option value="contain">{t("properties.containImage")}</option>
                       </select>
                     </label>
                     <label>
-                      Bo góc
+                      {t("properties.cornerRadius")}
                       <input
                         type="number"
                         min={0}
@@ -1338,7 +1361,7 @@ function Workspace({
                 ].includes(selected?.node?.data.name ?? "") && (
                   <>
                     <label>
-                      Tiêu đề tiện ích
+                      {t("properties.widgetTitle")}
                       <input
                         maxLength={150}
                         value={props.title ?? ""}
@@ -1349,9 +1372,13 @@ function Workspace({
                       <>
                         {(props.questions ?? defaultQuestions).map((entry, index, entries) => (
                           <fieldset key={index}>
-                            <legend>Câu hỏi {index + 1}</legend>
+                            <legend>
+                              {t("properties.questionNumber", {
+                                number: formatNumber(index + 1, language),
+                              })}
+                            </legend>
                             <label>
-                              Câu hỏi
+                              {t("properties.question")}
                               <input
                                 maxLength={150}
                                 value={entry.question}
@@ -1367,7 +1394,7 @@ function Workspace({
                               />
                             </label>
                             <label>
-                              Trả lời
+                              {t("properties.answer")}
                               <textarea
                                 maxLength={600}
                                 value={entry.answer}
@@ -1388,7 +1415,7 @@ function Workspace({
                                 update({ questions: next });
                               }}
                             >
-                              Lên trước
+                              {t("properties.moveEarlier")}
                             </button>
                             <button
                               disabled={entries.length < 2}
@@ -1396,7 +1423,7 @@ function Workspace({
                                 update({ questions: entries.filter((_, i) => i !== index) })
                               }
                             >
-                              Xóa câu hỏi
+                              {t("properties.removeQuestion")}
                             </button>
                           </fieldset>
                         ))}
@@ -1411,7 +1438,7 @@ function Workspace({
                             })
                           }
                         >
-                          Thêm câu hỏi
+                          {t("properties.addQuestion")}
                         </button>
                       </>
                     )}
@@ -1419,9 +1446,13 @@ function Workspace({
                       <>
                         {(props.milestones ?? defaultMilestones).map((entry, index, entries) => (
                           <fieldset key={index}>
-                            <legend>Mốc {index + 1}</legend>
+                            <legend>
+                              {t("properties.milestoneNumber", {
+                                number: formatNumber(index + 1, language),
+                              })}
+                            </legend>
                             <label>
-                              Thời gian
+                              {t("properties.time")}
                               <input
                                 maxLength={40}
                                 value={entry.time}
@@ -1435,7 +1466,7 @@ function Workspace({
                               />
                             </label>
                             <label>
-                              Tên mốc
+                              {t("properties.milestoneTitle")}
                               <input
                                 maxLength={120}
                                 value={entry.title}
@@ -1449,7 +1480,7 @@ function Workspace({
                               />
                             </label>
                             <label>
-                              Mô tả
+                              {t("properties.description")}
                               <textarea
                                 maxLength={220}
                                 value={entry.description}
@@ -1472,7 +1503,7 @@ function Workspace({
                                 update({ milestones: next });
                               }}
                             >
-                              Lên trước
+                              {t("properties.moveEarlier")}
                             </button>
                             <button
                               disabled={entries.length < 2}
@@ -1480,7 +1511,7 @@ function Workspace({
                                 update({ milestones: entries.filter((_, i) => i !== index) })
                               }
                             >
-                              Xóa mốc
+                              {t("properties.removeMilestone")}
                             </button>
                           </fieldset>
                         ))}
@@ -1499,13 +1530,13 @@ function Workspace({
                             })
                           }
                         >
-                          Thêm mốc
+                          {t("properties.addMilestone")}
                         </button>
                       </>
                     )}
                     {selected?.node?.data.name === "StudioMap" && (
                       <label>
-                        Địa điểm
+                        {t("properties.location")}
                         <textarea
                           maxLength={500}
                           value={props.address ?? ""}
@@ -1516,20 +1547,20 @@ function Workspace({
                     {selected?.node?.data.name === "StudioAction" && (
                       <>
                         <label>
-                          Hành động
+                          {t("properties.action")}
                           <select
                             value={props.action ?? "rsvp"}
                             onChange={(event) =>
                               update({ action: event.target.value as ItemProps["action"] })
                             }
                           >
-                            <option value="rsvp">Xác nhận tham dự</option>
-                            <option value="calendar">Thêm vào lịch</option>
-                            <option value="gift">Hộp quà mừng</option>
+                            <option value="rsvp">{t("properties.rsvp")}</option>
+                            <option value="calendar">{t("properties.addToCalendar")}</option>
+                            <option value="gift">{t("properties.giftBox")}</option>
                           </select>
                         </label>
                         <label>
-                          Nội dung
+                          {t("properties.content")}
                           <textarea
                             maxLength={2000}
                             value={props.message ?? ""}
@@ -1539,7 +1570,7 @@ function Workspace({
                         {props.action === "calendar" && (
                           <>
                             <label>
-                              Ngày sự kiện
+                              {t("properties.eventDate")}
                               <input
                                 type="date"
                                 value={props.eventDate ?? "2027-01-03"}
@@ -1550,7 +1581,7 @@ function Workspace({
                               />
                             </label>
                             <label>
-                              Giờ sự kiện
+                              {t("properties.eventTime")}
                               <input
                                 type="time"
                                 value={props.eventTime ?? "18:00"}
@@ -1566,13 +1597,13 @@ function Workspace({
                     )}
                     <ColorControl
                       key={`${selection}-widget-bg-${props.background}`}
-                      label="Nền tiện ích"
+                      label={t("properties.utilityBackground")}
                       value={props.background ?? "#faf4ec"}
                       onChange={(background) => update({ background })}
                     />
                     <ColorControl
                       key={`${selection}-widget-accent-${props.accent}`}
-                      label="Màu tiện ích"
+                      label={t("properties.accentColor")}
                       value={props.accent ?? "#7c6a60"}
                       onChange={(accent) => update({ accent })}
                     />
@@ -1582,7 +1613,7 @@ function Workspace({
                   selected?.node?.data.name === "StudioCountdown") && (
                   <>
                     <label>
-                      Tiêu đề
+                      {t("properties.title")}
                       <input
                         maxLength={150}
                         value={props.title ?? ""}
@@ -1590,7 +1621,7 @@ function Workspace({
                       />
                     </label>
                     <label>
-                      Ngày sự kiện
+                      {t("properties.eventDate")}
                       <input
                         type="date"
                         value={props.eventDate ?? "2027-04-18"}
@@ -1603,7 +1634,7 @@ function Workspace({
                     {selected.node.data.name === "StudioCountdown" && (
                       <>
                         <label>
-                          Giờ sự kiện
+                          {t("properties.eventTime")}
                           <input
                             type="time"
                             value={props.eventTime ?? "17:00"}
@@ -1614,34 +1645,36 @@ function Workspace({
                           />
                         </label>
                         <label>
-                          Múi giờ
+                          {t("properties.timezone")}
                           <select
                             value={props.timezone ?? "Asia/Ho_Chi_Minh"}
                             onChange={(event) =>
                               update({ timezone: event.target.value as ItemProps["timezone"] })
                             }
                           >
-                            <option value="Asia/Ho_Chi_Minh">Việt Nam (GMT+7)</option>
+                            <option value="Asia/Ho_Chi_Minh">
+                              {t("properties.vietnamTimezone")}
+                            </option>
                             <option value="UTC">UTC (GMT+0)</option>
                           </select>
                         </label>
                       </>
                     )}
                     <label>
-                      Kiểu chữ
+                      {t("properties.fontStyle")}
                       <select
                         value={props.fontFamily ?? "Georgia"}
                         onChange={(event) =>
                           update({ fontFamily: event.target.value as ItemProps["fontFamily"] })
                         }
                       >
-                        <option value="Georgia">Georgia · có chân</option>
-                        <option value="Arial">Arial · không chân</option>
+                        <option value="Georgia">{t("properties.serifFont")}</option>
+                        <option value="Arial">{t("properties.sansSerifFont")}</option>
                         <option value="EB Garamond">EB Garamond</option>
                       </select>
                     </label>
                     <label>
-                      Cỡ chữ tiện ích
+                      {t("properties.utilityFontSize")}
                       <input
                         type="number"
                         min={8}
@@ -1652,19 +1685,19 @@ function Workspace({
                     </label>
                     <ColorControl
                       key={`${selection}-text-${props.color}`}
-                      label="Màu chữ tiện ích"
+                      label={t("properties.utilityTextColor")}
                       value={props.color ?? "#493a34"}
                       onChange={(color) => update({ color })}
                     />
                     <ColorControl
                       key={`${selection}-accent-${props.accent}`}
-                      label="Màu nhấn"
+                      label={t("properties.accentColor")}
                       value={props.accent ?? "#873b46"}
                       onChange={(accent) => update({ accent })}
                     />
                     <ColorControl
                       key={`${selection}-bg-${props.background}`}
-                      label="Nền tiện ích"
+                      label={t("properties.utilityBackground")}
                       value={props.background ?? "#fffaf1"}
                       onChange={(background) => update({ background })}
                     />
@@ -1682,17 +1715,17 @@ function Workspace({
                           })
                         }
                       />
-                      Dùng lời mời từ preset
+                      {t("properties.usePresetWording")}
                     </label>
                     <p>
                       <i>
                         {props.textBinding
-                          ? "Chọn khách trong mục Lời mời để xem trước nội dung."
-                          : "Kích đúp vào văn bản để chỉnh sửa."}
+                          ? t("properties.chooseGuestPreview")
+                          : t("properties.editTextHint")}
                       </i>
                     </p>
                     <label>
-                      Nội dung
+                      {t("properties.content")}
                       <textarea
                         maxLength={10000}
                         value={
@@ -1705,15 +1738,15 @@ function Workspace({
                       />
                     </label>
                     <details className={styles.typography} open>
-                      <summary>Kiểu chữ</summary>
+                      <summary>{t("properties.typography")}</summary>
                       <div className={styles.textTools}>
                         {(
                           [
-                            { key: "bold", label: "In đậm", symbol: "B" },
-                            { key: "italic", label: "In nghiêng", symbol: "I" },
-                            { key: "strike", label: "Gạch ngang", symbol: "S̶" },
-                            { key: "underline", label: "Gạch chân", symbol: "U̲" },
-                            { key: "uppercase", label: "Chữ hoa", symbol: "Aa" },
+                            { key: "bold", label: t("properties.bold"), symbol: "B" },
+                            { key: "italic", label: t("properties.italic"), symbol: "I" },
+                            { key: "strike", label: t("properties.strike"), symbol: "S̶" },
+                            { key: "underline", label: t("properties.underline"), symbol: "U̲" },
+                            { key: "uppercase", label: t("properties.uppercase"), symbol: "Aa" },
                           ] as const
                         ).map(({ key, label, symbol }) => (
                           <button
@@ -1728,14 +1761,22 @@ function Workspace({
                         ))}
                       </div>
                       <div className={styles.textRow}>
-                        <span>Căn chỉnh</span>
+                        <span>{t("properties.alignment")}</span>
                         <div className={styles.textTools}>
                           {(
                             [
-                              { key: "left", label: "Căn trái", icon: AlignLeft },
-                              { key: "center", label: "Căn giữa", icon: AlignCenter },
-                              { key: "right", label: "Căn phải", icon: AlignRight },
-                              { key: "justify", label: "Căn đều", icon: AlignJustify },
+                              { key: "left", label: t("properties.alignLeft"), icon: AlignLeft },
+                              {
+                                key: "center",
+                                label: t("properties.alignCenter"),
+                                icon: AlignCenter,
+                              },
+                              { key: "right", label: t("properties.alignRight"), icon: AlignRight },
+                              {
+                                key: "justify",
+                                label: t("properties.justify"),
+                                icon: AlignJustify,
+                              },
                             ] as const
                           ).map(({ key, label, icon: Icon }) => (
                             <button
@@ -1751,7 +1792,7 @@ function Workspace({
                         </div>
                       </div>
                       <label>
-                        Font
+                        {t("properties.font")}
                         <select
                           value={props.fontFamily ?? "Arial"}
                           onChange={(event) =>
@@ -1765,15 +1806,15 @@ function Workspace({
                       </label>
                       <ColorControl
                         key={`${selection}-${props.color}`}
-                        label="Màu chữ"
+                        label={t("properties.textColor")}
                         value={props.color ?? "#493a34"}
                         onChange={(color) => update({ color })}
                       />
                       <label>
-                        Cỡ chữ
+                        {t("properties.fontSize")}
                         <div className={styles.sizeRow}>
                           <button
-                            aria-label="Giảm cỡ chữ"
+                            aria-label={t("properties.decreaseFont")}
                             onClick={() => update({ fontSize: (props.fontSize ?? 32) - 1 })}
                           >
                             −
@@ -1790,7 +1831,7 @@ function Workspace({
                             }
                           />
                           <button
-                            aria-label="Tăng cỡ chữ"
+                            aria-label={t("properties.increaseFont")}
                             onClick={() => update({ fontSize: (props.fontSize ?? 32) + 1 })}
                           >
                             +
@@ -1799,7 +1840,7 @@ function Workspace({
                       </label>
                       <ColorControl
                         key={`${selection}-text-bg-${props.background}`}
-                        label="Màu nền chữ"
+                        label={t("properties.textBackground")}
                         value={props.background ?? "#ffffff"}
                         onChange={(background) => update({ background })}
                       />
@@ -1811,10 +1852,10 @@ function Workspace({
                             });
                         }}
                       >
-                        Bỏ nền chữ
+                        {t("properties.removeTextBackground")}
                       </button>
                       <label>
-                        Giãn dòng
+                        {t("properties.lineHeight")}
                         <input
                           type="number"
                           min={0.8}
@@ -1825,7 +1866,7 @@ function Workspace({
                         />
                       </label>
                       <label>
-                        Trong suốt
+                        {t("properties.opacity")}
                         <input
                           type="number"
                           min={0}
@@ -1836,7 +1877,7 @@ function Workspace({
                         />
                       </label>
                       <input
-                        aria-label="Thanh độ trong suốt"
+                        aria-label={t("properties.opacitySlider")}
                         type="range"
                         min={0}
                         max={1}
@@ -1849,7 +1890,7 @@ function Workspace({
                 )}
                 {(["x", "y", "width", "height", "rotation"] as const).map((key) => (
                   <label key={key}>
-                    {{ x: "X", y: "Y", width: "Rộng", height: "Cao", rotation: "Góc xoay" }[key]}
+                    {t(`properties.${key}`)}
                     <input
                       type="number"
                       value={Math.round(props[key] ?? 0)}
@@ -1866,20 +1907,20 @@ function Workspace({
                 ))}
               </fieldset>
             )}
-            <h2>Document JSON</h2>
-            <button onClick={exportJson}>Lấy JSON hiện tại</button>
+            <h2>{t("properties.documentJson")}</h2>
+            <button onClick={exportJson}>{t("properties.exportJson")}</button>
             <textarea
-              aria-label="Document JSON"
+              aria-label={t("properties.documentJson")}
               className={styles.json}
               value={json}
               onChange={(event) => setJson(event.target.value)}
-              placeholder="Lấy JSON rồi thử nhập lại…"
+              placeholder={t("properties.jsonPlaceholder")}
             />
             <button disabled={preview || !json} onClick={() => importJson(json)}>
-              Mở JSON này
+              {t("properties.openJson")}
             </button>
             <label className={styles.file}>
-              Mở file JSON
+              {t("properties.openJsonFile")}
               <input
                 type="file"
                 accept=".json,application/json"
@@ -1888,7 +1929,7 @@ function Workspace({
                   const input = event.currentTarget;
                   const file = event.target.files?.[0];
                   if (file && file.size <= 500000) importJson(await file.text());
-                  else if (file) setMessage("File JSON quá lớn (tối đa 500 KB).");
+                  else if (file) setMessage(t("properties.jsonTooLarge"));
                   input.value = "";
                 }}
               />
@@ -1896,21 +1937,25 @@ function Workspace({
           </aside>
         </div>
         {!preview && !editingCover && (
-          <section className={styles.photoDock} aria-label="Thay ảnh nhanh">
+          <section className={styles.photoDock} aria-label={t("properties.quickReplaceAria")}>
             <button
               className={styles.dockToggle}
               aria-expanded={quickPhotosOpen}
               onClick={() => setQuickPhotosOpen(!quickPhotosOpen)}
             >
-              Thay ảnh nhanh {quickPhotosOpen ? "⌄" : "⌃"}{" "}
-              <small>({photoEntries.length} ảnh)</small>
+              {t("properties.quickReplace")} {quickPhotosOpen ? "⌄" : "⌃"}{" "}
+              <small>
+                {t("properties.imageCount", { count: formatNumber(photoEntries.length, language) })}
+              </small>
             </button>
             {quickPhotosOpen && (
               <div className={styles.photoStrip}>
                 {photoEntries.map((photo, index) => (
                   <button
                     key={`${photo.nodeId}-${photo.index}`}
-                    aria-label={`Đến ảnh ${index + 1}`}
+                    aria-label={t("properties.goToImage", {
+                      number: formatNumber(index + 1, language),
+                    })}
                     title={photo.label}
                     aria-pressed={
                       selection === photo.nodeId &&
@@ -1923,7 +1968,7 @@ function Workspace({
                     <span>{index + 1}</span>
                   </button>
                 ))}
-                {!photoEntries.length && <p>Thêm ảnh hoặc album để dùng thay ảnh nhanh.</p>}
+                {!photoEntries.length && <p>{t("properties.quickReplaceHelp")}</p>}
               </div>
             )}
           </section>
@@ -1944,6 +1989,7 @@ function ColorControl({
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation("templateStudio");
   const [draft, setDraft] = useState(value);
   const [error, setError] = useState(false);
   function commit() {
@@ -1969,14 +2015,14 @@ function ColorControl({
       <span>{label}</span>
       <div className={styles.colorInputs}>
         <input
-          aria-label={`${label} picker`}
+          aria-label={t("colors.picker", { label })}
           type="color"
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
         />
         <input
-          aria-label={`${label} HEX`}
+          aria-label={t("colors.hex", { label })}
           type="text"
           value={draft}
           disabled={disabled}
@@ -1999,7 +2045,7 @@ function ColorControl({
           }}
         />
       </div>
-      {error && <small role="alert">Nhập mã HEX như #873b46 hoặc #abc.</small>}
+      {error && <small role="alert">{t("colors.invalid")}</small>}
     </div>
   );
 }

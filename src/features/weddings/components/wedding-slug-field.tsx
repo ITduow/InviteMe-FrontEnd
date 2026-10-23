@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, CheckCircle2, LoaderCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { env } from "@/core/config/env";
-import { weddingSlugSchema, normalizeWeddingSlug } from "../schemas/wedding.schema";
+import { createWeddingSlugSchema, normalizeWeddingSlug } from "../schemas/wedding.schema";
 import { checkWeddingSlug } from "../api/wedding.api";
 import { weddingKeys } from "../api/wedding.keys";
 import { Input } from "@/shared/ui/input";
@@ -22,9 +23,20 @@ export function WeddingSlugField({
   initialSlug?: string;
   error?: string;
 }) {
+  const { t } = useTranslation("weddings");
   const { api } = useRuntime();
+  const slugSchema = useMemo(
+    () =>
+      createWeddingSlugSchema({
+        min: t("validation.slugMin"),
+        max: t("validation.slugMax"),
+        pattern: t("validation.slugPattern"),
+        reserved: t("validation.slugReserved"),
+      }),
+    [t],
+  );
   const normalized = normalizeWeddingSlug(value);
-  const valid = weddingSlugSchema.safeParse(normalized).success;
+  const valid = slugSchema.safeParse(normalized).success;
   const unchanged = Boolean(weddingId && normalized === initialSlug);
   const [debounced, setDebounced] = useState("");
   useEffect(() => {
@@ -45,17 +57,17 @@ export function WeddingSlugField({
   const unavailable = valid && !unchanged && availability.data?.available === false;
   const available = valid && !unchanged && availability.data?.available === true;
   const statusMessage = unchanged
-    ? "Đây là đường dẫn hiện tại."
+    ? t("slug.current")
     : !valid
       ? ""
       : checking
-        ? "Đang kiểm tra đường dẫn…"
+        ? t("slug.checking")
         : availability.isError
-          ? "Chưa kiểm tra được. Vui lòng thử lại sau."
+          ? t("slug.checkFailed")
           : available
-            ? "Đường dẫn có thể sử dụng."
+            ? t("slug.available")
             : unavailable
-              ? "Đường dẫn này đã được sử dụng."
+              ? t("slug.unavailable")
               : "";
   const statusTone =
     unavailable || (!unchanged && availability.isError)
@@ -65,7 +77,7 @@ export function WeddingSlugField({
   return (
     <div className="space-y-2">
       <label htmlFor="wedding-slug" className="text-sm font-medium">
-        Đường dẫn thiệp cưới <span aria-hidden="true">*</span>
+        {t("slug.label")} <span aria-hidden="true">*</span>
       </label>
       <div className="flex min-w-0 items-center overflow-hidden rounded-xl border border-border bg-card transition focus-within:border-primary-hover focus-within:ring-2 focus-within:ring-ring">
         <span className="shrink-0 border-r border-border bg-muted px-3 py-3 text-sm text-muted-foreground">
@@ -87,12 +99,11 @@ export function WeddingSlugField({
         />
       </div>
       <p id="wedding-slug-help" className="text-xs leading-5 text-muted-foreground">
-        Dùng 3–80 ký tự: chữ thường không dấu, số và dấu gạch ngang. Đây là đường dẫn dự kiến; trang
-        công khai cần được xuất bản riêng.
+        {t("slug.help")}
       </p>
       {baseUrl && valid && (
         <p className="break-all text-xs text-muted-foreground">
-          Đường dẫn dự kiến: {baseUrl}/wedding/{normalized}
+          {t("slug.preview", { url: `${baseUrl}/wedding/${normalized}` })}
         </p>
       )}
       <p

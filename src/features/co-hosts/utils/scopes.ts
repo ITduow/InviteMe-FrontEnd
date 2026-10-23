@@ -70,12 +70,25 @@ export function grantsFromScopeDraft(draft: ScopeDraft): PermissionScope[] {
   });
 }
 
-export function scopeValidationMessage(grants: PermissionScope[]) {
+const fallbackValidation = {
+  "validation.checkInWeddingWide":
+    "Quyền check-in chỉ được cấp cho toàn bộ wedding. Hãy xác nhận phạm vi này.",
+  "validation.selectGroupOrWedding":
+    "Chọn ít nhất một nhóm khách hoặc cấp quyền trên toàn bộ wedding.",
+  "validation.seatingViewScope":
+    "Quyền chỉnh sửa chỗ ngồi cần quyền xem sơ đồ với phạm vi bao gồm các nhóm được sửa.",
+};
+
+export function scopeValidationMessage(
+  grants: PermissionScope[],
+  t: (key: string) => string = (key) =>
+    fallbackValidation[key as keyof typeof fallbackValidation] ?? key,
+) {
   if (grants.some((grant) => grant.permission === "CHECKIN_MANAGE" && !grant.weddingWide)) {
-    return "Quyền check-in chỉ được cấp cho toàn bộ wedding. Hãy xác nhận phạm vi này.";
+    return t("validation.checkInWeddingWide");
   }
   if (grants.some((grant) => !grant.weddingWide && grant.groupIds.length === 0)) {
-    return "Chọn ít nhất một nhóm khách hoặc cấp quyền trên toàn bộ wedding.";
+    return t("validation.selectGroupOrWedding");
   }
   const seatingEdit = grants.find((grant) => grant.permission === "SEATING_EDIT");
   if (seatingEdit) {
@@ -86,7 +99,7 @@ export function scopeValidationMessage(grants: PermissionScope[]) {
         !seatingEdit.weddingWide &&
         seatingEdit.groupIds.every((groupId) => seatingView.groupIds.includes(groupId)));
     if (!viewCoversEdit) {
-      return "Quyền chỉnh sửa chỗ ngồi cần quyền xem sơ đồ với phạm vi bao gồm các nhóm được sửa.";
+      return t("validation.seatingViewScope");
     }
   }
   return "";

@@ -3,6 +3,7 @@
 import { Minus, Plus } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
+import { useTranslation } from "react-i18next";
 
 export function NumberStepper({
   id,
@@ -25,6 +26,7 @@ export function NumberStepper({
   describedBy?: string;
   label: string;
 }) {
+  const { t } = useTranslation("common");
   const number = Number(value);
   return (
     <div className="flex items-center gap-1 rounded-lg border border-foreground/15 bg-white p-1">
@@ -33,7 +35,7 @@ export function NumberStepper({
         variant="ghost"
         size="icon"
         className="size-9 shrink-0"
-        aria-label={`Giảm ${label.toLocaleLowerCase("vi")}`}
+        aria-label={t("decreaseValue", { label: label.toLocaleLowerCase() })}
         disabled={disabled || !value || number <= min}
         onClick={() => onChange(String(Math.max(min, number - 1)))}
       >
@@ -59,7 +61,7 @@ export function NumberStepper({
         variant="ghost"
         size="icon"
         className="size-9 shrink-0"
-        aria-label={`Tăng ${label.toLocaleLowerCase("vi")}`}
+        aria-label={t("increaseValue", { label: label.toLocaleLowerCase() })}
         disabled={disabled || !value || number >= max}
         onClick={() => onChange(String(Math.min(max, Math.max(min, number + 1))))}
       >

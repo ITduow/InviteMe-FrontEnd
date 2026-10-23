@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   Check,
@@ -15,6 +16,7 @@ import { useRuntime } from "@/core/config/runtime";
 import { ConfirmDialog } from "@/shared/feedback/confirm-dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { useLocale } from "@/i18n/language-context";
 import {
   addReceptionWalkIn,
   checkInGuestPlaces,
@@ -38,63 +40,54 @@ type CounterDisplayResult = {
 
 const COUNTER_DISPLAY_SECONDS = 8;
 
-function apiErrorMessage(error: unknown, action: "lookup" | "check-in" | "search" | "walk-in") {
-  if (!(error instanceof ApiError))
-    return action === "walk-in"
-      ? "Chưa thêm được khách vãng lai. Nếu mạng bị gián đoạn, hãy thử lại nguyên thông tin để tránh tạo trùng."
-      : action === "search"
-        ? "Không tìm được khách. Kiểm tra kết nối rồi thử lại."
-        : action === "lookup"
-          ? "Không tra cứu được khách. Kiểm tra kết nối rồi thử lại."
-          : "Chưa ghi nhận được check-in. Hãy kiểm tra trạng thái rồi thử lại.";
-  if (error.status === 403)
-    return "Không đủ quyền CHECKIN_MANAGE. Việc tra cứu không ghi nhận khách đã vào tiệc.";
-  if (error.status === 404)
-    return "Không tìm thấy khách trong đám cưới này hoặc link thiệp không còn khả dụng.";
+function apiErrorMessage(
+  error: unknown,
+  action: "lookup" | "check-in" | "search" | "walk-in",
+  t: (key: string) => string,
+) {
+  const actionKey = action.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+  if (!(error instanceof ApiError)) return t(`reception.errors.${actionKey}.network`);
+  if (error.status === 403) return t("reception.errors.forbidden");
+  if (error.status === 404) return t("reception.errors.notFound");
   if (error.status === 400)
-    return "Mã QR hoặc đường dẫn không hợp lệ. Hãy quét lại mã hoặc dán link thiệp.";
-  if (error.status === 429) return "Đã tra cứu quá nhanh. Vui lòng đợi một chút rồi thử lại.";
+    return action === "search"
+      ? t("reception.errors.searchQuery")
+      : t("reception.errors.invalidCode");
+  if (error.status === 429) return t("reception.errors.rateLimited");
   if (error.backendCode === "CHECKIN_EXCEPTION_REASON_REQUIRED")
-    return "Khách đã RSVP từ chối chỗ này. Hãy nhập lý do ngoại lệ trước khi xác nhận check-in.";
-  if (error.backendCode === "PLACE_NOT_IN_INVITATION")
-    return "Danh sách chỗ đã thay đổi. Tra cứu lại thiệp để lấy trạng thái mới nhất.";
-  if (error.backendCode === "WALK_IN_OVER_CAPACITY")
-    return "Wedding đã hết sức chứa. Nhập lý do ngoại lệ rồi gửi lại nếu được Couple cho phép.";
+    return t("reception.errors.exceptionRequired");
+  if (error.backendCode === "PLACE_NOT_IN_INVITATION") return t("reception.errors.placeChanged");
+  if (error.backendCode === "WALK_IN_OVER_CAPACITY") return t("reception.errors.overCapacity");
   if (error.backendCode === "IDEMPOTENCY_KEY_REUSED")
-    return "Yêu cầu walk-in này đã dùng khóa khác với dữ liệu hiện tại. Hãy tải lại quầy và kiểm tra danh sách khách.";
-  if (action === "search" && error.status === 400)
-    return "Nhập ít nhất 2 ký tự tên hoặc 4 số cuối của số điện thoại để tìm khách.";
-  if (error.status === 422)
-    return "Không thể xác nhận check-in với trạng thái hiện tại. Tra cứu lại và kiểm tra từng người.";
-  return action === "lookup"
-    ? "Không tra cứu được khách. Vui lòng thử lại."
-    : action === "walk-in"
-      ? "Chưa thêm được khách vãng lai. Hãy giữ nguyên thông tin và thử lại để hệ thống nhận diện lần gửi trước."
-      : action === "search"
-        ? "Không tìm được khách. Vui lòng thử lại."
-        : "Chưa ghi nhận được check-in. Vui lòng tra cứu lại trước khi thử tiếp.";
+    return t("reception.errors.idempotencyConflict");
+  if (error.status === 422) return t("reception.errors.invalidState");
+  return t(`reception.errors.${actionKey}.generic`);
 }
 
-const attendanceStatus = {
-  PENDING: "Chưa phản hồi RSVP",
-  USED: "Đã xác nhận tham dự",
-  UNUSED: "Đã từ chối chỗ RSVP",
-} as const;
-
-function attendanceLabel(seat: SeatLookup["seats"][number], latestOutcome?: CheckInOutcome) {
-  if (latestOutcome === "CHECKED_IN") return "Đã check-in";
-  if (latestOutcome === "ALREADY_CHECKED_IN" || seat.checkedInAt) return "Đã check-in trước đó";
-  return "Chưa check-in";
+function attendanceLabel(
+  seat: SeatLookup["seats"][number],
+  latestOutcome: CheckInOutcome | undefined,
+  t: (key: string) => string,
+) {
+  if (latestOutcome === "CHECKED_IN") return t("reception.status.checkedIn");
+  if (latestOutcome === "ALREADY_CHECKED_IN" || seat.checkedInAt)
+    return t("reception.status.alreadyCheckedIn");
+  return t("reception.status.notCheckedIn");
 }
 
-function friendlyTime(value: string) {
+function friendlyTime(value: string, language: "vi" | "en") {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? ""
-    : new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit" }).format(date);
+    : new Intl.DateTimeFormat(language === "en" ? "en-US" : "vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
 }
 
 export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("guests");
+  const { language } = useLocale();
   const { api, realtime } = useRuntime();
   const [mode, setMode] = useState<"QR" | "SEARCH" | "WALK_IN">("QR");
   const [code, setCode] = useState("");
@@ -204,7 +197,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     const normalized = value.trim();
     if (!normalized || lookupBusy.current || checkInPending) return;
     if (normalized.length > 2048) {
-      setError("Link hoặc mã QR quá dài. Hãy kiểm tra nội dung đã dán.");
+      setError(t("reception.errors.codeTooLong"));
       return;
     }
     lookupBusy.current = true;
@@ -223,12 +216,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       setGuest(result);
       setLookupCode(normalized);
       setActiveSearchQuery(null);
-      setMessage(
-        "Đã tra cứu. Chưa có check-in nào được ghi nhận; hãy chọn người và xác nhận bên dưới.",
-      );
+      setMessage(t("reception.lookupOnly"));
       setCode("");
     } catch (cause) {
-      setError(apiErrorMessage(cause, "lookup"));
+      setError(apiErrorMessage(cause, "lookup", t));
       if (cause instanceof ApiError && cause.status === 403) setForbidden(true);
     } finally {
       lookupBusy.current = false;
@@ -262,7 +253,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     );
     const reason = exceptionReason.trim();
     if (selectedUnused && !reason) {
-      setError("Khách đã RSVP từ chối một chỗ được chọn. Nhập lý do ngoại lệ để tiếp tục.");
+      setError(t("reception.errors.exceptionRequired"));
       return;
     }
 
@@ -309,11 +300,11 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       const alreadyDone = result.places.length - newlyChecked;
       setMessage(
         alreadyDone > 0
-          ? `Đã ghi nhận ${newlyChecked} người mới; ${alreadyDone} người đã check-in trước đó.`
-          : `Đã check-in thành công cho ${newlyChecked} người.`,
+          ? t("reception.checkInSummary", { newly: newlyChecked, already: alreadyDone })
+          : t("reception.checkInSuccess", { count: newlyChecked }),
       );
     } catch (cause) {
-      setError(apiErrorMessage(cause, "check-in"));
+      setError(apiErrorMessage(cause, "check-in", t));
       if (cause instanceof ApiError && cause.status === 403) setForbidden(true);
     } finally {
       setCheckInPending(false);
@@ -340,11 +331,11 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       setSearchResults(result);
       setMessage(
         result.length
-          ? `Tìm thấy ${result.length} kết quả. Chọn đúng khách để xem từng chỗ.`
-          : "Không tìm thấy khách trong danh sách.",
+          ? t("reception.searchResults", { count: result.length })
+          : t("reception.noSearchResults"),
       );
     } catch (cause) {
-      setError(apiErrorMessage(cause, "search"));
+      setError(apiErrorMessage(cause, "search", t));
       if (cause instanceof ApiError && cause.status === 403) setForbidden(true);
     } finally {
       setSearchPending(false);
@@ -358,7 +349,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
     setSelectedIds([]);
     setOutcomes({});
     setError("");
-    setMessage("Đã tìm thấy khách. Chọn từng người rồi xác nhận check-in.");
+    setMessage(t("reception.guestSelected"));
     setForbidden(false);
   }
 
@@ -383,18 +374,18 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       .map((name) => name.trim())
       .filter(Boolean);
     if (!Number.isInteger(people) || people < 1 || people > 20) {
-      setError("Số người walk-in phải từ 1 đến 20.");
+      setError(t("reception.errors.walkInCount"));
       return;
     }
     if (!walkInGuestId && !recipientName) {
-      setError("Nhập tên khách vãng lai.");
+      setError(t("reception.errors.walkInName"));
       return;
     }
     if (names.length > (walkInGuestId ? people : people - 1)) {
       setError(
         walkInGuestId
-          ? "Số tên người đi cùng không được vượt số người thêm."
-          : "Khách chính đã tính trong số người; số tên đi cùng phải ít hơn tổng số người.",
+          ? t("reception.errors.companionNameCount")
+          : t("reception.errors.walkInNameCount"),
       );
       return;
     }
@@ -455,11 +446,16 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
       setOutcomes(Object.fromEntries(result.places.map((place) => [place.placeId, place.result])));
       setMessage(
         result.newGuest
-          ? `Đã tạo walk-in và check-in ${result.places.length} người${result.overCapacity ? " (đã vượt sức chứa theo lý do được ghi nhận)" : ""}.`
-          : `Đã thêm và check-in ${result.places.length} người đi cùng.`,
+          ? t(
+              result.overCapacity
+                ? "reception.walkInCreatedOverCapacity"
+                : "reception.walkInCreated",
+              { count: result.places.length },
+            )
+          : t("reception.companionsAdded", { count: result.places.length }),
       );
     } catch (cause) {
-      setError(apiErrorMessage(cause, "walk-in"));
+      setError(apiErrorMessage(cause, "walk-in", t));
       if (cause instanceof ApiError && cause.status === 403) setForbidden(true);
     } finally {
       setWalkInPending(false);
@@ -499,10 +495,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
               className={`text-sm font-bold uppercase tracking-[0.2em] sm:text-lg ${allAlreadyCheckedIn ? "text-amber-300" : "text-emerald-300"}`}
             >
               {allAlreadyCheckedIn
-                ? "Khách đã check-in trước đó"
+                ? t("reception.resultAlreadyCheckedIn")
                 : counterDisplay.walkIn
-                  ? "Đã tiếp nhận khách"
-                  : "Check-in thành công"}
+                  ? t("reception.resultWalkIn")
+                  : t("reception.resultSuccess")}
             </p>
             <h1
               ref={displayHeading}
@@ -515,13 +511,16 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
             </h1>
             <p className="text-lg text-slate-300 sm:text-2xl">
               {newlyCheckedIn > 0
-                ? `${newlyCheckedIn} người vừa được ghi nhận${previouslyCheckedIn ? ` · ${previouslyCheckedIn} người đã check-in trước` : ""}`
-                : `${previouslyCheckedIn} người đã có check-in`}
+                ? t("reception.resultCounts", {
+                    newly: newlyCheckedIn,
+                    already: previouslyCheckedIn,
+                  })
+                : t("reception.resultAlreadyCount", { count: previouslyCheckedIn })}
             </p>
           </div>
 
           <ul
-            aria-label="Kết quả check-in và số bàn"
+            aria-label={t("reception.resultList")}
             className="mx-auto grid max-w-4xl gap-3 text-left sm:grid-cols-2"
           >
             {counterDisplay.places.map((place) => {
@@ -545,22 +544,26 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                     )}
                     <div className="min-w-0">
                       <p className="break-words text-xl font-semibold sm:text-3xl">
-                        {place.personName ?? `Người thứ ${place.position}`}
+                        {place.personName ?? t("guestNumber", { number: place.position })}
                       </p>
                       <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                        {alreadyCheckedIn ? "Đã check-in trước đó" : "Vừa check-in"}
+                        {alreadyCheckedIn
+                          ? t("reception.status.alreadyCheckedIn")
+                          : t("reception.status.justCheckedIn")}
                       </p>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-xs uppercase tracking-wider text-slate-400 sm:text-sm">
-                      Số bàn
+                      {t("reception.tableNumber")}
                     </p>
                     <p className="mt-1 text-2xl font-bold sm:text-4xl">
-                      {place.table ?? "Chưa xếp bàn"}
+                      {place.table ?? t("reception.notAssigned")}
                     </p>
                     {place.table && place.seatNumber !== null && (
-                      <p className="text-sm text-slate-300 sm:text-base">Ghế {place.seatNumber}</p>
+                      <p className="text-sm text-slate-300 sm:text-base">
+                        {t("reception.seatNumber", { number: place.seatNumber })}
+                      </p>
                     )}
                   </div>
                 </li>
@@ -570,7 +573,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
 
           {counterDisplay.overCapacity && (
             <p className="mx-auto max-w-3xl rounded-xl border border-amber-300/40 bg-amber-300/10 p-3 text-sm text-amber-100 sm:text-base">
-              Đã tiếp nhận vượt sức chứa theo ngoại lệ được ghi nhận.
+              {t("reception.overCapacityAccepted")}
             </p>
           )}
 
@@ -580,10 +583,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
               onClick={returnToScanner}
               className="h-14 min-w-64 bg-white px-8 text-lg font-semibold text-slate-950 hover:bg-slate-200"
             >
-              Quét khách tiếp theo
+              {t("reception.nextGuest")}
             </Button>
             <p aria-live="off" className="text-sm text-slate-400">
-              Tự quay lại màn quét sau {returnCountdown} giây
+              {t("reception.returnCountdown", { count: returnCountdown })}
             </p>
           </div>
         </div>
@@ -594,21 +597,18 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
   return (
     <section className="mx-auto max-w-3xl space-y-6 pb-8">
       <header>
-        <p className="text-sm font-medium text-muted-foreground">Đón khách</p>
-        <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Quầy check-in</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Quét QR, tìm khách theo tên hoặc số điện thoại, hoặc ghi nhận khách vãng lai ngay tại
-          quầy.
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">{t("reception.checkInLabel")}</p>
+        <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{t("reception.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("reception.description")}</p>
       </header>
 
       <div className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-        <div role="tablist" aria-label="Cách tiếp nhận khách" className="flex flex-wrap gap-2">
+        <div role="tablist" aria-label={t("reception.modesLabel")} className="flex flex-wrap gap-2">
           {(
             [
-              ["QR", "Quét QR"],
-              ["SEARCH", "Tìm khách"],
-              ["WALK_IN", "Khách vãng lai"],
+              ["QR", t("reception.scanQr")],
+              ["SEARCH", t("reception.searchGuest")],
+              ["WALK_IN", t("reception.walkIn")],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -649,8 +649,8 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                aria-label="Link hoặc mã QR của khách"
-                placeholder="Dán link thiệp hoặc mã QR"
+                aria-label={t("reception.codeLabel")}
+                placeholder={t("reception.codePlaceholder")}
                 className="h-12 min-w-0 flex-1"
                 disabled={lookupPending || checkInPending}
               />
@@ -660,15 +660,12 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 className="h-12 sm:min-w-36"
               >
                 <Search aria-hidden="true" />
-                {lookupPending ? "Đang tra…" : "Tra cứu khách"}
+                {lookupPending ? t("reception.lookupPending") : t("reception.lookup")}
               </Button>
             </form>
             <div className="flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
               <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <p>
-                Tra cứu QR không tự check-in. Chỉ nút xác nhận ở cuối danh sách mới ghi nhận khách
-                đã đến.
-              </p>
+              <p>{t("reception.lookupHint")}</p>
             </div>
           </div>
         )}
@@ -680,8 +677,8 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 autoComplete="off"
-                aria-label="Tìm khách theo tên hoặc số điện thoại"
-                placeholder="Tên khách hoặc số điện thoại"
+                aria-label={t("reception.searchLabel")}
+                placeholder={t("reception.searchPlaceholder")}
                 className="h-12 min-w-0 flex-1"
                 disabled={searchPending || checkInPending}
               />
@@ -691,11 +688,11 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 className="h-12 sm:min-w-36"
               >
                 <Search aria-hidden="true" />
-                {searchPending ? "Đang tìm…" : "Tìm khách"}
+                {searchPending ? t("reception.searching") : t("reception.search")}
               </Button>
             </form>
             {searchResults.length > 0 && (
-              <ul className="space-y-3" aria-label="Kết quả tìm khách">
+              <ul className="space-y-3" aria-label={t("reception.searchResultsLabel")}>
                 {searchResults.map((result) => (
                   <li
                     key={result.guestId}
@@ -707,8 +704,15 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                         {result.recipientName}
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {result.side} · {result.checkedIn}/{result.places} đã check-in ·{" "}
-                        {result.tables.length ? result.tables.join(", ") : "Chưa xếp bàn"}
+                        {t(`planning.sideValues.${result.side}`, { defaultValue: result.side })} ·{" "}
+                        {t("reception.checkedInOfPlaces", {
+                          checkedIn: result.checkedIn,
+                          places: result.places,
+                        })}{" "}
+                        ·{" "}
+                        {result.tables.length
+                          ? result.tables.join(", ")
+                          : t("reception.notAssigned")}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
@@ -717,7 +721,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                         variant="outline"
                         onClick={() => selectReceptionGuest(result)}
                       >
-                        Chọn để check-in
+                        {t("reception.selectForCheckIn")}
                       </Button>
                       <Button
                         type="button"
@@ -725,7 +729,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                         onClick={() => startCompanionWalkIn(result)}
                       >
                         <UserPlus aria-hidden="true" />
-                        Thêm người đi cùng
+                        {t("reception.addCompanion")}
                       </Button>
                     </div>
                   </li>
@@ -734,10 +738,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
             )}
             {searchQuery && !searchPending && searchResults.length === 0 && (
               <div className="rounded-xl border border-dashed p-4 text-sm">
-                <p>
-                  Không tìm thấy khách phù hợp. Nếu đây là khách chưa có trong danh sách, có thể tạo
-                  walk-in.
-                </p>
+                <p>{t("reception.noSearchMatchHint")}</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -747,7 +748,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                     setMode("WALK_IN");
                   }}
                 >
-                  Tạo khách vãng lai
+                  {t("reception.createWalkIn")}
                 </Button>
               </div>
             )}
@@ -757,16 +758,15 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
         {mode === "WALK_IN" && (
           <form onSubmit={submitWalkIn} className="space-y-4">
             <div className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
-              Người được thêm sẽ được check-in ngay. Gửi lại cùng thông tin sau lỗi mạng sẽ dùng lại
-              cùng khóa để không tạo trùng.
+              {t("reception.walkInHint")}
             </div>
             {walkInGuestId ? (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
                 <p className="text-sm">
-                  Thêm người đi cùng cho{" "}
+                  {t("reception.addCompanionFor")}{" "}
                   <strong>
                     {searchResults.find((item) => item.guestId === walkInGuestId)?.recipientName ??
-                      "khách đã chọn"}
+                      t("reception.selectedGuest")}
                   </strong>
                 </p>
                 <Button
@@ -775,36 +775,36 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                   size="sm"
                   onClick={() => setWalkInGuestId(null)}
                 >
-                  Tạo khách mới
+                  {t("reception.createNewGuest")}
                 </Button>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm sm:col-span-2">
                   <span className="font-medium">
-                    Tên khách chính <span aria-hidden="true">*</span>
+                    {t("reception.primaryGuestName")} <span aria-hidden="true">*</span>
                   </span>
                   <Input
                     value={walkInName}
                     onChange={(event) => setWalkInName(event.target.value)}
                     maxLength={150}
                     required
-                    placeholder="Họ tên khách vãng lai"
+                    placeholder={t("reception.walkInNamePlaceholder")}
                     disabled={walkInPending}
                   />
                 </label>
                 <label className="space-y-1 text-sm">
-                  <span className="font-medium">Danh xưng</span>
+                  <span className="font-medium">{t("reception.honorific")}</span>
                   <Input
                     value={walkInHonorific}
                     onChange={(event) => setWalkInHonorific(event.target.value)}
                     maxLength={50}
-                    placeholder="Anh, Chị, Cô…"
+                    placeholder={t("reception.honorificPlaceholder")}
                     disabled={walkInPending}
                   />
                 </label>
                 <label className="space-y-1 text-sm">
-                  <span className="font-medium">Nhóm/bên</span>
+                  <span className="font-medium">{t("reception.sideGroup")}</span>
                   <select
                     value={walkInSide}
                     onChange={(event) =>
@@ -813,10 +813,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                     disabled={walkInPending}
                     className="h-10 w-full rounded-lg border bg-background px-3"
                   >
-                    <option value="UNSPECIFIED">Chưa xác định</option>
-                    <option value="BRIDE">Nhà gái</option>
-                    <option value="GROOM">Nhà trai</option>
-                    <option value="MUTUAL">Chung</option>
+                    <option value="UNSPECIFIED">{t("planning.sideValues.UNSPECIFIED")}</option>
+                    <option value="BRIDE">{t("planning.sideValues.BRIDE")}</option>
+                    <option value="GROOM">{t("planning.sideValues.GROOM")}</option>
+                    <option value="MUTUAL">{t("planning.sideValues.MUTUAL")}</option>
                   </select>
                 </label>
               </div>
@@ -824,7 +824,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-1 text-sm">
                 <span className="font-medium">
-                  {walkInGuestId ? "Số người đi cùng" : "Tổng số người"}
+                  {walkInGuestId ? t("reception.companionCount") : t("reception.totalPeople")}
                 </span>
                 <Input
                   type="number"
@@ -838,30 +838,30 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                 />
                 <span className="block text-xs text-muted-foreground">
                   {walkInGuestId
-                    ? "Tất cả người được thêm sẽ được check-in."
-                    : "Tính cả khách chính; tối đa 20 người."}
+                    ? t("reception.allCompanionsCheckedIn")
+                    : t("reception.totalPeopleHint")}
                 </span>
               </label>
               <label className="space-y-1 text-sm">
-                <span className="font-medium">Tên người đi cùng</span>
+                <span className="font-medium">{t("reception.companionNames")}</span>
                 <textarea
                   value={walkInNames}
                   onChange={(event) => setWalkInNames(event.target.value)}
                   rows={3}
                   disabled={walkInPending}
-                  placeholder="Mỗi người một dòng; có thể để trống"
+                  placeholder={t("reception.companionNamesPlaceholder")}
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
                 />
               </label>
             </div>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Lý do nếu cần vượt sức chứa</span>
+              <span className="font-medium">{t("reception.capacityOverrideReason")}</span>
               <Input
                 value={walkInReason}
                 onChange={(event) => setWalkInReason(event.target.value)}
                 maxLength={500}
                 disabled={walkInPending}
-                placeholder="Chỉ cần nhập khi quầy báo đã hết chỗ"
+                placeholder={t("reception.capacityOverridePlaceholder")}
               />
             </label>
             <Button
@@ -871,10 +871,10 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
             >
               <UserPlus aria-hidden="true" />
               {walkInPending
-                ? "Đang thêm và check-in…"
+                ? t("reception.creatingAndCheckingIn")
                 : walkInGuestId
-                  ? "Thêm và check-in người đi cùng"
-                  : "Tạo walk-in và check-in"}
+                  ? t("reception.addAndCheckInCompanions")
+                  : t("reception.createAndCheckInWalkIn")}
             </Button>
           </form>
         )}
@@ -886,7 +886,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
           className={`rounded-xl border p-4 text-sm ${forbidden ? "border-amber-300 bg-amber-50 text-amber-950" : "border-red-200 bg-red-50 text-red-900"}`}
         >
           {error}
-          {forbidden && <p className="mt-1">Cần quyền CHECKIN_MANAGE trong wedding này.</p>}
+          {forbidden && <p className="mt-1">{t("reception.checkInPermissionRequired")}</p>}
         </div>
       )}
 
@@ -897,40 +897,42 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
               <UserRound aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm text-muted-foreground">Khách mời</p>
+              <p className="text-sm text-muted-foreground">{t("reception.guestLabel")}</p>
               <h2 className="break-words text-xl font-semibold sm:text-2xl">
                 {guest.honorific ? `${guest.honorific} ` : ""}
                 {guest.recipientName}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {guest.seats.length} người trong lời mời
+                {t("reception.peopleInvited", { count: guest.seats.length })}
               </p>
             </div>
           </div>
 
           {"published" in guest && !guest.published && (
             <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
-              Sơ đồ bàn chưa được công bố cho khách. Quầy đang hiển thị sơ đồ hiện tại của wedding.
+              {t("reception.seatingNotPublishedCounter")}
             </p>
           )}
 
           <section aria-labelledby="checkin-people-heading">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 id="checkin-people-heading" className="font-semibold">
-                Từng người trong lời mời
+                {t("reception.eachInvitedPerson")}
               </h3>
-              <p className="text-sm text-muted-foreground">Đã chọn {selectedIds.length}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("reception.selectedCount", { count: selectedIds.length })}
+              </p>
             </div>
             {guest.seats.length === 0 ? (
               <p className="mt-3 rounded-lg border p-4 text-sm text-muted-foreground">
-                Thiệp chưa có chỗ tham dự để check-in.
+                {t("reception.noPlacesToCheckIn")}
               </p>
             ) : (
               <ul className="mt-3 space-y-3">
                 {guest.seats.map((seat) => {
                   const outcome = outcomes[seat.placeId];
                   const checkedIn = Boolean(seat.checkedInAt) || outcome !== undefined;
-                  const statusText = attendanceLabel(seat, outcome);
+                  const statusText = attendanceLabel(seat, outcome, t);
                   return (
                     <li key={seat.placeId} className="rounded-xl border p-4">
                       <label className="flex min-h-11 items-start gap-3">
@@ -940,17 +942,19 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                           checked={selectedIds.includes(seat.placeId)}
                           onChange={(event) => togglePlace(seat.placeId, event.target.checked)}
                           disabled={checkedIn || checkInPending}
-                          aria-label={`Chọn ${seat.personName ?? `người thứ ${seat.position}`} để check-in`}
+                          aria-label={t("reception.selectPersonForCheckIn", {
+                            name: seat.personName ?? t("guestNumber", { number: seat.position }),
+                          })}
                         />
                         <span className="min-w-0 flex-1">
                           <span className="block font-medium">
-                            {seat.personName ?? `Người thứ ${seat.position}`}
+                            {seat.personName ?? t("guestNumber", { number: seat.position })}
                           </span>
                           <span className="mt-1 block text-sm text-muted-foreground">
                             {seat.table
-                              ? `Bàn ${seat.table}${seat.seatNumber !== null ? ` · Ghế ${seat.seatNumber}` : ""}`
-                              : "Chưa xếp bàn"}
-                            {` · ${attendanceStatus[seat.status]}`}
+                              ? `${t("reception.tableLabel")} ${seat.table}${seat.seatNumber !== null ? ` · ${t("reception.seatNumber", { number: seat.seatNumber })}` : ""}`
+                              : t("reception.notAssigned")}
+                            {` · ${t(`reception.attendance.${seat.status}`)}`}
                           </span>
                         </span>
                       </label>
@@ -963,7 +967,9 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                           <CircleDashed className="size-4" aria-hidden="true" />
                         )}
                         {statusText}
-                        {seat.checkedInAt && !outcome && ` · ${friendlyTime(seat.checkedInAt)}`}
+                        {seat.checkedInAt &&
+                          !outcome &&
+                          ` · ${friendlyTime(seat.checkedInAt, language)}`}
                       </span>
                     </li>
                   );
@@ -975,16 +981,16 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
           {selectedUnused && (
             <label className="block space-y-1 text-sm">
               <span className="font-medium">
-                Lý do check-in ngoại lệ <span aria-hidden="true">*</span>
+                {t("reception.exceptionReasonLabel")} <span aria-hidden="true">*</span>
               </span>
               <span className="block text-muted-foreground">
-                Có người được chọn đã RSVP từ chối. BE yêu cầu lưu lý do khi vẫn cho vào tiệc.
+                {t("reception.exceptionReasonHint")}
               </span>
               <Input
                 value={exceptionReason}
                 onChange={(event) => setExceptionReason(event.target.value)}
                 maxLength={500}
-                placeholder="Ví dụ: khách báo lại trực tiếp tại quầy"
+                placeholder={t("reception.exceptionReasonPlaceholder")}
                 aria-required="true"
                 disabled={checkInPending}
               />
@@ -992,9 +998,7 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
           )}
 
           <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Chưa xác nhận thì dữ liệu check-in không thay đổi.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("reception.confirmationHint")}</p>
             <ConfirmDialog
               trigger={
                 <Button
@@ -1007,13 +1011,15 @@ export function SeatLookupCounter({ weddingId }: { weddingId: string }) {
                   }
                 >
                   <Check aria-hidden="true" />
-                  {checkInPending ? "Đang ghi nhận…" : `Xác nhận check-in · ${selectedIds.length}`}
+                  {checkInPending
+                    ? t("reception.recording")
+                    : t("reception.confirmCheckInCount", { count: selectedIds.length })}
                 </Button>
               }
-              title="Xác nhận khách đã đến?"
-              description={`Sẽ ghi nhận check-in cho ${selectedIds.length} người đã chọn. Tra cứu trước đó chưa làm thay đổi trạng thái.`}
-              cancelLabel="Quay lại"
-              confirmLabel="Ghi nhận check-in"
+              title={t("reception.confirmTitle")}
+              description={t("reception.confirmDescription", { count: selectedIds.length })}
+              cancelLabel={t("reception.goBack")}
+              confirmLabel={t("reception.recordCheckIn")}
               onConfirm={() => void confirmCheckIn()}
             />
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { usePermission } from "@/shared/components/permission-guard";
@@ -14,16 +15,12 @@ import {
   getGiftSummary,
   removeGiftAccount,
 } from "../api/gifts.api";
-
-function money(value: number) {
-  return new Intl.NumberFormat("vi-VN").format(value) + "₫";
-}
-const fmt = (value: string) =>
-  new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(value),
-  );
+import { useLocale } from "@/i18n/language-context";
+import { formatCurrency, formatDate, formatNumber } from "@/i18n/format";
 
 export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("gifts");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const queryClient = useQueryClient();
   const { can, isWeddingWide } = usePermission();
@@ -73,27 +70,24 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
       setLabel("");
       await refresh();
     },
-    onError: () => setError("Không thêm được tài khoản. Kiểm tra ngân hàng và số tài khoản."),
+    onError: () => setError(t("addAccountFailed")),
   });
   const remove = useMutation({
     mutationFn: (id: string) => removeGiftAccount(api, weddingId, id),
     onSuccess: refresh,
-    onError: () => setError("Không thể xóa tài khoản đang được dùng cho giao dịch."),
+    onError: () => setError(t("deleteAccountFailed")),
   });
   const confirm = useMutation({
     mutationFn: (id: string) => confirmGift(api, weddingId, id),
     onSuccess: refresh,
-    onError: () => setError("Không xác nhận được giao dịch này."),
+    onError: () => setError(t("confirmGiftFailed")),
   });
   const data = summary.data;
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Sổ mừng cưới</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theo dõi VietQR, tiền mặt và giao dịch đã xác nhận. InviteMe không giữ tiền; chỉ tính vào
-          tổng nhận khi webhook hoặc Couple xác nhận.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("ledgerTitle")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("ledgerDescription")}</p>
       </header>
       {error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
@@ -102,28 +96,32 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
       )}
       {summary.isError && (
         <p role="alert" className="text-sm text-destructive">
-          Không tải được tổng quan quà mừng.
+          {t("loadSummaryFailed")}
         </p>
       )}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Đã nhận", data?.totalReceived],
-          ["Giao dịch đã nhận", data?.receivedCount],
-          ["Đang chờ", data?.waiting],
-          ["Cần đối soát", data?.needsReview],
+          [t("received"), data?.totalReceived],
+          [t("receivedCount"), data?.receivedCount],
+          [t("waiting"), data?.waiting],
+          [t("needsReview"), data?.needsReview],
         ].map(([title, value]) => (
           <article key={String(title)} className="rounded-xl border bg-card p-4">
             <p className="text-sm text-muted-foreground">{title}</p>
             <p className="mt-1 text-2xl font-semibold">
-              {typeof value === "number" && title === "Đã nhận" ? money(value) : (value ?? "—")}
+              {typeof value === "number" && title === t("received")
+                ? formatCurrency(value, language)
+                : typeof value === "number"
+                  ? formatNumber(value, language)
+                  : (value ?? "—")}
             </p>
           </article>
         ))}
       </section>
       <section className="space-y-3 rounded-xl border p-4">
         <div>
-          <h2 className="font-semibold">Tài khoản nhận VietQR</h2>
-          <p className="text-sm text-muted-foreground">Tối đa hai tài khoản cho mỗi đám cưới.</p>
+          <h2 className="font-semibold">{t("accountsTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("accountLimit")}</p>
         </div>
         {accounts.data?.map((account) => (
           <div
@@ -142,7 +140,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
                 disabled={remove.isPending}
                 onClick={() => remove.mutate(account.id)}
               >
-                Xóa
+                {t("delete")}
               </Button>
             )}
           </div>
@@ -161,7 +159,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
               onChange={(event) => setBankBin(event.target.value)}
               required
             >
-              <option value="">Chọn ngân hàng</option>
+              <option value="">{t("chooseBank")}</option>
               {banks.data?.map((bank) => (
                 <option key={bank.bin} value={bank.bin}>
                   {bank.name}
@@ -170,7 +168,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
             </select>
             <input
               className="rounded-md border bg-background px-3 py-2"
-              placeholder="Số tài khoản"
+              placeholder={t("accountNumber")}
               value={accountNumber}
               onChange={(event) => setAccountNumber(event.target.value)}
               required
@@ -178,7 +176,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
             />
             <input
               className="rounded-md border bg-background px-3 py-2"
-              placeholder="Tên chủ tài khoản"
+              placeholder={t("accountName")}
               value={accountName}
               onChange={(event) => setAccountName(event.target.value)}
               required
@@ -186,13 +184,13 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
             />
             <input
               className="rounded-md border bg-background px-3 py-2"
-              placeholder="Nhãn (nhà trai/gái)"
+              placeholder={t("accountLabel")}
               value={label}
               onChange={(event) => setLabel(event.target.value)}
               maxLength={30}
             />
             <Button type="submit" disabled={add.isPending}>
-              {add.isPending ? "Đang lưu…" : "Thêm tài khoản"}
+              {add.isPending ? t("saving") : t("addAccount")}
             </Button>
           </form>
         )}
@@ -200,15 +198,13 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="font-semibold">Giao dịch</h2>
-            <p className="text-sm text-muted-foreground">
-              Xác nhận chuyển khoản do khách báo; khoản này mới cập nhật tổng đã nhận.
-            </p>
+            <h2 className="font-semibold">{t("transactions")}</h2>
+            <p className="text-sm text-muted-foreground">{t("reconcileHint")}</p>
           </div>
           <input
-            aria-label="Tìm giao dịch"
+            aria-label={t("searchTransaction")}
             className="rounded-md border bg-background px-3 py-2"
-            placeholder="Tìm tên hoặc mã"
+            placeholder={t("searchNameOrCode")}
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -217,10 +213,10 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
           />
         </div>
         {ledger.isPending ? (
-          <p role="status">Đang tải sổ quà…</p>
+          <p role="status">{t("loadingLedger")}</p>
         ) : ledger.isError ? (
           <p role="alert" className="text-destructive">
-            Không tải được danh sách quà.
+            {t("loadGiftsFailed")}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-xl border">
@@ -228,12 +224,12 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
               <thead className="bg-muted">
                 <tr>
                   {[
-                    "Người gửi",
-                    "Hình thức",
-                    "Trạng thái",
-                    "Số tiền",
-                    "Lời chúc",
-                    "Thời gian",
+                    t("sender"),
+                    t("method"),
+                    t("status"),
+                    t("amount"),
+                    t("wish"),
+                    t("time"),
                     "",
                   ].map((x) => (
                     <th key={x} className="px-3 py-2 font-medium">
@@ -249,19 +245,26 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
                     <td className="px-3 py-3">{gift.method}</td>
                     <td className="px-3 py-3">
                       {gift.status === "PAID"
-                        ? "Đã nhận"
+                        ? t("paid")
                         : gift.status === "CLAIMED"
-                          ? "Khách báo đã chuyển"
+                          ? t("transferClaimed")
                           : gift.status === "PENDING"
-                            ? "Chờ chuyển"
+                            ? t("waitingTransfer")
                             : gift.status}
                     </td>
                     <td className="px-3 py-3">
-                      {money(gift.amountReceived ?? gift.amountExpected ?? 0)}
-                      {gift.amountMismatch && <span className="ml-1 text-amber-700">(lệch)</span>}
+                      {formatCurrency(gift.amountReceived ?? gift.amountExpected ?? 0, language)}
+                      {gift.amountMismatch && (
+                        <span className="ml-1 text-amber-700">{t("mismatch")}</span>
+                      )}
                     </td>
                     <td className="max-w-56 truncate px-3 py-3">{gift.message || "—"}</td>
-                    <td className="px-3 py-3">{fmt(gift.paidAt || gift.createdAt)}</td>
+                    <td className="px-3 py-3">
+                      {formatDate(gift.paidAt || gift.createdAt, language, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </td>
                     <td className="px-3 py-3">
                       {editable && ["PENDING", "CLAIMED"].includes(gift.status) && (
                         <Button
@@ -270,7 +273,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
                           disabled={confirm.isPending}
                           onClick={() => confirm.mutate(gift.id)}
                         >
-                          Xác nhận đã nhận
+                          {t("confirmReceived")}
                         </Button>
                       )}
                     </td>
@@ -279,7 +282,7 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
                 {ledger.data.items.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
-                      Chưa có giao dịch quà mừng.
+                      {t("noTransactions")}
                     </td>
                   </tr>
                 )}
@@ -289,7 +292,9 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
         )}
         {ledger.data && (
           <div className="flex items-center justify-between text-sm">
-            <span>{ledger.data.totalCount} giao dịch</span>
+            <span>
+              {t("transactionCount", { count: formatNumber(ledger.data.totalCount, language) })}
+            </span>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -297,16 +302,18 @@ export function CoupleGiftManager({ weddingId }: { weddingId: string }) {
                 disabled={pageNumber <= 1}
                 onClick={() => setPageNumber((n) => n - 1)}
               >
-                Trước
+                {t("previous")}
               </Button>
-              <span className="px-2 py-2">Trang {pageNumber}</span>
+              <span className="px-2 py-2">
+                {t("page", { page: formatNumber(pageNumber, language) })}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={pageNumber * ledger.data.pageSize >= ledger.data.totalCount}
                 onClick={() => setPageNumber((n) => n + 1)}
               >
-                Tiếp
+                {t("next")}
               </Button>
             </div>
           </div>

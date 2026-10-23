@@ -3,8 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { getPublicThankYou } from "../api/thank-you.api";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 
 export function GuestThankYouLetter({ token }: { token: string }) {
+  const { t } = useTranslation("public");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const query = useQuery({
     queryKey: ["public-thank-you", token],
@@ -19,19 +24,19 @@ export function GuestThankYouLetter({ token }: { token: string }) {
         </p>
         {query.isPending ? (
           <p role="status" className="mt-8 text-center">
-            Đang mở lời cảm ơn…
+            {t("thankYouLoading")}
           </p>
         ) : query.isError || !query.data ? (
           <>
-            <h1 className="mt-6 text-center font-display text-3xl">Thư chưa khả dụng</h1>
+            <h1 className="mt-6 text-center font-display text-3xl">{t("thankYouUnavailable")}</h1>
             <p className="mt-3 text-center text-sm text-[#79565a]">
-              Liên kết không tồn tại hoặc thư chưa được gửi thành công.
+              {t("thankYouUnavailableHint")}
             </p>
           </>
         ) : (
           <>
             <h1 className="mt-6 text-center font-display text-3xl">
-              Thân gửi {query.data.guestName}
+              {t("dearGuest", { name: query.data.guestName })}
             </h1>
             <div className="mt-8 whitespace-pre-wrap text-base leading-8">
               {query.data.content
@@ -39,10 +44,12 @@ export function GuestThankYouLetter({ token }: { token: string }) {
                 .replaceAll("{{GiftAmount}}", "")}
             </div>
             <p className="mt-8 text-right text-sm text-[#79565a]">
-              Gửi lúc{" "}
-              {new Intl.DateTimeFormat("vi-VN", { dateStyle: "long", timeStyle: "short" }).format(
-                new Date(query.data.sentAt),
-              )}
+              {t("sentAt", {
+                date: formatDate(query.data.sentAt, language, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                }),
+              })}
             </p>
           </>
         )}

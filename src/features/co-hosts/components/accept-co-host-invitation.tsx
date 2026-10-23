@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { BadgeCheck, HeartHandshake, ShieldCheck } from "lucide-react";
@@ -9,12 +10,9 @@ import { useRuntime } from "@/core/config/runtime";
 import { LoadingState } from "@/shared/feedback/loading-state";
 import { Button } from "@/shared/ui/button";
 import { Chip } from "@/shared/ui/chip";
-import {
-  acceptCoHostInvitation,
-  previewCoHostInvitation,
-  type CoHostPermission,
-} from "../api/co-host.api";
-import { PERMISSION_LABELS } from "../utils/scopes";
+import { acceptCoHostInvitation, previewCoHostInvitation } from "../api/co-host.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 
 const TOKEN_STORAGE_KEY = "inviteme.cohost-invitation-token";
 const TOKEN_EVENT = "inviteme:cohost-invitation-token";
@@ -42,20 +40,18 @@ function subscribeToInvitationToken(onChange: () => void) {
   };
 }
 
-function invitationError(error: unknown) {
-  if (!(error instanceof ApiError)) return "Không thể xác thực lời mời. Hãy thử lại sau.";
-  if (error.code === "network")
-    return "Không thể kết nối đến máy chủ. Hãy kiểm tra mạng và thử lại.";
-  if (error.status === 401)
-    return "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại bằng email được mời.";
-  if (error.status === 403)
-    return "Tài khoản này chưa xác nhận email hoặc email không khớp lời mời.";
-  if (error.status === 404)
-    return "Lời mời không hợp lệ, đã hết hạn, đã được sử dụng hoặc không dành cho tài khoản này.";
-  return "Không thể xác thực lời mời. Hãy thử lại sau.";
+function invitationError(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof ApiError)) return t("accept.errors.generic");
+  if (error.code === "network") return t("accept.errors.network");
+  if (error.status === 401) return t("accept.errors.sessionExpired");
+  if (error.status === 403) return t("accept.errors.emailMismatch");
+  if (error.status === 404) return t("accept.errors.invalidInvite");
+  return t("accept.errors.generic");
 }
 
 export function AcceptCoHostInvitation() {
+  const { t } = useTranslation("cohost");
+  const { language } = useLocale();
   const { api, session } = useRuntime();
   const token = useSyncExternalStore(subscribeToInvitationToken, readInvitationToken, () => "");
   const isRestored = useSyncExternalStore(
@@ -112,7 +108,7 @@ export function AcceptCoHostInvitation() {
       setAccepted(true);
       setAcceptError("");
     },
-    onError: (error) => setAcceptError(invitationError(error)),
+    onError: (error) => setAcceptError(invitationError(error, t)),
   });
 
   if (accepted) {
@@ -120,37 +116,32 @@ export function AcceptCoHostInvitation() {
       <div className="mx-auto max-w-xl space-y-6 rounded-3xl border bg-card p-7 text-center shadow-sm md:p-10">
         <BadgeCheck className="mx-auto size-12 text-emerald-600" aria-hidden="true" />
         <div className="space-y-2">
-          <h1 className="font-display text-3xl">Bạn đã tham gia đám cưới</h1>
-          <p className="text-muted-foreground">
-            Quyền truy cập đã được kích hoạt. Chủ tiệc có thể thay đổi phạm vi quyền bất cứ lúc nào.
-          </p>
+          <h1 className="font-display text-3xl">{t("accept.successTitle")}</h1>
+          <p className="text-muted-foreground">{t("accept.successDescription")}</p>
         </div>
         {acceptedWeddingId && (
           <Button asChild>
             <Link href={`/weddings/${encodeURIComponent(acceptedWeddingId)}/overview`}>
-              Mở khu vực đám cưới
+              {t("accept.openWedding")}
             </Link>
           </Button>
         )}
         {!preview.data && (
           <Link className="text-sm text-primary underline" href="/dashboard">
-            Về trang tổng quan
+            {t("accept.backToDashboard")}
           </Link>
         )}
       </div>
     );
   }
 
-  if (!isRestored) return <LoadingState label="Đang kiểm tra phiên đăng nhập…" />;
+  if (!isRestored) return <LoadingState label={t("accept.checkingSession")} />;
 
   if (!token) {
     return (
       <InviteCard>
-        <h1 className="font-display text-3xl">Không tìm thấy lời mời</h1>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Mở lại link đầy đủ trong email mời. Vì lý do bảo mật, mã mời được xóa khỏi thanh địa chỉ
-          ngay khi trang mở.
-        </p>
+        <h1 className="font-display text-3xl">{t("accept.notFoundTitle")}</h1>
+        <p className="text-sm leading-6 text-muted-foreground">{t("accept.notFoundDescription")}</p>
       </InviteCard>
     );
   }
@@ -159,14 +150,11 @@ export function AcceptCoHostInvitation() {
     const returnTo = "/co-host-invitations/accept";
     return (
       <InviteCard>
-        <h1 className="font-display text-3xl">Bạn được mời làm co-host</h1>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Đăng nhập hoặc tạo tài khoản bằng đúng email đã nhận lời mời để xem quyền được cấp và xác
-          nhận tham gia. Tài khoản mới cần xác nhận email; sau đó quay lại tab này và đăng nhập.
-        </p>
+        <h1 className="font-display text-3xl">{t("accept.invitedTitle")}</h1>
+        <p className="text-sm leading-6 text-muted-foreground">{t("accept.invitedDescription")}</p>
         <Button asChild className="w-full">
           <Link href={`/login?returnTo=${encodeURIComponent(returnTo)}`}>
-            Đăng nhập để tiếp tục
+            {t("accept.loginToContinue")}
           </Link>
         </Button>
         <Button asChild variant="outline" className="w-full">
@@ -175,28 +163,28 @@ export function AcceptCoHostInvitation() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Tạo tài khoản mới
+            {t("accept.createAccount")}
           </Link>
         </Button>
       </InviteCard>
     );
   }
 
-  if (preview.isPending) return <LoadingState label="Đang xác minh lời mời…" />;
+  if (preview.isPending) return <LoadingState label={t("accept.verifyingInvite")} />;
   if (preview.isError) {
     return (
       <InviteCard>
-        <h1 className="font-display text-3xl">Không thể xác minh lời mời</h1>
+        <h1 className="font-display text-3xl">{t("accept.verificationFailed")}</h1>
         <p role="alert" className="text-sm text-destructive">
-          {invitationError(preview.error)}
+          {invitationError(preview.error, t)}
         </p>
         <Button variant="outline" onClick={() => void preview.refetch()}>
-          Thử lại
+          {t("accept.retry")}
         </Button>
       </InviteCard>
     );
   }
-  if (!preview.data) return <LoadingState label="Đang tải thông tin lời mời…" />;
+  if (!preview.data) return <LoadingState label={t("accept.loadingDetails")} />;
 
   const hasInvalidCheckInScope = preview.data.grants.some(
     (grant) => grant.permission === "CHECKIN_MANAGE" && !grant.weddingWide,
@@ -209,16 +197,17 @@ export function AcceptCoHostInvitation() {
       </div>
       <div className="space-y-2 text-center">
         <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">
-          Lời mời co-host
+          {t("accept.inviteEyebrow")}
         </p>
         <h1 className="font-display text-3xl">{preview.data.weddingTitle}</h1>
         <p className="text-sm text-muted-foreground">
-          Lời mời gửi đến {preview.data.email}. Xác nhận chỉ bằng tài khoản email này.
+          {t("accept.inviteTo", { email: preview.data.email })}
         </p>
       </div>
       <section className="space-y-3 rounded-2xl bg-muted/40 p-5">
         <div className="flex items-center gap-2 font-medium">
-          <ShieldCheck className="size-5 text-primary" aria-hidden="true" /> Quyền được cấp
+          <ShieldCheck className="size-5 text-primary" aria-hidden="true" />{" "}
+          {t("accept.permissions")}
         </div>
         {preview.data.grants.length ? (
           <ul className="space-y-2">
@@ -227,31 +216,29 @@ export function AcceptCoHostInvitation() {
                 key={grant.permission}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background px-3 py-2 text-sm"
               >
-                <span>{PERMISSION_LABELS[grant.permission as CoHostPermission]}</span>
+                <span>{t(`permissions.${grant.permission}`)}</span>
                 <Chip>
                   {grant.permission === "CHECKIN_MANAGE" && !grant.weddingWide
-                    ? "Phạm vi nhóm không được hỗ trợ"
+                    ? t("accept.unsupportedGroupScope")
                     : grant.weddingWide
-                      ? "Toàn bộ wedding"
-                      : `${grant.groupIds.length} nhóm khách`}
+                      ? t("wholeWedding")
+                      : t("accept.groupCount", { count: grant.groupIds.length })}
                 </Chip>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">Chưa có quyền nào được cấp.</p>
+          <p className="text-sm text-muted-foreground">{t("accept.noPermissions")}</p>
         )}
         {preview.data.grants.some(
           (grant) => grant.permission === "CHECKIN_MANAGE" && !grant.weddingWide,
         ) && (
           <p role="alert" className="text-sm text-destructive">
-            Lời mời có cấu hình check-in theo nhóm cũ. BE yêu cầu quyền này áp dụng cho toàn bộ
-            wedding; hãy liên hệ chủ tiệc để cập nhật trước khi chấp nhận.
+            {t("accept.legacyCheckInScope")}
           </p>
         )}
         <p className="text-xs leading-5 text-muted-foreground">
-          Các thao tác vẫn được kiểm tra lại bởi máy chủ. Chủ tiệc có thể thay đổi hoặc thu hồi
-          quyền.
+          {t("accept.permissionDisclaimer")}
         </p>
       </section>
       {acceptError && (
@@ -265,17 +252,22 @@ export function AcceptCoHostInvitation() {
           onClick={() => accept.mutate()}
         >
           {accept.isPending
-            ? "Đang xác nhận…"
+            ? t("accept.accepting")
             : hasInvalidCheckInScope
-              ? "Chờ chủ tiệc cập nhật quyền check-in"
-              : "Chấp nhận lời mời"}
+              ? t("accept.waitForScopeUpdate")
+              : t("accept.acceptInvite")}
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/dashboard">Để sau</Link>
+          <Link href="/dashboard">{t("accept.later")}</Link>
         </Button>
       </div>
       <p className="text-center text-xs text-muted-foreground">
-        Hết hạn {new Date(preview.data.expiresAt).toLocaleString("vi-VN")}
+        {t("accept.expiresAt", {
+          date: formatDate(preview.data.expiresAt, language, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }),
+        })}
       </p>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { MailCheck } from "lucide-react";
 import { useRuntime } from "@/core/config/runtime";
@@ -14,6 +15,7 @@ export function ConfirmationNotice({
   email: string;
   initialCooldown?: number;
 }) {
+  const { t } = useTranslation("auth");
   const { api } = useRuntime();
   const [cooldown, setCooldown] = useState(initialCooldown);
   const [pending, setPending] = useState(false);
@@ -31,13 +33,13 @@ export function ConfirmationNotice({
     setMessage("");
     try {
       await authApi.resendConfirmation(api, email);
-      setMessage("Đã tiếp nhận yêu cầu gửi lại. Hãy kiểm tra hộp thư và dùng link mới nhất.");
+      setMessage(t("confirmationAccepted"));
       setCooldown(60);
     } catch (error) {
       setError(
         error instanceof ApiError && error.status === 429
-          ? "Bạn gửi yêu cầu quá nhanh. Vui lòng chờ một phút."
-          : "Chưa thể gửi lại email. Vui lòng thử lại sau.",
+          ? t("rateLimited")
+          : t("confirmationResendFailed"),
       );
       if (error instanceof ApiError && error.status === 429) setCooldown(60);
     } finally {
@@ -47,15 +49,11 @@ export function ConfirmationNotice({
   return (
     <div className="space-y-5">
       <MailCheck className="size-10 text-primary" aria-hidden="true" />
-      <h2 className="font-display text-2xl">Kiểm tra email của bạn</h2>
+      <h2 className="font-display text-2xl">{t("emailConfirmationTitle")}</h2>
       <p className="text-sm leading-6 text-muted-foreground">
-        Mở email xác nhận dành cho <strong className="break-all text-foreground">{email}</strong> và
-        làm theo hướng dẫn để kích hoạt tài khoản. Link có hiệu lực trong 24 giờ.
+        {t("confirmationInstructions", { email })}
       </p>
-      <p className="text-sm text-muted-foreground">
-        Chưa thấy email? Kiểm tra thư rác hoặc yêu cầu gửi lại. Khi gửi lại, link cũ sẽ không còn
-        hiệu lực.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("confirmationNotSeen")}</p>
       {message && (
         <p role="status" className="text-sm">
           {message}
@@ -73,13 +71,13 @@ export function ConfirmationNotice({
         disabled={pending || cooldown > 0 || !env.apiUrl}
       >
         {pending
-          ? "Đang gửi…"
+          ? t("sending")
           : cooldown > 0
-            ? `Gửi lại sau ${cooldown}s`
-            : "Gửi lại email xác nhận"}
+            ? t("resendIn", { seconds: cooldown })
+            : t("resendConfirmation")}
       </Button>
       <Button asChild className="w-full">
-        <Link href="/login">Về trang đăng nhập</Link>
+        <Link href="/login">{t("backToLogin")}</Link>
       </Button>
     </div>
   );

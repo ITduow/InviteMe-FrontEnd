@@ -20,29 +20,47 @@ const plan: SeatingPlan = {
 
 test("group hover shows actual destination seats and remaining capacity without changing the plan", () => {
   const feedback = seatingDropFeedback(plan, ["p2", "p3"], { tableId: "b", seatNumber: 2 });
-  assert.deepEqual(feedback, { valid: true, message: "+2 · còn 0 chỗ sau khi xếp", seats: [2, 1] });
+  assert.deepEqual(feedback, {
+    valid: true,
+    message: "+2 · còn 0 chỗ sau khi xếp",
+    messageKey: "seating.feedback.capacity",
+    messageValues: { count: 2, remaining: 0 },
+    seats: [2, 1],
+  });
   assert.equal(plan.assignments.filter((a) => a.tableId === "a").length, 4);
 });
 
 test("reordering on the source table counts the dragged seats as free", () => {
   const feedback = seatingDropFeedback(plan, ["p2", "p3"], { tableId: "a", seatNumber: 3 });
-  assert.deepEqual(feedback, { valid: true, message: "+2 · còn 0 chỗ sau khi xếp", seats: [3, 2] });
+  assert.deepEqual(feedback, {
+    valid: true,
+    message: "+2 · còn 0 chỗ sau khi xếp",
+    messageKey: "seating.feedback.capacity",
+    messageValues: { count: 2, remaining: 0 },
+    seats: [3, 2],
+  });
 });
 
 test("oversized groups and occupied seats show rejection without ghost seat highlights", () => {
   assert.deepEqual(seatingDropFeedback(plan, ["p1", "p2", "p3"], { tableId: "b" }), {
     valid: false,
     message: "Thiếu 1 chỗ",
+    messageKey: "seating.feedback.shortage",
+    messageValues: { count: 1 },
     seats: [],
   });
   assert.deepEqual(seatingDropFeedback(plan, ["p1"], { tableId: "a", seatNumber: 2 }), {
     valid: false,
     message: "Ghế đã có khách",
+    messageKey: "seating.feedback.occupied",
+    messageValues: {},
     seats: [],
   });
   assert.deepEqual(seatingDropFeedback(plan, ["p1"], { tableId: "b", seatNumber: 3 }), {
     valid: false,
     message: "Ghế đã có khách",
+    messageKey: "seating.feedback.occupied",
+    messageValues: {},
     seats: [],
   });
 });
@@ -53,6 +71,8 @@ test("leaving a table clears feedback and hovering the queue indicates unassign"
   assert.deepEqual(seatingDropFeedback(plan, ["p1"], { tableId: null }), {
     valid: true,
     message: "Bỏ xếp 1 người",
+    messageKey: "seating.feedback.unassign",
+    messageValues: { count: 1 },
     seats: [],
   });
 });

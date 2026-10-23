@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CalendarHeart, ExternalLink, HeartHandshake, PanelsTopLeft } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "@/shared/components/permission-guard";
 import {
@@ -16,6 +17,8 @@ import { useRuntime } from "@/core/config/runtime";
 import { getWeddingSetup } from "../api/wedding.api";
 import { weddingKeys } from "../api/wedding.keys";
 import { getWebsite } from "../api/website.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 
 type WeddingSection = {
   slug: string;
@@ -148,27 +151,25 @@ const sections: WeddingSection[] = [
   },
 ];
 
-function statusPresentation(status: string, isWebsiteStatus: boolean) {
+function statusPresentation(status: string, isWebsiteStatus: boolean, t: (key: string) => string) {
   switch (status) {
     case "DRAFT":
       return {
-        label: isWebsiteStatus ? "Chưa xuất bản" : "Đang chuẩn bị",
+        label: isWebsiteStatus ? t("unpublished") : t("preparing"),
         className: "bg-warning/45 text-warning-foreground",
       };
     case "PUBLISHED":
-      return { label: "Đã xuất bản", className: "bg-success/45 text-success-foreground" };
+      return { label: t("published"), className: "bg-success/45 text-success-foreground" };
     case "UNPUBLISHED":
-      return { label: "Đã tạm ẩn", className: "bg-petal text-muted-foreground" };
+      return { label: t("temporarilyHidden"), className: "bg-petal text-muted-foreground" };
     default:
       return { label: status, className: "bg-petal text-foreground" };
   }
 }
 
-function formatEventDate(value: string | null, timeZone: string) {
+function formatEventDate(value: string | null, timeZone: string, language: "vi" | "en") {
   if (!value) return null;
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeZone }).format(
-    new Date(value),
-  );
+  return formatDate(value, language, { dateStyle: "medium", timeZone });
 }
 
 function haveSameSidebarGroups(
@@ -192,6 +193,8 @@ function haveSameSidebarGroups(
 }
 
 export function WeddingNavigation({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("navigation");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const { can, isOwner, isWeddingWide } = usePermission();
   const { setWedding, setWeddingNavigation } = useWorkspaceContext();
@@ -232,7 +235,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
     [available, weddingPath],
   );
   const status = wedding.data
-    ? statusPresentation(website.data?.status ?? wedding.data.status, website.data !== undefined)
+    ? statusPresentation(website.data?.status ?? wedding.data.status, website.data !== undefined, t)
     : null;
 
   useEffect(() => {
@@ -285,7 +288,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
   }, [available, setWedding, wedding.data, weddingId, weddingPath]);
 
   return (
-    <section aria-label="Thông tin đám cưới" className="mb-6">
+    <section aria-label={t("weddingInformation")} className="mb-6">
       <header className="flex flex-col gap-4 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-petal text-primary-hover">
@@ -293,10 +296,10 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
           </span>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Quản lý đám cưới
+              {t("manageWedding")}
             </p>
             <h1 className="mt-1 truncate font-display text-xl tracking-tight text-foreground sm:text-2xl">
-              {wedding.data?.name ?? (wedding.isError ? "Đám cưới" : "Đang tải đám cưới…")}
+              {wedding.data?.name ?? (wedding.isError ? t("weddingFallback") : t("loadingWedding"))}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {status && (
@@ -312,7 +315,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
               {wedding.data?.eventDateTime && (
                 <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CalendarHeart className="size-3.5" aria-hidden="true" />
-                  {formatEventDate(wedding.data.eventDateTime, wedding.data.timeZoneId)}
+                  {formatEventDate(wedding.data.eventDateTime, wedding.data.timeZoneId, language)}
                 </span>
               )}
             </div>
@@ -327,7 +330,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
             >
               <Link href={`${weddingPath}/website`}>
                 <PanelsTopLeft aria-hidden="true" />
-                Chỉnh sửa trang cưới
+                {t("editWeddingWebsite")}
               </Link>
             </Button>
             {website.data?.status === "PUBLISHED" && wedding.data?.slug && (
@@ -338,7 +341,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
                   rel="noreferrer"
                 >
                   <ExternalLink aria-hidden="true" />
-                  Mở trang cưới
+                  {t("openWeddingWebsite")}
                 </Link>
               </Button>
             )}

@@ -15,17 +15,18 @@ import {
 import Image from "next/image";
 import { SampleSite } from "./sample-site";
 import { StoryCover } from "./story-cover";
+import { useTranslation } from "react-i18next";
 
 const templates = [
   {
     id: "invite" as const,
-    title: "Wedding Invite",
-    text: "15 mẫu thiệp với bìa mở, ảnh thay được, lịch, bản đồ và xác nhận tham dự.",
+    titleKey: "inviteTitle",
+    textKey: "inviteText",
   },
   {
     id: "story" as const,
-    title: "Wedding Story",
-    text: "Kể câu chuyện của hai bạn qua hình ảnh, kỷ niệm và những dấu mốc.",
+    titleKey: "storyTitle",
+    textKey: "storyText",
   },
 ];
 
@@ -58,71 +59,53 @@ function SectionBotanicals() {
   );
 }
 const questions = [
-  [
-    "Khách có cần tài khoản không?",
-    "Khách xem lời mời và xác nhận tham dự qua link mời hợp lệ, không cần tài khoản InviteMe.",
-  ],
-  [
-    "Ai xem được danh sách khách mời?",
-    "Danh sách khách và phản hồi dành cho chủ tiệc và người được cấp quyền quản lý. Không hiển thị công khai trên trang cưới.",
-  ],
-  [
-    "Wedding Invite và Wedding Story khác nhau thế nào?",
-    "Invite ưu tiên thông tin lời mời; Story dành thêm không gian cho câu chuyện và ảnh. Cả hai cùng sử dụng thông tin ngày cưới và RSVP.",
-  ],
-  [
-    "Demo có lưu phản hồi của mình không?",
-    "Không. Demo dùng dữ liệu minh họa để bạn xem bố cục; mọi thao tác thử chỉ diễn ra trên màn hình này.",
-  ],
-  [
-    "Link lời mời không mở được thì sao?",
-    "Kiểm tra lại link hoặc liên hệ người gửi để nhận lời mời hợp lệ.",
-  ],
-];
+  ["faqAccountQuestion", "faqAccountAnswer"],
+  ["faqGuestListQuestion", "faqGuestListAnswer"],
+  ["faqTemplateQuestion", "faqTemplateAnswer"],
+  ["faqDemoQuestion", "faqDemoAnswer"],
+  ["faqLinkQuestion", "faqLinkAnswer"],
+] as const;
 
 export function LandingContent() {
+  const { t } = useTranslation("landing");
   return (
     <div className="landing-content">
       <section id="templates" className="landing-section" aria-labelledby="template-title">
         <div className="landing-heading">
-          <p className="landing-eyebrow">MẪU TRANG CƯỚI</p>
-          <h2 id="template-title">Khám phá các mẫu thiết kế</h2>
-          <p>Chọn thiệp mời hoặc trang kể chuyện để khám phá mẫu phù hợp với hai bạn.</p>
+          <p className="landing-eyebrow">{t("templateEyebrow")}</p>
+          <h2 id="template-title">{t("templateHeading")}</h2>
+          <p>{t("templateDescription")}</p>
         </div>
         <div className="landing-template-grid">
-          {templates.map((t) => (
-            <article className="landing-template" key={t.id}>
+          {templates.map((template) => (
+            <article className="landing-template" key={template.id}>
               <div className="landing-template__preview">
-                {t.id === "story" ? (
+                {template.id === "story" ? (
                   <StoryCover />
                 ) : (
                   <div className="landing-category-image">
                     <Image
                       src={
-                        t.id === "invite"
+                        template.id === "invite"
                           ? "/images/template-studio/collection/photo-garden.webp"
                           : "/images/templates/story-meadow.png"
                       }
-                      alt={
-                        t.id === "invite"
-                          ? "Ảnh cưới AI minh họa cho nhóm thiệp mời"
-                          : "Ảnh cưới AI minh họa cho nhóm trang kể chuyện"
-                      }
+                      alt={template.id === "invite" ? t("weddingInviteAlt") : t("weddingStoryAlt")}
                       fill
                       sizes="(max-width: 640px) 90vw, 550px"
                     />
                     <span className="landing-category-image__label">
-                      {t.id === "invite" ? "THIỆP MỜI ONLINE" : "TRANG CƯỚI & CÂU CHUYỆN"}
+                      {template.id === "invite" ? t("invitationCategory") : t("storyCategory")}
                     </span>
                   </div>
                 )}
               </div>
               <div className="landing-template__body">
-                <h3>{t.title}</h3>
-                <p>{t.text}</p>
+                <h3>{t(template.titleKey)}</h3>
+                <p>{t(template.textKey)}</p>
                 <div className="landing-actions">
-                  <Link className="landing-button" href={`/templates/${t.id}`}>
-                    {t.id === "invite" ? "Xem các mẫu thiệp" : "Xem các mẫu trang cưới"}{" "}
+                  <Link className="landing-button" href={`/templates/${template.id}`}>
+                    {template.id === "invite" ? t("viewInvitations") : t("viewStories")}{" "}
                     <ArrowRight size={16} />
                   </Link>
                 </div>
@@ -130,13 +113,13 @@ export function LandingContent() {
             </article>
           ))}
         </div>
-        <p className="landing-caption">Khám phá danh sách mẫu và xem demo trước khi đăng nhập.</p>
+        <p className="landing-caption">{t("templateCaption")}</p>
       </section>
       <section id="features" className="landing-section" aria-labelledby="feature-title">
         <div className="landing-heading">
-          <p className="landing-eyebrow">CÙNG NHAU CHUẨN BỊ</p>
-          <h2 id="feature-title">Để vui trọn từng khoảnh khắc</h2>
-          <p>Trang cưới, lời mời và phản hồi của khách — trong một nơi.</p>
+          <p className="landing-eyebrow">{t("prepareTogether")}</p>
+          <h2 id="feature-title">{t("momentsHeading")}</h2>
+          <p>{t("momentsDescription")}</p>
         </div>
         <div className="landing-feature-grid">
           <article className="landing-feature">
@@ -147,43 +130,43 @@ export function LandingContent() {
             </div>
             <div className="landing-feature__body">
               <Monitor />
-              <h3>Trang cưới</h3>
-              <p>Chia sẻ thông tin ngày cưới, hình ảnh và câu chuyện của hai bạn.</p>
-              <span>Giao diện minh họa</span>
+              <h3>{t("weddingWebsite")}</h3>
+              <p>{t("weddingWebsiteDescription")}</p>
+              <span>{t("sampleInterface")}</span>
             </div>
           </article>
           <article className="landing-feature">
             <div className="landing-feature__visual">
               <div className="mini-rsvp">
                 <Heart size={20} />
-                <h4>Bạn sẽ đến chung vui?</h4>
+                <h4>{t("willYouAttend")}</h4>
                 <span className="mini-rsvp__selected">
-                  <Check size={14} /> Có, mình sẽ tham dự
+                  <Check size={14} /> {t("attending")}
                 </span>
-                <span>Rất tiếc, mình không thể đến</span>
-                <div className="sample-site__pill">Gửi xác nhận</div>
+                <span>{t("declining")}</span>
+                <div className="sample-site__pill">{t("sendResponse")}</div>
               </div>
             </div>
             <div className="landing-feature__body">
               <Send />
               <h3>RSVP</h3>
-              <p>Khách xác nhận tham dự dễ dàng qua link lời mời hợp lệ.</p>
-              <span>Giao diện minh họa</span>
+              <p>{t("rsvpDescription")}</p>
+              <span>{t("sampleInterface")}</span>
             </div>
           </article>
           <article className="landing-feature">
             <div className="landing-feature__visual">
               <div className="mini-guests">
-                <h4>Danh sách khách mời</h4>
+                <h4>{t("guestList")}</h4>
                 <div className="mini-guests__head">
-                  Khách minh họa <span>Trạng thái</span>
+                  {t("sampleGuest")} <span>{t("status")}</span>
                 </div>
-                {["Khách A", "Khách B", "Khách C"].map((name, i) => (
+                {[t("guestA"), t("guestB"), t("guestC")].map((name, i) => (
                   <div key={name}>
                     <span className="mini-guests__avatar">{name.slice(-1)}</span>
                     {name}
                     <span className={i === 2 ? "pending" : "confirmed"}>
-                      {i === 2 ? "Chưa phản hồi" : "Tham dự"}
+                      {i === 2 ? t("awaitingResponse") : t("attendStatus")}
                     </span>
                   </div>
                 ))}
@@ -191,9 +174,9 @@ export function LandingContent() {
             </div>
             <div className="landing-feature__body">
               <Users />
-              <h3>Quản lý khách mời</h3>
-              <p>Theo dõi danh sách khách và trạng thái phản hồi trong khu vực riêng.</p>
-              <span>Giao diện minh họa · dành cho chủ tiệc</span>
+              <h3>{t("guestManagement")}</h3>
+              <p>{t("guestManagementDescription")}</p>
+              <span>{t("hostOnlySample")}</span>
             </div>
           </article>
         </div>
@@ -205,26 +188,26 @@ export function LandingContent() {
       >
         <SectionBotanicals />
         <div className="landing-heading">
-          <p className="landing-eyebrow">HƯỚNG DẪN BẮT ĐẦU</p>
-          <h2 id="guide-title">Bắt đầu với 3 bước</h2>
-          <p>Từ lời mời của hai bạn đến những người thân yêu.</p>
+          <p className="landing-eyebrow">{t("guideEyebrow")}</p>
+          <h2 id="guide-title">{t("guideHeading")}</h2>
+          <p>{t("guideDescription")}</p>
         </div>
         <div className="landing-step-grid">
           {[
             {
               Icon: Heart,
-              title: "Chọn mẫu",
-              text: "Xem thử Invite hoặc Story, chọn cách thể hiện bạn yêu thích.",
+              title: t("chooseTemplate"),
+              text: t("chooseTemplateText"),
             },
             {
               Icon: CalendarDays,
-              title: "Điền thông tin",
-              text: "Cập nhật tên, thời gian, địa điểm và những hình ảnh của hai bạn.",
+              title: t("addDetails"),
+              text: t("addDetailsText"),
             },
             {
               Icon: Copy,
-              title: "Chia sẻ link",
-              text: "Gửi lời mời để khách xem thông tin và xác nhận tham dự.",
+              title: t("shareLink"),
+              text: t("shareLinkText"),
             },
           ].map(({ Icon, title, text }, i) => (
             <article className="landing-step" key={title}>
@@ -243,26 +226,26 @@ export function LandingContent() {
       >
         <SectionBotanicals />
         <div className="landing-heading">
-          <p className="landing-eyebrow">CÂU HỎI THƯỜNG GẶP</p>
-          <h2 id="faq-title">Một vài thắc mắc thường gặp</h2>
+          <p className="landing-eyebrow">{t("faqEyebrow")}</p>
+          <h2 id="faq-title">{t("faqHeading")}</h2>
         </div>
-        {questions.map(([question, answer], i) => (
-          <details key={question} open={i === 0}>
+        {questions.map(([questionKey, answerKey], i) => (
+          <details key={questionKey} open={i === 0}>
             <summary>
-              {question}
+              {t(questionKey)}
               <ChevronDown size={18} />
             </summary>
-            <p>{answer}</p>
+            <p>{t(answerKey)}</p>
           </details>
         ))}
       </section>
       <section className="landing-section landing-closing">
         <SectionBotanicals />
-        <p className="landing-eyebrow">SẴN SÀNG BẮT ĐẦU?</p>
-        <h2>Tạo trang cưới của riêng hai bạn</h2>
-        <p>Một lời mời thật riêng, cùng đón một ngày thật đẹp.</p>
+        <p className="landing-eyebrow">{t("closingEyebrow")}</p>
+        <h2>{t("closingHeading")}</h2>
+        <p>{t("closingDescription")}</p>
         <Link className="landing-button" href="/login">
-          Bắt đầu cùng InviteMe <ArrowRight size={16} />
+          {t("heroPrimary")} <ArrowRight size={16} />
         </Link>
       </section>
     </div>

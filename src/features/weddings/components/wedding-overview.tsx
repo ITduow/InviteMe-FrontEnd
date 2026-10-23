@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -24,19 +25,22 @@ import { ErrorState } from "@/shared/feedback/error-state";
 import { getWeddingSetup } from "../api/wedding.api";
 import { weddingKeys } from "../api/wedding.keys";
 import { resolveWeddingMediaUrl } from "./wedding-cover-uploader";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
-function formatWeddingDate(value: string | null, timeZone: string) {
-  if (!value) return "Chưa thiết lập";
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "long",
-    timeStyle: "short",
-    timeZone,
-  }).format(new Date(value));
+function formatWeddingDate(
+  value: string | null,
+  timeZone: string,
+  language: "vi" | "en",
+  t: (key: string) => string,
+) {
+  if (!value) return t("notSet");
+  return formatDate(value, language, { dateStyle: "long", timeStyle: "short", timeZone });
 }
 
-function weddingStatusLabel(status: string) {
-  if (status === "DRAFT") return "Đang chuẩn bị";
-  if (status === "PUBLISHED") return "Đã xuất bản";
+function weddingStatusLabel(status: string, t: (key: string) => string) {
+  if (status === "DRAFT") return t("statusDraft");
+  if (status === "PUBLISHED") return t("statusPublished");
   return status;
 }
 
@@ -68,13 +72,14 @@ function OverviewDetail({
 }
 
 function WeddingOverviewSkeleton() {
+  const { t } = useTranslation("weddings");
   return (
     <section
       role="status"
-      aria-label="Đang tải workspace lễ cưới"
+      aria-label={t("loadingOverview")}
       className="mx-auto max-w-6xl space-y-7 pb-10"
     >
-      <span className="sr-only">Đang tải workspace lễ cưới…</span>
+      <span className="sr-only">{t("loadingOverview")}</span>
       <div
         aria-hidden="true"
         className="h-4 w-32 animate-pulse rounded bg-[#e8ddd2] motion-reduce:animate-none"
@@ -108,6 +113,8 @@ function WeddingOverviewSkeleton() {
 }
 
 export function WeddingOverview({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("weddings");
+  const { language } = useLocale();
   const [coverFailed, setCoverFailed] = useState(false);
   const searchParams = useSearchParams();
   const { api } = useRuntime();
@@ -126,38 +133,38 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
     {
       permission: "GUEST_VIEW" as const,
       slug: "guests",
-      title: "Khách mời",
-      description: "Tra cứu khách và thông tin trong phạm vi được giao.",
+      title: t("areaGuests"),
+      description: t("areaGuestsDescription"),
       icon: Users,
     },
     {
       permission: "INVITATION_SEND" as const,
       slug: "invitations",
-      title: "Thiệp mời",
-      description: "Chuẩn bị và gửi thiệp theo quyền được cấp.",
+      title: t("areaInvitations"),
+      description: t("areaInvitationsDescription"),
       icon: Send,
     },
     {
       permission: "RSVP_VIEW" as const,
       slug: "rsvp",
-      title: "Xác nhận tham dự",
-      description: "Theo dõi phản hồi RSVP và danh sách chờ.",
+      title: t("areaRsvp"),
+      description: t("areaRsvpDescription"),
       icon: ClipboardList,
     },
     {
       permission: "SEATING_VIEW" as const,
       slug: "seating",
-      title: "Sơ đồ chỗ ngồi",
+      title: t("areaSeating"),
       description: can("SEATING_EDIT")
-        ? "Sắp xếp bàn trong phạm vi được chủ tiệc giao."
-        : "Chỉ xem sơ đồ trong phạm vi được chủ tiệc giao.",
+        ? t("areaSeatingEditDescription")
+        : t("areaSeatingViewDescription"),
       icon: Armchair,
     },
     {
       permission: "CHECKIN_MANAGE" as const,
       slug: "check-in",
-      title: "Đón khách & check-in",
-      description: "Tra cứu và xác nhận khách đến trong ngày cưới.",
+      title: t("areaCheckIn"),
+      description: t("areaCheckInDescription"),
       icon: ScanLine,
     },
   ].filter((area) => can(area.permission));
@@ -169,7 +176,7 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
         className="inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-medium text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Tất cả lễ cưới
+        {t("weddingList")}
       </Link>
 
       {(searchParams.has("created") || searchParams.has("updated")) && (
@@ -177,7 +184,7 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
           role="status"
           className="rounded-2xl border border-[#c9d8c9] bg-[#f2f7f1] p-4 text-sm font-medium text-[#385e42]"
         >
-          {searchParams.has("created") ? "Đã tạo lễ cưới thành công." : "Đã lưu thông tin lễ cưới."}
+          {searchParams.has("created") ? t("createdSuccessfully") : t("weddingSaved")}
         </p>
       )}
 
@@ -186,7 +193,7 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
           <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-11">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8b5960]">
               <Flower2 className="size-4" aria-hidden="true" />
-              InviteMe · Wedding workspace
+              {t("workspaceEyebrow")}
             </p>
             <h1 className="mt-5 break-words font-display text-3xl leading-tight tracking-tight text-[#49383a] sm:text-4xl lg:text-[2.75rem]">
               {data.name}
@@ -194,11 +201,11 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
             <div className="mt-6 space-y-3 border-l-2 border-[#d8b7ad] pl-4">
               <p className="flex items-start gap-3 text-sm leading-6 text-[#604e4f] sm:text-base">
                 <CalendarDays className="mt-1 size-4 shrink-0 text-[#986d70]" aria-hidden="true" />
-                {formatWeddingDate(data.eventDateTime, data.timeZoneId)}
+                {formatWeddingDate(data.eventDateTime, data.timeZoneId, language, t)}
               </p>
               <p className="flex items-start gap-3 text-sm leading-6 text-[#604e4f] sm:text-base">
                 <MapPin className="mt-1 size-4 shrink-0 text-[#986d70]" aria-hidden="true" />
-                {data.venueName || "Chưa thiết lập địa điểm"}
+                {data.venueName || t("venueNotSet")}
               </p>
             </div>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -206,12 +213,12 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
                 <Button asChild className="min-h-11 rounded-xl px-5 shadow-sm">
                   <Link href={`/weddings/${encodeURIComponent(weddingId)}/settings`}>
                     <PencilLine aria-hidden="true" />
-                    Chỉnh sửa thông tin
+                    {t("editWeddingDetails")}
                   </Link>
                 </Button>
               )}
               <Button asChild variant="outline" className="min-h-11 rounded-xl px-5">
-                <Link href="/weddings">Danh sách lễ cưới</Link>
+                <Link href="/weddings">{t("weddingList")}</Link>
               </Button>
             </div>
           </div>
@@ -225,7 +232,7 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={cover}
-                alt={`Ảnh bìa ${data.name}`}
+                alt={t("coverFor", { name: data.name })}
                 onError={() => setCoverFailed(true)}
                 className="relative h-full max-h-[26rem] w-full rounded-2xl object-contain"
               />
@@ -234,18 +241,16 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
                 <span className="flex size-16 items-center justify-center rounded-full border border-[#d9cabe] bg-white/75 text-[#8b5960] shadow-sm">
                   <Flower2 className="size-7" aria-hidden="true" />
                 </span>
-                <p className="mt-4 font-display text-xl text-[#604448]">Một ngày thật đáng nhớ</p>
+                <p className="mt-4 font-display text-xl text-[#604448]">{t("memorableDay")}</p>
                 <p className="mt-2 max-w-xs text-sm leading-5 text-muted-foreground">
-                  {coverFailed
-                    ? "Không tải được ảnh bìa. Bạn có thể thử chọn ảnh khác trong phần thiết lập."
-                    : "Ảnh bìa chưa được thêm. Bạn có thể chọn ảnh trong phần thiết lập."}
+                  {coverFailed ? t("coverLoadFailedHint") : t("coverMissingHint")}
                 </p>
                 {canEditSetup && (
                   <Link
                     href={`/weddings/${encodeURIComponent(weddingId)}/settings`}
                     className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[#704b50] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    Thêm ảnh bìa <ArrowUpRight className="size-4" aria-hidden="true" />
+                    {t("addCover")} <ArrowUpRight className="size-4" aria-hidden="true" />
                   </Link>
                 )}
               </div>
@@ -257,58 +262,59 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#e8ddd2] pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8b5960]">
-            Thông tin đã lưu
+            {t("savedInformation")}
           </p>
           <h2 className="mt-1 font-display text-2xl tracking-tight text-[#49383a]">
-            Chi tiết ngày vui
+            {t("weddingDetails")}
           </h2>
         </div>
         <span className="rounded-full border border-[#e8ddd2] bg-white/75 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          Trạng thái: {weddingStatusLabel(data.status)}
+          {t("weddingStatus", { status: weddingStatusLabel(data.status, t) })}
         </span>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <OverviewDetail
           icon={CalendarDays}
-          label="Ngày và giờ"
-          value={formatWeddingDate(data.eventDateTime, data.timeZoneId)}
-          detail={`Múi giờ ${data.timeZoneId}`}
+          label={t("eventDateTime")}
+          value={formatWeddingDate(data.eventDateTime, data.timeZoneId, language, t)}
+          detail={t("timeZone", { zone: data.timeZoneId })}
         />
         <OverviewDetail
           icon={MapPin}
-          label="Địa điểm"
-          value={data.venueName || "Chưa thiết lập"}
-          detail={data.venueAddress || "Chưa có địa chỉ"}
+          label={t("venue")}
+          value={data.venueName || t("notSet")}
+          detail={data.venueAddress || t("addressNotSet")}
         />
         <OverviewDetail
           icon={Users}
-          label="Sức chứa"
-          value={data.capacity === null ? "Chưa thiết lập" : `${data.capacity} khách`}
+          label={t("capacity")}
+          value={
+            data.capacity === null
+              ? t("notSet")
+              : t("guestCapacity", { count: formatNumber(data.capacity, language) })
+          }
         />
         <OverviewDetail
           icon={CalendarDays}
-          label="Hạn xác nhận tham dự"
-          value={formatWeddingDate(data.rsvpDeadline, data.timeZoneId)}
+          label={t("rsvpDeadline")}
+          value={formatWeddingDate(data.rsvpDeadline, data.timeZoneId, language, t)}
         />
         <OverviewDetail
           icon={ArrowUpRight}
-          label="Đường dẫn dự kiến"
+          label={t("plannedUrl")}
           value={`/wedding/${data.slug}`}
-          detail="Trang công khai cần được xuất bản riêng trước khi khách có thể xem."
+          detail={t("publicPageMustBePublished")}
         />
       </div>
       {!access?.isOwner && access && (
         <section className="space-y-5 rounded-2xl border border-[#e8ddd2] bg-white/80 p-5 sm:p-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b5960]">
-              Không gian Co-host
+              {t("cohostWorkspace")}
             </p>
-            <h2 className="mt-1 font-display text-xl text-[#49383a]">Công việc được giao</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Mở trực tiếp khu vực bạn được chủ tiệc phân quyền. Mỗi thao tác vẫn được máy chủ kiểm
-              tra theo phạm vi đã cấp.
-            </p>
+            <h2 className="mt-1 font-display text-xl text-[#49383a]">{t("assignedWork")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("assignedWorkDescription")}</p>
           </div>
           {coHostWorkAreas.length ? (
             <>
@@ -341,53 +347,37 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
             </>
           ) : (
             <p className="rounded-xl border border-dashed border-[#d9cabe] bg-[#fffdfa] p-4 text-sm leading-6 text-muted-foreground">
-              Tài khoản này mới có quyền vào workspace. Hãy nhờ chủ tiệc cấp quyền khách mời, RSVP,
-              sơ đồ chỗ ngồi hoặc check-in để bắt đầu công việc.
+              {t("noAssignedWork")}
             </p>
           )}
           {can("SEATING_EDIT") && !can("SEATING_VIEW") && (
             <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
-              Bạn được cấp quyền sửa chỗ ngồi nhưng chưa có quyền xem sơ đồ. Hãy nhờ chủ tiệc cấp
-              thêm quyền xem với phạm vi bao phủ các nhóm được sửa.
+              {t("seatingEditNeedsView")}
             </p>
           )}
           {can("SEATING_VIEW") && !can("SEATING_EDIT") && (
             <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
-              Bạn đang có quyền xem sơ đồ. Muốn sắp xếp bàn, hãy nhờ chủ tiệc cấp thêm quyền chỉnh
-              sửa chỗ ngồi trong cùng phạm vi.
+              {t("seatingViewOnly")}
             </p>
           )}
           <div>
-            <h3 className="font-semibold text-[#49383a]">Phạm vi quyền hiện tại</h3>
+            <h3 className="font-semibold text-[#49383a]">{t("currentPermissionScope")}</h3>
             <ul className="grid gap-2 sm:grid-cols-2">
               {access.permissions.map((permission) => {
                 const scope = access.scopes?.find((item) => item.permission === permission);
-                const label: Record<string, string> = {
-                  WEDDING_VIEW: "Thông tin đám cưới & realtime",
-                  WEDDING_EDIT: "Chỉnh sửa thiết lập đám cưới",
-                  GUEST_VIEW: "Xem khách mời",
-                  GUEST_EDIT: "Sửa khách mời",
-                  INVITATION_SEND: "Gửi thiệp mời",
-                  RSVP_VIEW: "Xem phản hồi RSVP",
-                  SEATING_VIEW: "Xem sơ đồ bàn",
-                  SEATING_EDIT: "Sắp xếp bàn và chỗ ngồi",
-                  CHECKIN_MANAGE: "Tra cứu và check-in",
-                  GIFT_VIEW: "Xem sổ mừng cưới",
-                  GIFT_EDIT: "Quản lý sổ mừng cưới",
-                  ANALYTICS_VIEW: "Xem thống kê",
-                };
+                const label = t(`permissions.${permission}`);
                 const scopeText =
                   permission === "CHECKIN_MANAGE" || scope?.weddingWide
-                    ? "Toàn đám cưới"
+                    ? t("wholeWedding")
                     : scope?.groups.length
                       ? scope.groups.map((group) => group.name).join(", ")
-                      : "Đang tải phạm vi quyền";
+                      : t("loadingPermissionScope");
                 return (
                   <li
                     key={permission}
                     className="rounded-xl border border-[#eee5de] bg-[#fffdfa] p-3"
                   >
-                    <p className="font-medium text-[#49383a]">{label[permission] ?? permission}</p>
+                    <p className="font-medium text-[#49383a]">{label}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{scopeText}</p>
                   </li>
                 );
@@ -395,7 +385,7 @@ export function WeddingOverview({ weddingId }: { weddingId: string }) {
             </ul>
             {!access.permissions.length && (
               <p className="rounded-lg bg-[#f8f3ef] p-3 text-sm text-muted-foreground">
-                Chưa có quyền nghiệp vụ nào được cấp ngoài quyền vào workspace.
+                {t("noBusinessPermissions")}
               </p>
             )}
           </div>

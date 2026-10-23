@@ -28,6 +28,9 @@ import {
   localDateTimeToIso,
 } from "../schemas/wedding.schema";
 import { usePermission } from "@/shared/components/permission-guard";
+import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/i18n/format";
+import { useLanguage } from "@/i18n/language-context";
 
 const fieldClass =
   "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm transition placeholder:text-muted-foreground/80 focus:border-primary-hover focus:outline-none focus:ring-2 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60";
@@ -48,10 +51,10 @@ function initialHero(url: string | null) {
   }
 }
 
-function statusLabel(status: Website["status"]) {
-  if (status === "PUBLISHED") return "Đang công khai";
-  if (status === "UNPUBLISHED") return "Đã tạm ẩn";
-  return "Bản nháp";
+function statusLabel(status: Website["status"], t: (key: string) => string) {
+  if (status === "PUBLISHED") return t("published");
+  if (status === "UNPUBLISHED") return t("unpublished");
+  return t("draft");
 }
 
 function WebsiteForm({
@@ -65,6 +68,8 @@ function WebsiteForm({
   slug: string;
   fallback: WebsiteDocument;
 }) {
+  const { t } = useTranslation("weddings", { keyPrefix: "websiteEditor" });
+  const { language } = useLanguage();
   const { api } = useRuntime();
   const cache = useQueryClient();
   const [draft, setDraft] = useState<WebsiteDocument>(site.document ?? fallback);
@@ -86,11 +91,11 @@ function WebsiteForm({
   const remoteChanged = site.version !== version;
   const scheduleWarnings = [
     ...(Math.abs(Date.parse(draft.eventAt) - Date.parse(fallback.eventAt)) >= 60000
-      ? ["Ngày giờ website khác sự kiện chính của wedding. Kiểm tra trước khi xuất bản."]
+      ? [t("dateMismatch")]
       : []),
     ...(draft.venueName.trim().toLowerCase() !== fallback.venueName.trim().toLowerCase() ||
     draft.venueAddress.trim().toLowerCase() !== fallback.venueAddress.trim().toLowerCase()
-      ? ["Địa điểm website khác địa điểm chính của wedding."]
+      ? [t("venueMismatch")]
       : []),
   ];
 
@@ -112,8 +117,8 @@ function WebsiteForm({
       load(result);
       cache.setQueryData(["website", weddingId], result);
       setMessage(success);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Không thể lưu. Vui lòng thử lại.");
+    } catch {
+      setMessage(t("saveFailed"));
     } finally {
       setBusy(false);
     }
@@ -126,9 +131,9 @@ function WebsiteForm({
       const result = await uploadWeddingMedia(api, weddingId, file);
       setDraft((current) => ({ ...current, heroImageUrl: result.url }));
       void media.refetch();
-      setMessage("Ảnh đã tải lên. Bấm Lưu bản nháp để áp dụng vào website.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Không tải được ảnh.");
+      setMessage(t("uploadSuccess"));
+    } catch {
+      setMessage(t("uploadFailed"));
     } finally {
       setBusy(false);
     }
@@ -139,10 +144,10 @@ function WebsiteForm({
       <header className="flex flex-col gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-hover">
-            Wedding website
+            {t("websiteInfo")}
           </p>
           <h2 className="mt-1 font-display text-3xl tracking-tight text-foreground sm:text-4xl">
-            Website đám cưới
+            {t("websiteInfo")}
           </h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span
@@ -156,11 +161,11 @@ function WebsiteForm({
               )}
             >
               {status === "PUBLISHED" ? <Check className="size-3.5" aria-hidden="true" /> : null}
-              {statusLabel(status)}
+              {statusLabel(status, t)}
             </span>
             {(dirty || hasUnpublishedChanges) && (
               <span className="inline-flex min-h-7 items-center rounded-full bg-warning/35 px-3 text-xs font-medium text-warning-foreground">
-                Có thay đổi chưa xuất bản
+                {t("unsavedChanges")}
               </span>
             )}
           </div>
@@ -172,7 +177,7 @@ function WebsiteForm({
           onClick={() => setPreview((value) => !value)}
         >
           {preview ? <X aria-hidden="true" /> : <Eye aria-hidden="true" />}
-          {preview ? "Đóng xem trước" : "Xem trước bản nháp"}
+          {preview ? t("closePreview") : t("previewDraft")}
         </Button>
       </header>
 
@@ -181,17 +186,14 @@ function WebsiteForm({
           className="flex flex-col gap-3 rounded-2xl border border-warning/70 bg-warning/20 p-4 text-sm text-warning-foreground sm:flex-row sm:items-center sm:justify-between"
           role="alert"
         >
-          <p>
-            Website đã được thay đổi ở nơi khác. Bản bạn đang sửa vẫn được giữ nguyên; hãy tải bản
-            mới để tiếp tục.
-          </p>
+          <p>{t("remoteChanged")}</p>
           <Button
             type="button"
             variant="outline"
             className="min-h-10 shrink-0 rounded-lg bg-card"
             onClick={() => load(site)}
           >
-            Tải bản mới
+            {t("loadLatest")}
           </Button>
         </div>
       )}
@@ -207,10 +209,10 @@ function WebsiteForm({
       ))}
 
       {preview ? (
-        <section aria-label="Xem trước website bản nháp" className={sectionClass}>
+        <section aria-label={t("previewAria")} className={sectionClass}>
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
             <MonitorPlay className="size-4 text-primary-hover" aria-hidden="true" />
-            Bản xem trước chưa xuất bản
+            {t("unpublishedPreview")}
           </div>
           <WebsiteRenderer document={draft} preview />
         </section>
@@ -222,18 +224,16 @@ function WebsiteForm({
           >
             <div className="border-b border-border/70 pb-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-hover">
-                Nội dung trang
+                {t("pageContent")}
               </p>
               <h3 id="website-content-title" className="mt-1 font-display text-2xl text-foreground">
-                Thông tin lễ cưới
+                {t("weddingInfo")}
               </h3>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Nội dung này sẽ hiển thị trên trang cưới công khai sau khi bạn xuất bản.
-              </p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{t("publicInfoHelp")}</p>
             </div>
 
             <label className="block text-sm font-medium">
-              Tiêu đề trang
+              {t("pageTitle")}
               <input
                 className={fieldClass}
                 maxLength={160}
@@ -244,7 +244,7 @@ function WebsiteForm({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm font-medium">
-                Người thứ nhất
+                {t("partnerOne")}
                 <input
                   className={fieldClass}
                   maxLength={100}
@@ -253,7 +253,7 @@ function WebsiteForm({
                 />
               </label>
               <label className="block text-sm font-medium">
-                Người thứ hai
+                {t("partnerTwo")}
                 <input
                   className={fieldClass}
                   maxLength={100}
@@ -264,7 +264,7 @@ function WebsiteForm({
             </div>
 
             <label className="block text-sm font-medium">
-              Câu chuyện của hai bạn
+              {t("story")}
               <textarea
                 className={cn(fieldClass, "min-h-36 resize-y leading-6")}
                 rows={6}
@@ -273,13 +273,13 @@ function WebsiteForm({
                 onChange={(event) => set("story", event.target.value)}
               />
               <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                Tối đa 5.000 ký tự.
+                {t("max5000")}
               </span>
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm font-medium">
-                Ngày và giờ
+                {t("dateTime")}
                 <input
                   className={fieldClass}
                   type="datetime-local"
@@ -298,7 +298,7 @@ function WebsiteForm({
                 />
               </label>
               <label className="block text-sm font-medium">
-                Liên hệ công khai
+                {t("publicContact")}
                 <input
                   className={fieldClass}
                   maxLength={200}
@@ -310,7 +310,7 @@ function WebsiteForm({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm font-medium">
-                Tên địa điểm
+                {t("venueName")}
                 <input
                   className={fieldClass}
                   maxLength={200}
@@ -319,7 +319,7 @@ function WebsiteForm({
                 />
               </label>
               <label className="block text-sm font-medium">
-                Địa chỉ
+                {t("address")}
                 <input
                   className={fieldClass}
                   maxLength={300}
@@ -337,7 +337,7 @@ function WebsiteForm({
                   checked={draft.showStory}
                   onChange={(event) => set("showStory", event.target.checked)}
                 />
-                Hiển thị câu chuyện
+                {t("showStory")}
               </label>
               <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
                 <input
@@ -346,16 +346,14 @@ function WebsiteForm({
                   checked={draft.showEvent}
                   onChange={(event) => set("showEvent", event.target.checked)}
                 />
-                Hiển thị thông tin sự kiện
+                {t("showEvent")}
               </label>
             </div>
 
             <div className="space-y-4 border-t border-border/70 pt-5">
               <div>
-                <h4 className="font-display text-xl text-foreground">Mốc câu chuyện</h4>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Chia sẻ những kỷ niệm muốn lưu lại trên trang cưới.
-                </p>
+                <h4 className="font-display text-xl text-foreground">{t("storyTimeline")}</h4>
+                <p className="mt-1 text-sm text-muted-foreground">{t("storyTimelineHelp")}</p>
               </div>
               {(draft.timeline ?? []).map((item, index) => (
                 <article
@@ -363,7 +361,7 @@ function WebsiteForm({
                   className="rounded-xl border border-border/80 bg-background p-3 sm:p-4"
                 >
                   <label className="block text-sm font-medium">
-                    Tên mốc
+                    {t("milestoneTitle")}
                     <input
                       className={fieldClass}
                       maxLength={120}
@@ -379,7 +377,7 @@ function WebsiteForm({
                     />
                   </label>
                   <label className="mt-3 block text-sm font-medium">
-                    Nội dung
+                    {t("content")}
                     <textarea
                       className={cn(fieldClass, "min-h-24 resize-y leading-6")}
                       maxLength={1000}
@@ -407,7 +405,7 @@ function WebsiteForm({
                       )
                     }
                   >
-                    Xóa mốc
+                    {t("removeMilestone")}
                   </Button>
                 </article>
               ))}
@@ -420,16 +418,14 @@ function WebsiteForm({
                   set("timeline", [...(draft.timeline ?? []), { title: "", description: "" }])
                 }
               >
-                Thêm mốc câu chuyện
+                {t("addMilestone")}
               </Button>
             </div>
 
             <div className="space-y-4 border-t border-border/70 pt-5">
               <div>
-                <h4 className="font-display text-xl text-foreground">Các buổi lễ</h4>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Thêm giờ và địa chỉ riêng cho từng phần trong ngày cưới.
-                </p>
+                <h4 className="font-display text-xl text-foreground">{t("ceremonies")}</h4>
+                <p className="mt-1 text-sm text-muted-foreground">{t("ceremoniesHelp")}</p>
               </div>
               {(draft.events ?? []).map((item, index) => (
                 <article
@@ -437,7 +433,7 @@ function WebsiteForm({
                   className="rounded-xl border border-border/80 bg-background p-3 sm:p-4"
                 >
                   <label className="block text-sm font-medium">
-                    Tên buổi lễ
+                    {t("ceremonyName")}
                     <input
                       className={fieldClass}
                       maxLength={120}
@@ -454,7 +450,7 @@ function WebsiteForm({
                   </label>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <label className="block text-sm font-medium">
-                      Thời gian
+                      {t("time")}
                       <input
                         className={fieldClass}
                         type="datetime-local"
@@ -483,7 +479,7 @@ function WebsiteForm({
                       />
                     </label>
                     <label className="block text-sm font-medium">
-                      Địa chỉ
+                      {t("address")}
                       <input
                         className={fieldClass}
                         maxLength={300}
@@ -512,7 +508,7 @@ function WebsiteForm({
                       )
                     }
                   >
-                    Xóa buổi lễ
+                    {t("removeCeremony")}
                   </Button>
                 </article>
               ))}
@@ -528,7 +524,7 @@ function WebsiteForm({
                   ])
                 }
               >
-                Thêm buổi lễ
+                {t("addCeremony")}
               </Button>
             </div>
           </section>
@@ -541,11 +537,9 @@ function WebsiteForm({
                 </span>
                 <div>
                   <h3 id="website-theme-title" className="font-display text-xl text-foreground">
-                    Giao diện website
+                    {t("websiteTheme")}
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Chọn mẫu phù hợp với ngày vui của bạn.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("themeHelp")}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -602,17 +596,17 @@ function WebsiteForm({
             <section aria-labelledby="website-media-title" className={sectionClass}>
               <div className="mb-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-hover">
-                  Hình ảnh
+                  {t("images")}
                 </p>
                 <h3 id="website-media-title" className="mt-1 font-display text-xl text-foreground">
-                  Ảnh bìa và album
+                  {t("coverAndGallery")}
                 </h3>
               </div>
 
               <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary/80 bg-background px-4 py-4 text-center transition hover:bg-petal/50 focus-within:ring-2 focus-within:ring-ring">
                 <ImagePlus className="size-5 text-primary-hover" aria-hidden="true" />
-                <span className="text-sm font-medium">Tải ảnh lên</span>
-                <span className="text-xs text-muted-foreground">PNG, JPG hoặc WEBP</span>
+                <span className="text-sm font-medium">{t("uploadImage")}</span>
+                <span className="text-xs text-muted-foreground">{t("imageFormats")}</span>
                 <input
                   className="sr-only"
                   type="file"
@@ -626,10 +620,10 @@ function WebsiteForm({
               </label>
 
               {media.isPending ? (
-                <p className="mt-4 text-sm text-muted-foreground">Đang tải thư viện ảnh…</p>
+                <p className="mt-4 text-sm text-muted-foreground">{t("loadingImages")}</p>
               ) : media.isError ? (
                 <p role="status" className="mt-4 text-sm text-muted-foreground">
-                  Chưa tải được thư viện ảnh. Bạn vẫn có thể tải ảnh mới lên.
+                  {t("imagesLoadFailed")}
                 </p>
               ) : media.data?.length ? (
                 <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
@@ -639,7 +633,7 @@ function WebsiteForm({
                       <button
                         key={item.id}
                         type="button"
-                        aria-label={`${selected ? "Ảnh bìa hiện tại" : "Chọn làm ảnh bìa"}, ảnh ${index + 1}`}
+                        aria-label={`${selected ? t("coverSelected") : t("selectCover")}, ${t("imageNumber", { number: formatNumber(index + 1, language) })}`}
                         aria-pressed={selected}
                         onClick={() => set("heroImageUrl", item.url)}
                         className={cn(
@@ -669,16 +663,14 @@ function WebsiteForm({
                   className="mt-2 min-h-10 px-2 text-sm text-muted-foreground"
                   onClick={() => set("heroImageUrl", null)}
                 >
-                  Bỏ ảnh bìa
+                  {t("removeCover")}
                 </Button>
               )}
 
               <div className="mt-5 border-t border-border/70 pt-4">
                 <div>
-                  <h4 className="font-semibold text-foreground">Album ảnh</h4>
-                  <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                    Chọn ảnh trong thư viện để thêm vào album hiển thị trên trang.
-                  </p>
+                  <h4 className="font-semibold text-foreground">{t("gallery")}</h4>
+                  <p className="mt-1 text-sm leading-5 text-muted-foreground">{t("galleryHelp")}</p>
                 </div>
                 {media.data?.length ? (
                   <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
@@ -689,7 +681,9 @@ function WebsiteForm({
                         disabled={(draft.gallery?.length ?? 0) >= 30}
                         onClick={() => set("gallery", [...(draft.gallery ?? []), item.url])}
                         className="aspect-square overflow-hidden rounded-lg border border-border bg-background transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={`Thêm ảnh ${index + 1} vào album`}
+                        aria-label={t("addGalleryImage", {
+                          number: formatNumber(index + 1, language),
+                        })}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={mediaUrl(item.url)} alt="" className="size-full object-cover" />
@@ -710,9 +704,11 @@ function WebsiteForm({
                           )
                         }
                         className="inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted-foreground transition hover:border-destructive hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        aria-label={`Bỏ ảnh ${index + 1} khỏi album`}
+                        aria-label={t("removeGalleryImage", {
+                          number: formatNumber(index + 1, language),
+                        })}
                       >
-                        Ảnh {index + 1}
+                        {t("galleryImage", { number: formatNumber(index + 1, language) })}
                         <X className="size-3.5" aria-hidden="true" />
                       </button>
                     ))}
@@ -731,14 +727,11 @@ function WebsiteForm({
             className="min-h-11 flex-1 rounded-xl sm:flex-none"
             disabled={busy || remoteChanged || !dirty}
             onClick={() =>
-              void run(
-                () => saveWebsite(api, weddingId, version, draft),
-                "Đã lưu bản nháp. Website công khai chưa thay đổi.",
-              )
+              void run(() => saveWebsite(api, weddingId, version, draft), t("savedDraftMessage"))
             }
           >
             {busy ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : null}
-            {busy ? "Đang xử lý…" : "Lưu bản nháp"}
+            {busy ? t("processing") : t("saveDraft")}
           </Button>
           <Button
             type="button"
@@ -752,10 +745,10 @@ function WebsiteForm({
               (!hasUnpublishedChanges && status === "PUBLISHED")
             }
             onClick={() =>
-              void run(() => publishWebsite(api, weddingId, version), "Đã xuất bản website.")
+              void run(() => publishWebsite(api, weddingId, version), t("publishSuccess"))
             }
           >
-            Xuất bản{status === "PUBLISHED" ? " thay đổi" : ""}
+            {status === "PUBLISHED" ? t("publishChanges") : t("publish")}
           </Button>
           {status === "PUBLISHED" && (
             <Button
@@ -764,13 +757,10 @@ function WebsiteForm({
               className="min-h-11 flex-1 rounded-xl bg-card sm:flex-none"
               disabled={busy || dirty || remoteChanged}
               onClick={() =>
-                void run(
-                  () => unpublishWebsite(api, weddingId, version),
-                  "Đã ẩn website công khai.",
-                )
+                void run(() => unpublishWebsite(api, weddingId, version), t("unpublishSuccess"))
               }
             >
-              Ẩn website
+              {t("unpublish")}
             </Button>
           )}
           {status === "PUBLISHED" && (
@@ -780,7 +770,7 @@ function WebsiteForm({
               target="_blank"
               rel="noreferrer"
             >
-              Mở website
+              {t("openWebsite")}
             </a>
           )}
           {status === "PUBLISHED" && (
@@ -792,7 +782,7 @@ function WebsiteForm({
                 void navigator.clipboard.writeText(new URL(url, window.location.origin).toString())
               }
             >
-              Sao chép link
+              {t("copyLink")}
             </Button>
           )}
         </div>
@@ -810,6 +800,7 @@ function WebsiteForm({
 }
 
 export function WebsiteEditor({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("weddings", { keyPrefix: "websiteEditor" });
   const { api } = useRuntime();
   const { isOwner } = usePermission();
   const site = useQuery({
@@ -825,14 +816,14 @@ export function WebsiteEditor({ weddingId }: { weddingId: string }) {
   if (!isOwner) {
     return (
       <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-        Chỉ chủ hôn có quyền quản lý website.
+        {t("permissionRequired")}
       </p>
     );
   }
   if (site.isPending || wedding.isPending) {
     return (
-      <div role="status" className="space-y-4" aria-label="Đang tải website">
-        <span className="sr-only">Đang tải website…</span>
+      <div role="status" className="space-y-4" aria-label={t("loadingWebsite")}>
+        <span className="sr-only">{t("loadingWebsiteText")}</span>
         <div className="h-9 w-56 animate-pulse rounded-lg bg-petal motion-reduce:animate-none" />
         <div className="h-20 rounded-2xl bg-card motion-safe:animate-pulse motion-reduce:animate-none" />
         <div className="grid gap-5 lg:grid-cols-[1.45fr_0.85fr]">
@@ -848,7 +839,7 @@ export function WebsiteEditor({ weddingId }: { weddingId: string }) {
         role="alert"
         className="rounded-2xl border border-destructive/30 bg-error-surface/10 p-5 text-sm text-destructive"
       >
-        Không tải được website. Vui lòng thử tải lại trang.
+        {t("loadFailed")}
       </div>
     );
   }

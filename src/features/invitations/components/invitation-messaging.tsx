@@ -33,6 +33,7 @@ import {
   type InvitationTone,
 } from "../api/invitation-messaging.api";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 const recipientSchema = z.object({
   id: z.string(),
@@ -48,9 +49,9 @@ const guestPageSchema = z.object({
   totalItems: z.number(),
 });
 const toneLabels: Record<InvitationTone, string> = {
-  FORMAL: "Trang trọng",
-  WARM: "Ấm áp",
-  HUMOROUS: "Vui vẻ",
+  FORMAL: "tones.formal",
+  WARM: "tones.warm",
+  HUMOROUS: "tones.humorous",
 };
 const batchKey = (weddingId: string) => `inviteme:last-invitation-batch:${weddingId}`;
 const draftKey = (weddingId: string) => ["invitation-messaging", weddingId, "draft"] as const;
@@ -80,47 +81,47 @@ function persistBatchId(weddingId: string, id: string) {
   window.dispatchEvent(new Event(batchChangeEvent));
 }
 
-function friendlyError(error: unknown): string {
-  if (!(error instanceof ApiError)) return "Không thể hoàn tất thao tác. Vui lòng thử lại.";
+function friendlyError(error: unknown, t: (key: string) => string): string {
+  if (!(error instanceof ApiError)) return t("errors.generic");
   if (error.status === 503 || error.backendCode === "INVITATION_CHANNEL_NOT_CONFIGURED")
-    return "Kênh gửi này chưa được cấu hình. Hãy liên hệ quản trị viên.";
-  if (error.backendCode === "SPEEDSMS_SENDER_NOT_FOUND")
-    return "SpeedSMS chưa nhận diện sender đã cấu hình. Vui lòng liên hệ quản trị viên; FE không tự đổi cấu hình gửi.";
-  if (error.backendCode === "SPEEDSMS_INVALID_PHONE") return "Số điện thoại không hợp lệ.";
-  if (error.backendCode === "SPEEDSMS_INSUFFICIENT_BALANCE")
-    return "Tài khoản SpeedSMS không đủ số dư.";
+    return t("errors.channelNotConfigured");
+  if (error.backendCode === "SPEEDSMS_SENDER_NOT_FOUND") return t("errors.senderNotFound");
+  if (error.backendCode === "SPEEDSMS_INVALID_PHONE") return t("errors.invalidPhone");
+  if (error.backendCode === "SPEEDSMS_INSUFFICIENT_BALANCE") return t("errors.insufficientBalance");
   if (error.backendCode === "CONCURRENCY_CONFLICT" || error.status === 409)
-    return "Dữ liệu đã thay đổi trên máy khác. Hãy tải bản mới và xác nhận trước khi ghi đè.";
-  if (error.status === 422)
-    return "Backend từ chối nội dung hoặc danh sách gửi. Kiểm tra placeholder, liên hệ, sức chứa 180 khách và độ dài SMS.";
-  if (error.status === 404) return "Không tìm thấy bản nháp, khách hoặc nhóm. Hãy tải lại dữ liệu.";
-  return error.message;
+    return t("errors.conflict");
+  if (error.status === 422) return t("errors.invalidRequest");
+  if (error.status === 404) return t("errors.notFound");
+  return t("errors.generic");
 }
 
-function validateTemplate(subject: string, content: string, smsContent: string) {
+function validateTemplate(
+  subject: string,
+  content: string,
+  smsContent: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
   const errors: string[] = [];
   if (!subject.trim() || subject.length > 200 || /[\r\n]/.test(subject))
-    errors.push("Tiêu đề email cần có nội dung, tối đa 200 ký tự và chỉ một dòng.");
-  if (!content.trim() || content.length > 10000)
-    errors.push("Nội dung email cần có tối đa 10.000 ký tự.");
+    errors.push(t("validation.subject"));
+  if (!content.trim() || content.length > 10000) errors.push(t("validation.emailLength"));
   for (const token of ["{{GuestName}}", "{{RsvpLink}}", "{{QrLink}}"])
-    if (!content.includes(token)) errors.push(`Email cần có ${token}.`);
+    if (!content.includes(token)) errors.push(t("validation.emailToken", { token }));
   const emailRemainder = ["{{GuestName}}", "{{RsvpLink}}", "{{QrLink}}"].reduce(
     (value, token) => value.replaceAll(token, ""),
     content,
   );
   if (emailRemainder.includes("{{") || emailRemainder.includes("}}"))
-    errors.push("Email chỉ được dùng {{GuestName}}, {{RsvpLink}} và {{QrLink}}.");
-  if (!smsContent.trim() || smsContent.length > 10000)
-    errors.push("Nội dung SMS cần có tối đa 10.000 ký tự.");
+    errors.push(t("validation.emailTokensOnly"));
+  if (!smsContent.trim() || smsContent.length > 10000) errors.push(t("validation.smsLength"));
   for (const token of ["{{GuestName}}", "{{RsvpLink}}"])
-    if (!smsContent.includes(token)) errors.push(`SMS cần có ${token}.`);
+    if (!smsContent.includes(token)) errors.push(t("validation.smsToken", { token }));
   const smsRemainder = ["{{GuestName}}", "{{RsvpLink}}"].reduce(
     (value, token) => value.replaceAll(token, ""),
     smsContent,
   );
   if (smsRemainder.includes("{{") || smsRemainder.includes("}}"))
-    errors.push("SMS chỉ được dùng {{GuestName}} và {{RsvpLink}}.");
+    errors.push(t("validation.smsTokensOnly"));
   return [...new Set(errors)];
 }
 
@@ -130,21 +131,25 @@ function maskRecipient(value: string) {
   return value.length > 4 ? `${value.slice(0, 2)}••••${value.slice(-2)}` : "••••";
 }
 
-function statusLabel(status: string) {
-  return (
-    (
-      {
-        PENDING: "Đang chờ",
-        SENDING: "Đang gửi",
-        SENT: "Đã gửi đến nhà cung cấp",
-        FAILED: "Thất bại",
-        PARTIAL_FAILED: "Một phần thất bại",
-      } as Record<string, string>
-    )[status] ?? status
-  );
+function statusLabel(status: string, t: (key: string) => string) {
+  const statusKeys: Record<string, string> = {
+    PENDING: "status.pending",
+    SENDING: "status.sending",
+    SENT: "status.sent",
+    FAILED: "status.failed",
+    PARTIAL_FAILED: "status.partialFailed",
+  };
+  return statusKeys[status] ? t(statusKeys[status]) : status;
 }
 
-export function InvitationMessaging({ weddingId, isPublished }: { weddingId: string; isPublished: boolean }) {
+export function InvitationMessaging({
+  weddingId,
+  isPublished,
+}: {
+  weddingId: string;
+  isPublished: boolean;
+}) {
+  const { t } = useTranslation("invitations");
   const { api } = useRuntime();
   const { can } = usePermission();
   const canViewGuests = can("GUEST_VIEW");
@@ -261,7 +266,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
       queryClient.setQueryData(draftKey(weddingId), next);
       setEdits(null);
       setConflictDraft(null);
-      setSaveMessage("Bản nháp AI đã được lưu.");
+      setSaveMessage(t("aiDraftSaved"));
     },
   });
   const saveMutation = useMutation({
@@ -283,10 +288,10 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
       queryClient.setQueryData(draftKey(weddingId), next);
       setEdits(null);
       setConflictDraft(null);
-      setSaveMessage("Bản nháp đã được lưu.");
+      setSaveMessage(t("draftSaved"));
     },
     onError: async (error) => {
-      setSaveMessage(friendlyError(error));
+      setSaveMessage(friendlyError(error, t));
       if (error instanceof ApiError && error.status === 409) {
         const latest = await queryClient.fetchQuery({
           queryKey: draftKey(weddingId),
@@ -309,12 +314,10 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
     },
     onError: (error) => {
       if (!(error instanceof ApiError) || error.code === "network") {
-        setSaveMessage(
-          "Chưa xác định được yêu cầu đã tới server hay chưa. Có thể gửi lại đúng yêu cầu an toàn bằng cùng idempotency key.",
-        );
+        setSaveMessage(t("uncertainSend"));
       } else {
         setUncertainSend(null);
-        setSaveMessage(friendlyError(error));
+        setSaveMessage(friendlyError(error, t));
       }
     },
   });
@@ -331,7 +334,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
   });
 
   const { subject, content, smsContent, tone } = form;
-  const templateErrors = validateTemplate(subject, content, smsContent);
+  const templateErrors = validateTemplate(subject, content, smsContent, t);
   const missingContacts = selectedIds.filter((id) => {
     const contact = selectedContactFlags[id];
     return (
@@ -377,14 +380,11 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
     if (!canSend) return;
     const details =
       recipientMode === "GROUP"
-        ? `nhóm ${groups.find((group) => group.id === groupId)?.name ?? "đã chọn"}`
-        : `${selectedIds.length} khách`;
-    if (
-      !window.confirm(
-        `Gửi thiệp ${channels.join(" + ")} đến ${details}? Backend sẽ kiểm tra quyền, địa chỉ và giới hạn lần cuối.`,
-      )
-    )
-      return;
+        ? t("selectedGroup", {
+            name: groups.find((group) => group.id === groupId)?.name ?? t("selected"),
+          })
+        : t("selectedGuestCount", { count: selectedIds.length });
+    if (!window.confirm(t("confirmSend", { channels: channels.join(" + "), details }))) return;
     const body: InvitationSendBody =
       recipientMode === "GROUP"
         ? { groupId, channels: [...channels] }
@@ -398,7 +398,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
     queryClient.setQueryData(draftKey(weddingId), conflictDraft);
     setEdits(null);
     setConflictDraft(null);
-    setSaveMessage("Đã tải bản mới nhất.");
+    setSaveMessage(t("latestLoaded"));
   }
   function retryOnLatest() {
     if (!conflictDraft) return;
@@ -411,17 +411,17 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
       version: conflictDraft.version,
     }));
     setConflictDraft(null);
-    setSaveMessage("Bạn đã chọn giữ phần đang sửa. Nhấn Lưu để thử ghi lên version mới.");
+    setSaveMessage(t("keepEditsOnNewVersion"));
   }
 
   if (draftQuery.isPending)
-    return <div className="p-8 text-sm text-muted-foreground">Đang tải bản nháp…</div>;
+    return <div className="p-8 text-sm text-muted-foreground">{t("loadingDraft")}</div>;
   if (draftQuery.isError)
     return (
       <section role="alert" className="rounded-xl border p-5">
-        <p>{friendlyError(draftQuery.error)}</p>
+        <p>{friendlyError(draftQuery.error, t)}</p>
         <Button className="mt-3" variant="outline" onClick={() => void draftQuery.refetch()}>
-          Tải lại
+          {t("reload")}
         </Button>
       </section>
     );
@@ -431,21 +431,20 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
       <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="mt-2 font-display text-2xl">Soạn lời mời</h2>
+            <h2 className="mt-2 font-display text-2xl">{t("composeTitle")}</h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Email và SMS là hai nội dung độc lập. Các link cá nhân hóa được cấp bởi backend, không
-              lưu vào trình duyệt.
+              {t("composeDescription")}
             </p>
           </div>
           {draftQuery.data && (
             <span className="rounded-full bg-muted px-3 py-1 text-xs">
-              Version {draftQuery.data.version}
+              {t("version", { version: draftQuery.data.version })}
             </span>
           )}
         </div>
         {!draftQuery.data && (
           <div className="mt-5 rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-            Chưa có bản nháp. Tạo bằng AI hoặc soạn nội dung bên dưới để bắt đầu.
+            {t("noDraft")}
           </div>
         )}
         {!canViewGuests && (
@@ -453,14 +452,13 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
             role="note"
             className="mt-4 rounded-xl border border-amber-500/40 bg-amber-50 p-4 text-sm text-amber-950"
           >
-            Bạn có quyền gửi thiệp nhưng cần thêm quyền xem khách (GUEST_VIEW) để chọn người nhận,
-            tạo preview và theo dõi gửi.
+            {t("guestViewRequired")}
           </p>
         )}
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="space-y-4">
             <label className="block space-y-2 text-sm font-medium">
-              Tone
+              {t("tone")}
               <select
                 className="h-11 w-full rounded-lg border bg-background px-3"
                 value={tone}
@@ -468,31 +466,25 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
               >
                 {Object.entries(toneLabels).map(([value, label]) => (
                   <option key={value} value={value}>
-                    {label}
+                    {t(label)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block space-y-2 text-sm font-medium">
-              Chỉ dẫn thêm cho AI{" "}
+              {t("aiInstructions")}{" "}
               <span className="font-normal text-muted-foreground">({instructions.length}/500)</span>
               <textarea
                 className="min-h-20 w-full rounded-lg border bg-background p-3 font-normal"
                 maxLength={500}
                 value={instructions}
                 onChange={(event) => setInstructions(event.target.value)}
-                placeholder="Ví dụ: lời mời thân mật, ngắn gọn…"
+                placeholder={t("aiInstructionsPlaceholder")}
               />
             </label>
             <Button
               onClick={() => {
-                if (
-                  dirty &&
-                  !window.confirm(
-                    "Tạo bản AI mới sẽ thay thế bản đã lưu trên server. Các chỉnh sửa hiện tại chưa lưu sẽ bị bỏ. Tiếp tục?",
-                  )
-                )
-                  return;
+                if (dirty && !window.confirm(t("replaceDraftConfirm"))) return;
                 generateMutation.mutate();
               }}
               disabled={generateMutation.isPending || instructions.length > 500}
@@ -502,44 +494,44 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
               ) : (
                 <Sparkles />
               )}{" "}
-              Tạo nội dung bằng AI
+              {t("generateWithAi")}
             </Button>
             {generateMutation.isError && (
               <p role="alert" className="text-sm text-destructive">
-                {friendlyError(generateMutation.error)}
+                {friendlyError(generateMutation.error, t)}
               </p>
             )}
             {draftQuery.data?.usedFallback && (
-              <p className="rounded-lg bg-muted p-3 text-sm">Email đang dùng mẫu dự phòng.</p>
+              <p className="rounded-lg bg-muted p-3 text-sm">{t("emailFallback")}</p>
             )}
             {draftQuery.data?.smsUsedFallback && (
-              <p className="rounded-lg bg-muted p-3 text-sm">SMS đang dùng mẫu dự phòng.</p>
+              <p className="rounded-lg bg-muted p-3 text-sm">{t("smsFallback")}</p>
             )}
           </div>
           <div className="space-y-4">
             <label className="block space-y-2 text-sm font-medium">
-              Tiêu đề email
+              {t("emailSubject")}
               <input
                 className="h-11 w-full rounded-lg border bg-background px-3 font-normal"
                 maxLength={200}
                 value={subject}
                 onChange={(event) => updateField("subject", event.target.value)}
-                placeholder="Trân trọng kính mời"
+                placeholder={t("emailSubjectPlaceholder")}
               />
             </label>
             <label className="block space-y-2 text-sm font-medium">
-              Nội dung email{" "}
+              {t("emailContent")}{" "}
               <span className="font-normal text-muted-foreground">({content.length}/10.000)</span>
               <textarea
                 className="min-h-36 w-full rounded-lg border bg-background p-3 font-normal"
                 maxLength={10000}
                 value={content}
                 onChange={(event) => updateField("content", event.target.value)}
-                placeholder="Dùng {{GuestName}}, {{RsvpLink}}, {{QrLink}}"
+                placeholder={t("emailContentPlaceholder")}
               />
             </label>
             <label className="block space-y-2 text-sm font-medium">
-              Nội dung SMS{" "}
+              {t("smsContent")}{" "}
               <span className="font-normal text-muted-foreground">
                 ({smsContent.length}/10.000)
               </span>
@@ -548,7 +540,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                 maxLength={10000}
                 value={smsContent}
                 onChange={(event) => updateField("smsContent", event.target.value)}
-                placeholder="Dùng {{GuestName}} và {{RsvpLink}}"
+                placeholder={t("smsContentPlaceholder")}
               />
             </label>
           </div>
@@ -567,15 +559,14 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
               className="space-y-3 rounded-xl border border-amber-500/40 bg-amber-50 p-4 text-sm text-amber-950"
             >
               <p className="flex gap-2">
-                <AlertTriangle className="size-5 shrink-0" /> Server có version{" "}
-                {conflictDraft.version}; phần đang sửa của bạn vẫn được giữ trong form. Chọn cách xử
-                lý trước khi lưu tiếp.
+                <AlertTriangle className="size-5 shrink-0" />{" "}
+                {t("serverHasVersion", { version: conflictDraft.version })}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={restoreLatest}>
-                  Tải bản mới nhất (bỏ edits)
+                  {t("loadLatestDiscardEdits")}
                 </Button>
-                <Button onClick={retryOnLatest}>Giữ edits và xác nhận thử trên version mới</Button>
+                <Button onClick={retryOnLatest}>{t("keepEditsUseLatest")}</Button>
               </div>
             </div>
           )}
@@ -591,15 +582,15 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                 saveMutation.mutate({ subject, content, smsContent, tone, version: form.version })
               }
             >
-              {saveMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Check />} Lưu
-              bản nháp
+              {saveMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Check />}{" "}
+              {t("saveDraft")}
             </Button>
             {saveMessage && (
               <p role="status" className="text-sm text-muted-foreground">
                 {saveMessage}
               </p>
             )}
-            {dirty && <span className="text-sm text-muted-foreground">Có thay đổi chưa lưu.</span>}
+            {dirty && <span className="text-sm text-muted-foreground">{t("unsavedChanges")}</span>}
           </div>
         </div>
       </section>
@@ -608,18 +599,16 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
         <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div className="flex items-center gap-2">
             <Mail className="size-5" />
-            <h2 className="font-display text-xl">Xem trước & gửi thử</h2>
+            <h2 className="font-display text-xl">{t("previewAndTest")}</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Preview dùng dữ liệu đã lưu. Chọn khách có invitation token.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("previewDescription")}</p>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <select
               className="h-11 min-w-0 flex-1 rounded-lg border bg-background px-3"
               value={previewGuestId}
               onChange={(event) => setPreviewGuestId(event.target.value)}
             >
-              <option value="">Chọn khách…</option>
+              <option value="">{t("selectGuest")}</option>
               {(guestQuery.data?.items ?? []).map((guest) => (
                 <option key={guest.id} value={guest.id}>
                   {guest.recipientName}
@@ -631,22 +620,18 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
               disabled={!previewGuestId || !draftQuery.data || dirty || previewQuery.isFetching}
               onClick={() => void previewQuery.refetch()}
             >
-              <RefreshCw className={previewQuery.isFetching ? "animate-spin" : ""} /> Xem trước
+              <RefreshCw className={previewQuery.isFetching ? "animate-spin" : ""} /> {t("preview")}
             </Button>
           </div>
-          {dirty && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Lưu bản nháp trước khi tạo preview hoặc gửi để đảm bảo nội dung đồng nhất.
-            </p>
-          )}
+          {dirty && <p className="mt-2 text-xs text-muted-foreground">{t("saveBeforePreview")}</p>}
           {previewQuery.isError && (
             <p role="alert" className="mt-3 text-sm text-destructive">
-              {friendlyError(previewQuery.error)}
+              {friendlyError(previewQuery.error, t)}
             </p>
           )}
           {previewQuery.data && (
             <div className="mt-4 space-y-4 rounded-xl border p-4">
-              <div role="tablist" aria-label="Kênh xem trước" className="flex gap-2">
+              <div role="tablist" aria-label={t("previewChannel")} className="flex gap-2">
                 {(["EMAIL", "SMS"] as const).map((channel) => (
                   <button
                     key={channel}
@@ -672,7 +657,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Mở link RSVP cá nhân
+                      {t("openRsvpLink")}
                     </a>
                     <a
                       className="truncate text-sm underline"
@@ -680,13 +665,13 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Mở QR cá nhân
+                      {t("openPersonalQr")}
                     </a>
                   </div>
                   <iframe
                     className="size-36 rounded-lg border bg-white p-2"
                     src={previewQuery.data.qrLink}
-                    title="QR invitation preview"
+                    title={t("qrPreviewTitle")}
                     sandbox=""
                     loading="lazy"
                   />
@@ -703,9 +688,8 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                         : "text-xs text-muted-foreground"
                     }
                   >
-                    SMS preview: {previewQuery.data.smsContent.length}/201 ký tự UTF-16.
-                    {previewQuery.data.smsContent.length > 201 &&
-                      " Nội dung vượt giới hạn backend."}
+                    {t("smsCharacterCount", { count: previewQuery.data.smsContent.length })}
+                    {previewQuery.data.smsContent.length > 201 && ` ${t("smsOverLimit")}`}
                   </p>
                 </div>
               )}
@@ -713,28 +697,21 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                 variant="outline"
                 disabled={testMutation.isPending || dirty || !isPublished}
                 onClick={() => {
-                  if (
-                    window.confirm(
-                      "Gửi email thử tới địa chỉ email của tài khoản bạn đang đăng nhập? Email không gửi cho khách.",
-                    )
-                  )
-                    testMutation.mutate();
+                  if (window.confirm(t("testEmailConfirm"))) testMutation.mutate();
                 }}
               >
-                {testMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Send />} Gửi
-                thử tới email của tôi
+                {testMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Send />}{" "}
+                {t("sendTestToMyEmail")}
               </Button>
-              {dirty && (
-                <p className="text-xs text-muted-foreground">Lưu nội dung trước khi gửi thử.</p>
-              )}
+              {dirty && <p className="text-xs text-muted-foreground">{t("saveBeforeTest")}</p>}
               {testMutation.isSuccess && (
                 <p role="status" className="text-sm text-green-700">
-                  Backend đã nhận yêu cầu gửi thử tới tài khoản của bạn.
+                  {t("testAccepted")}
                 </p>
               )}
               {testMutation.isError && (
                 <p role="alert" className="text-sm text-destructive">
-                  {friendlyError(testMutation.error)}
+                  {friendlyError(testMutation.error, t)}
                 </p>
               )}
             </div>
@@ -744,11 +721,9 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
         <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div className="flex items-center gap-2">
             <Send className="size-5" />
-            <h2 className="font-display text-xl">Gửi thiệp</h2>
+            <h2 className="font-display text-xl">{t("sendInvitations")}</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Backend kiểm tra quyền, contact, invitation token và giới hạn batch lần cuối.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("sendDescription")}</p>
           <div className="mt-4 flex gap-2">
             {(["GUESTS", "GROUP"] as const).map((mode) => (
               <button
@@ -761,23 +736,23 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                   setPage(1);
                 }}
               >
-                {mode === "GUESTS" ? "Chọn khách" : "Chọn nhóm"}
+                {mode === "GUESTS" ? t("chooseGuests") : t("chooseGroup")}
               </button>
             ))}
           </div>
           {guestQuery.isError && (
             <p role="alert" className="mt-3 text-sm text-destructive">
-              Không tải được danh sách khách: {friendlyError(guestQuery.error)}
+              {t("guestListFailed", { error: friendlyError(guestQuery.error, t) })}
             </p>
           )}
           {groupsQuery.isError && (
             <p role="alert" className="mt-3 text-sm text-destructive">
-              Không tải được danh sách nhóm: {friendlyError(groupsQuery.error)}
+              {t("groupListFailed", { error: friendlyError(groupsQuery.error, t) })}
             </p>
           )}
           {recipientMode === "GROUP" ? (
             <label className="mt-3 block space-y-2 text-sm">
-              Nhóm khách
+              {t("guestGroup")}
               <select
                 className="h-11 w-full rounded-lg border bg-background px-3"
                 value={groupId}
@@ -786,7 +761,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                   setPage(1);
                 }}
               >
-                <option value="">Chọn nhóm…</option>
+                <option value="">{t("selectGroup")}</option>
                 {groups.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
@@ -803,8 +778,8 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                   setSearch(event.target.value);
                   setPage(1);
                 }}
-                placeholder="Tìm tên khách…"
-                aria-label="Tìm khách nhận thiệp"
+                placeholder={t("searchGuestsPlaceholder")}
+                aria-label={t("searchRecipientsAria")}
               />
               <div className="mt-3 max-h-56 space-y-2 overflow-auto rounded-lg border p-3">
                 {(guestQuery.data?.items ?? []).map((guest) => (
@@ -834,30 +809,30 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{guest.recipientName}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {guest.group?.name ?? "Chưa có nhóm"} ·{" "}
-                        {guest.email ? "Có email" : "Thiếu email"} ·{" "}
-                        {guest.phone ? "Có điện thoại" : "Thiếu điện thoại"}
+                        {guest.group?.name ?? t("noGroup")} ·{" "}
+                        {guest.email ? t("hasEmail") : t("missingEmail")} ·{" "}
+                        {guest.phone ? t("hasPhone") : t("missingPhone")}
                       </span>
                     </span>
                   </label>
                 ))}
                 {!guestQuery.isPending && !guestQuery.data?.items.length && (
-                  <p className="text-sm text-muted-foreground">Không tìm thấy khách.</p>
+                  <p className="text-sm text-muted-foreground">{t("noGuestsFound")}</p>
                 )}
                 {guestQuery.isPending && (
-                  <p className="text-sm text-muted-foreground">Đang tải khách…</p>
+                  <p className="text-sm text-muted-foreground">{t("loadingGuests")}</p>
                 )}
               </div>
               {guestQuery.data && (
                 <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                   <span>
-                    {guestQuery.data.totalItems} khách phù hợp · trang {page}
+                    {t("matchingGuestsPage", { count: guestQuery.data.totalItems, page })}
                   </span>
                   <span className="flex gap-1">
                     <Button
                       size="icon"
                       variant="ghost"
-                      aria-label="Trang trước"
+                      aria-label={t("previousPage")}
                       disabled={page <= 1}
                       onClick={() => setPage((value) => value - 1)}
                     >
@@ -866,7 +841,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                     <Button
                       size="icon"
                       variant="ghost"
-                      aria-label="Trang sau"
+                      aria-label={t("nextPage")}
                       disabled={page * guestQuery.data.pageSize >= guestQuery.data.totalItems}
                       onClick={() => setPage((value) => value + 1)}
                     >
@@ -875,13 +850,11 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                   </span>
                 </div>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                Chọn khách trên nhiều trang được giữ trong phiên hiện tại.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("selectionAcrossPages")}</p>
             </>
           )}
           <fieldset className="mt-4">
-            <legend className="text-sm font-medium">Kênh gửi</legend>
+            <legend className="text-sm font-medium">{t("deliveryChannels")}</legend>
             <div className="mt-2 flex flex-wrap gap-4">
               {(["EMAIL", "SMS"] as const).map((channel) => (
                 <label key={channel} className="flex items-center gap-2 text-sm">
@@ -908,47 +881,40 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
           </fieldset>
           {recipientMode === "GUESTS" && missingContacts.length > 0 && (
             <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
-              {missingContacts.length} khách đã chọn thiếu thông tin cho kênh đã chọn. Backend vẫn
-              là nơi xác thực đầy đủ.
+              {t("missingContacts", { count: missingContacts.length })}
             </p>
           )}
           {selectionCount > 180 && (
-            <p className="mt-3 text-sm text-destructive">
-              Một lần gửi tối đa 180 khách; hãy chia nhóm gửi.
-            </p>
+            <p className="mt-3 text-sm text-destructive">{t("maxRecipients")}</p>
           )}
           <p className="mt-3 text-sm">
-            Đối tượng: <strong>{selectionCount}</strong> · Kênh:{" "}
-            <strong>{channels.join(", ") || "chưa chọn"}</strong>
+            {t("recipientsSummary")}: <strong>{selectionCount}</strong> · {t("channelsSummary")}:{" "}
+            <strong>{channels.join(", ") || t("noneSelected")}</strong>
           </p>
           {uncertainSend && (
             <div className="mt-3 space-y-2 rounded-lg border border-amber-500/40 bg-amber-50 p-3 text-sm">
-              <p>
-                Yêu cầu trước chưa có phản hồi xác nhận. Gửi lại sẽ dùng đúng body và idempotency
-                key để tránh batch trùng.
-              </p>
+              <p>{t("uncertainSendDetails")}</p>
               <Button
                 variant="outline"
                 disabled={sendMutation.isPending}
                 onClick={() => sendMutation.mutate(uncertainSend)}
               >
                 {sendMutation.isPending ? <LoaderCircle className="animate-spin" /> : <RefreshCw />}{" "}
-                Gửi lại cùng yêu cầu
+                {t("retrySameRequest")}
               </Button>
             </div>
           )}
           <Button className="mt-4 w-full" disabled={!canSend} onClick={beginSend}>
-            {sendMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Send />} Xếp hàng
-            gửi
+            {sendMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Send />}{" "}
+            {t("queueSend")}
           </Button>
-          {!isPublished &&
-            <p className="mt-2 text-sm text-muted-foreground">Publish thiết kế thiệp trước khi gửi link.</p>}
-          {dirty && (
-            <p className="mt-2 text-xs text-muted-foreground">Lưu bản nháp trước khi gửi.</p>
+          {!isPublished && (
+            <p className="mt-2 text-sm text-muted-foreground">{t("publishBeforeSend")}</p>
           )}
+          {dirty && <p className="mt-2 text-xs text-muted-foreground">{t("saveBeforeSend")}</p>}
           {sendMutation.isError && !uncertainSend && (
             <p role="alert" className="mt-3 text-sm text-destructive">
-              {friendlyError(sendMutation.error)}
+              {friendlyError(sendMutation.error, t)}
             </p>
           )}
           {sendMutation.isError &&
@@ -956,8 +922,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
             sendMutation.error instanceof ApiError &&
             sendMutation.error.code !== "network" && (
               <p role="alert" className="mt-3 text-sm text-destructive">
-                {friendlyError(sendMutation.error)} Lần gửi chưa được chấp nhận; kiểm tra lại cấu
-                hình rồi bắt đầu lần gửi mới.
+                {t("sendNotAccepted", { error: friendlyError(sendMutation.error, t) })}
               </p>
             )}
         </div>
@@ -967,30 +932,30 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-xl">Kết quả gửi gần nhất</h2>
+              <h2 className="font-display text-xl">{t("latestBatch")}</h2>
             </div>
             <Button variant="outline" onClick={() => void batchQuery.refetch()}>
-              <RefreshCw className={batchQuery.isFetching ? "animate-spin" : ""} /> Làm mới
+              <RefreshCw className={batchQuery.isFetching ? "animate-spin" : ""} /> {t("refresh")}
             </Button>
           </div>
           {batchQuery.isPending ? (
-            <p className="mt-4 text-sm text-muted-foreground">Đang tải trạng thái…</p>
+            <p className="mt-4 text-sm text-muted-foreground">{t("loadingStatus")}</p>
           ) : batchQuery.isError ? (
             <div role="alert" className="mt-4">
-              <p className="text-sm">{friendlyError(batchQuery.error)}</p>
+              <p className="text-sm">{friendlyError(batchQuery.error, t)}</p>
               <Button className="mt-2" variant="outline" onClick={() => void batchQuery.refetch()}>
-                Thử lại
+                {t("retry")}
               </Button>
             </div>
           ) : (
             <>
               <div className="mt-4 grid gap-3 sm:grid-cols-4">
                 {[
-                  ["Trạng thái", statusLabel(batchQuery.data.status)],
-                  ["Tổng", batchQuery.data.totalCount],
-                  ["Đã nhận", batchQuery.data.sentCount],
+                  ["statusLabel", statusLabel(batchQuery.data.status, t)],
+                  ["total", batchQuery.data.totalCount],
+                  ["sent", batchQuery.data.sentCount],
                   [
-                    "Lỗi / đang chờ",
+                    "failedOrPending",
                     `${batchQuery.data.failedCount} / ${batchQuery.data.pendingCount}`,
                   ],
                 ].map(([label, value]) => (
@@ -1002,7 +967,7 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Button variant="outline" onClick={() => setShowRecipients((value) => !value)}>
-                  {showRecipients ? "Ẩn người nhận" : "Hiện người nhận"}
+                  {showRecipients ? t("hideRecipients") : t("showRecipients")}
                 </Button>
                 {batchQuery.data.jobs.some((job) => job.status === "FAILED") && (
                   <Button disabled={retryMutation.isPending} onClick={() => retryMutation.mutate()}>
@@ -1011,17 +976,17 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                     ) : (
                       <RefreshCw />
                     )}{" "}
-                    Thử lại các mục thất bại
+                    {t("retryFailed")}
                   </Button>
                 )}
                 {retryMutation.data && (
                   <span className="text-sm text-muted-foreground">
-                    Đã xếp lại {retryMutation.data.retried} mục.
+                    {t("retriedJobs", { count: retryMutation.data.retried })}
                   </span>
                 )}
                 {retryMutation.isError && (
                   <span role="alert" className="text-sm text-destructive">
-                    {friendlyError(retryMutation.error)}
+                    {friendlyError(retryMutation.error, t)}
                   </span>
                 )}
               </div>
@@ -1038,21 +1003,18 @@ export function InvitationMessaging({ weddingId, isPublished }: { weddingId: str
                       </span>
                     </div>
                     <span className="text-muted-foreground">
-                      {statusLabel(job.status)}
+                      {statusLabel(job.status, t)}
                       {job.errorCode
-                        ? ` · ${friendlyError(new ApiError(422, "business-rule", "", {}, job.errorCode))}`
+                        ? ` · ${friendlyError(new ApiError(422, "business-rule", "", {}, job.errorCode), t)}`
                         : ""}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      Lần thử {job.attemptCount}
+                      {t("attempt", { count: job.attemptCount })}
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                “Đã gửi” nghĩa là nhà cung cấp đã nhận yêu cầu; hiện chưa có xác nhận email vào
-                Inbox hay SMS đến điện thoại.
-              </p>
+              <p className="mt-3 text-xs text-muted-foreground">{t("deliveryDisclaimer")}</p>
             </>
           )}
         </section>

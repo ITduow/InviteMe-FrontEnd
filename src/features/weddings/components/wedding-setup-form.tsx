@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,37 +30,57 @@ import {
   isoToLocalDateTime,
   localDateTimeToIso,
   slugFromWeddingName,
-  weddingSlugSchema,
+  createWeddingSlugSchema,
   type WeddingSetup,
 } from "../schemas/wedding.schema";
 import { WeddingSlugField } from "./wedding-slug-field";
 import { validateWeddingCover, WeddingCoverUploader } from "./wedding-cover-uploader";
 
-const formSchema = z
-  .object({
-    name: z.string().trim().min(1, "Vui lòng nhập tên lễ cưới.").max(200, "Tên tối đa 200 ký tự."),
-    slug: weddingSlugSchema,
-    eventDateTime: z.string().min(1, "Vui lòng chọn ngày và giờ tổ chức."),
-    rsvpDeadline: z.string().min(1, "Vui lòng chọn hạn xác nhận tham dự."),
-    venueName: z.string().trim().min(1, "Vui lòng nhập tên địa điểm.").max(200),
-    venueAddress: z.string().trim().min(1, "Vui lòng nhập địa chỉ.").max(2000),
-    capacity: z
-      .string()
-      .regex(/^[1-9]\d*$/, "Sức chứa phải là số nguyên lớn hơn 0.")
-      .refine(
-        (value) => Number.isSafeInteger(Number(value)) && Number(value) <= 2_147_483_647,
-        "Sức chứa vượt quá giới hạn cho phép.",
-      ),
-  })
-  .superRefine((value, ctx) => {
-    if (value.rsvpDeadline && value.eventDateTime && value.rsvpDeadline > value.eventDateTime)
-      ctx.addIssue({
-        code: "custom",
-        path: ["rsvpDeadline"],
-        message: "Hạn xác nhận không được sau ngày tổ chức.",
-      });
+function createFormSchema(t: (key: string) => string) {
+  const slugSchema = createWeddingSlugSchema({
+    min: t("validation.slugMin"),
+    max: t("validation.slugMax"),
+    pattern: t("validation.slugPattern"),
+    reserved: t("validation.slugReserved"),
   });
-type FormValues = z.infer<typeof formSchema>;
+  return z
+    .object({
+      name: z
+        .string()
+        .trim()
+        .min(1, t("validation.nameRequired"))
+        .max(200, t("validation.nameMax")),
+      slug: slugSchema,
+      eventDateTime: z.string().min(1, t("validation.dateRequired")),
+      rsvpDeadline: z.string().min(1, t("validation.deadlineRequired")),
+      venueName: z
+        .string()
+        .trim()
+        .min(1, t("validation.venueRequired"))
+        .max(200, t("validation.venueMax")),
+      venueAddress: z
+        .string()
+        .trim()
+        .min(1, t("validation.addressRequired"))
+        .max(2000, t("validation.addressMax")),
+      capacity: z
+        .string()
+        .regex(/^[1-9]\d*$/, t("validation.capacityPositive"))
+        .refine(
+          (value) => Number.isSafeInteger(Number(value)) && Number(value) <= 2_147_483_647,
+          t("validation.capacityMax"),
+        ),
+    })
+    .superRefine((value, ctx) => {
+      if (value.rsvpDeadline && value.eventDateTime && value.rsvpDeadline > value.eventDateTime)
+        ctx.addIssue({
+          code: "custom",
+          path: ["rsvpDeadline"],
+          message: t("validation.deadlineAfterEvent"),
+        });
+    });
+}
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 const EMPTY_VALUES: FormValues = {
   name: "",
   slug: "",
@@ -85,33 +106,30 @@ function formValuesFrom(wedding: WeddingSetup): FormValues {
   };
 }
 
-function errorMessage(error: unknown) {
-  if (!(error instanceof ApiError))
-    return "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.";
+function errorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof ApiError)) return t("errors.network");
   if (error.status === 413 || error.backendCode === "WEDDING_COVER_TOO_LARGE")
-    return "Ảnh vượt quá dung lượng tối đa 5 MB.";
-  if (error.backendCode === "WEDDING_COVER_UNSUPPORTED")
-    return "Ảnh không đúng định dạng JPEG, PNG hoặc WebP.";
-  if (error.backendCode === "WEDDING_SLUG_ALREADY_EXISTS")
-    return "Đường dẫn này đã được sử dụng. Vui lòng chọn đường dẫn khác.";
-  if (error.backendCode === "WEDDING_CONCURRENCY_CONFLICT")
-    return "Thông tin lễ cưới đã được thay đổi ở nơi khác. Vui lòng tải lại dữ liệu mới nhất.";
+    return t("errors.coverTooLarge");
+  if (error.backendCode === "WEDDING_COVER_UNSUPPORTED") return t("errors.coverUnsupported");
+  if (error.backendCode === "WEDDING_SLUG_ALREADY_EXISTS") return t("errors.slugTaken");
+  if (error.backendCode === "WEDDING_CONCURRENCY_CONFLICT") return t("errors.conflict");
   if (error.backendCode === "WEDDING_ACCESS_DENIED" || error.status === 403)
-    return "Bạn không có quyền thực hiện thao tác này.";
-  if (error.status === 401) return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-  if (error.status === 404) return "Không tìm thấy lễ cưới.";
-  if (error.status === 429) return "Bạn thao tác quá nhanh, vui lòng thử lại sau.";
-  return "Chưa thể lưu thông tin. Vui lòng kiểm tra dữ liệu và thử lại.";
+    return t("errors.forbidden");
+  if (error.status === 401) return t("errors.sessionExpired");
+  if (error.status === 404) return t("errors.notFound");
+  if (error.status === 429) return t("errors.rateLimited");
+  return t("errors.saveFailed");
 }
 
 function WeddingSetupSkeleton() {
+  const { t } = useTranslation("weddings");
   return (
     <section
       role="status"
-      aria-label="Đang tải thiết lập lễ cưới"
+      aria-label={t("loadingSetup")}
       className="mx-auto max-w-6xl space-y-7 pb-10"
     >
-      <span className="sr-only">Đang tải thông tin lễ cưới…</span>
+      <span className="sr-only">{t("loadingWeddingDetails")}</span>
       <div
         aria-hidden="true"
         className="h-4 w-36 animate-pulse rounded bg-muted motion-reduce:animate-none"
@@ -141,6 +159,7 @@ function WeddingSetupSkeleton() {
 }
 
 export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
+  const { t } = useTranslation("weddings");
   const isEdit = Boolean(weddingId);
   const router = useRouter();
   const { api } = useRuntime();
@@ -156,6 +175,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
   const initializedFromServer = useRef(false);
   const [created, setCreated] = useState<WeddingSetup | null>(null);
   const [pendingCover, setPendingCover] = useState<File | null>(null);
+  const formSchema = useMemo(() => createFormSchema(t), [t]);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: EMPTY_VALUES,
@@ -174,7 +194,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
   }, [setup.data, reset]);
 
   function handleError(error: unknown) {
-    const message = errorMessage(error);
+    const message = errorMessage(error, t);
     setServerError(message);
     if (error instanceof ApiError) {
       if (error.backendCode === "WEDDING_SLUG_ALREADY_EXISTS")
@@ -197,8 +217,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
       };
       for (const key of Object.keys(error.fieldErrors)) {
         const field = fields[key];
-        if (field)
-          form.setError(field, { type: "server", message: "Vui lòng kiểm tra lại thông tin này." });
+        if (field) form.setError(field, { type: "server", message: t("validation.checkFields") });
       }
     }
     if (error instanceof ApiError && error.backendCode === "WEDDING_CONCURRENCY_CONFLICT")
@@ -221,7 +240,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
     } catch (error) {
       if (error instanceof ApiError && error.backendCode === "WEDDING_CONCURRENCY_CONFLICT")
         setConflict(true);
-      throw new Error(errorMessage(error));
+      throw new Error(errorMessage(error, t));
     } finally {
       setMutationBusy(false);
     }
@@ -236,7 +255,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
       cache.setQueryData(weddingKeys.detail(setup.data.id), { ...setup.data, ...result });
     } catch (error) {
       handleError(error);
-      throw new Error(errorMessage(error));
+      throw new Error(errorMessage(error, t));
     } finally {
       setMutationBusy(false);
     }
@@ -261,9 +280,9 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
         values.rsvpDeadline,
         setup.data?.timeZoneId || WEDDING_TIME_ZONE,
       );
-    } catch (error) {
+    } catch {
       form.setError("eventDateTime", {
-        message: error instanceof Error ? error.message : "Ngày giờ không hợp lệ.",
+        message: t("validation.invalidDateTime"),
       });
       return;
     }
@@ -277,7 +296,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
       rsvpDeadline,
     };
     if (Date.parse(rsvpDeadline) > Date.parse(eventDateTime)) {
-      form.setError("rsvpDeadline", { message: "Hạn xác nhận không được sau ngày tổ chức." });
+      form.setError("rsvpDeadline", { message: t("validation.deadlineAfterEvent") });
       return;
     }
     setMutationBusy(true);
@@ -311,7 +330,10 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
     } catch (error) {
       if (createdDuringSubmit) {
         setServerError(
-          `Đã tạo lễ cưới “${createdDuringSubmit.name}” nhưng chưa tải được ảnh. ${error instanceof Error ? error.message : errorMessage(error)}`,
+          t("errors.createdButCoverFailed", {
+            name: createdDuringSubmit.name,
+            error: error instanceof Error ? error.message : errorMessage(error, t),
+          }),
         );
       } else handleError(error);
     } finally {
@@ -334,7 +356,10 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
       router.push(`/weddings/${encodeURIComponent(latest.id)}/overview?created=1`);
     } catch (error) {
       setServerError(
-        `Đã tạo lễ cưới “${created.name}” nhưng chưa tải được ảnh. ${error instanceof Error ? error.message : errorMessage(error)}`,
+        t("errors.createdButCoverFailed", {
+          name: created.name,
+          error: error instanceof Error ? error.message : errorMessage(error, t),
+        }),
       );
     }
   }
@@ -363,7 +388,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
         setConflict(false);
         setServerError("");
       } catch (error) {
-        setServerError(errorMessage(error));
+        setServerError(errorMessage(error, t));
       }
     }
     return (
@@ -373,19 +398,18 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           className="inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-medium text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
-          Danh sách lễ cưới
+          {t("weddingList")}
         </Link>
         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-9">
           <div className="mb-6 flex size-14 items-center justify-center rounded-full bg-success/20 text-success-foreground">
             <Check className="size-6" aria-hidden="true" />
           </div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-success-foreground">
-            Workspace đã sẵn sàng
+            {t("workspaceReady")}
           </p>
           <h1 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">{created.name}</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-            Thông tin lễ cưới đã được lưu. Bạn có thể mở workspace hoặc hoàn tất tải ảnh bìa bên
-            dưới.
+            {t("weddingSavedDescription")}
           </p>
           {serverError && (
             <p
@@ -397,13 +421,13 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           )}
           {conflict && (
             <Button type="button" variant="outline" onClick={() => void reloadCreatedWedding()}>
-              Tải dữ liệu mới nhất
+              {t("reloadLatest")}
             </Button>
           )}
           <div className="mt-7 rounded-2xl border border-border bg-card p-4 sm:p-5">
             {pendingCover && (
               <p className="mb-3 text-sm text-muted-foreground">
-                Ảnh đang chờ tải lên:{" "}
+                {t("coverPendingUpload")}{" "}
                 <span className="font-medium text-foreground">{pendingCover.name}</span>
               </p>
             )}
@@ -423,7 +447,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 onClick={() => void retryCreatedCover()}
                 disabled={mutationBusy || Boolean(validateWeddingCover(pendingCover))}
               >
-                {mutationBusy ? "Đang tải ảnh…" : "Thử tải ảnh lên"}
+                {mutationBusy ? t("uploadingCover") : t("retryCoverUpload")}
               </Button>
             )}
           </div>
@@ -433,7 +457,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               className="min-h-11 rounded-xl px-5"
               onClick={() => router.push(`/weddings/${encodeURIComponent(created.id)}/overview`)}
             >
-              Mở workspace
+              {t("openWorkspace")}
             </Button>
             <Button
               type="button"
@@ -441,7 +465,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               className="min-h-11 rounded-xl px-5"
               onClick={() => router.push("/weddings")}
             >
-              Về danh sách lễ cưới
+              {t("weddingList")}
             </Button>
           </div>
         </div>
@@ -461,19 +485,19 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
         className="inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-medium text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        {isEdit ? "Quay lại workspace" : "Danh sách lễ cưới"}
+        {isEdit ? t("backToWorkspace") : t("weddingList")}
       </Link>
       <header className="border-b border-border pb-6 sm:pb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-hover">
-          {isEdit ? "THIẾT LẬP LỄ CƯỚI" : "BẮT ĐẦU WORKSPACE"}
+          {isEdit ? t("setupEyebrow") : t("createEyebrow")}
         </p>
         <h1 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
-          {isEdit ? "Thông tin lễ cưới" : "Tạo lễ cưới"}
+          {isEdit ? t("weddingInformation") : t("createWedding")}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
           {isEdit
-            ? `Cập nhật thông tin chung cho ${initial?.name ?? "lễ cưới của bạn"}.`
-            : "Tạo không gian riêng để lưu những thông tin quan trọng cho ngày vui."}
+            ? t("editDescription", { name: initial?.name ?? t("yourWedding") })
+            : t("createDescription")}
         </p>
       </header>
       {(serverError || conflict) && (
@@ -481,10 +505,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           role="alert"
           className="flex flex-col gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive sm:flex-row sm:items-center sm:justify-between sm:p-5"
         >
-          <span>
-            {serverError ||
-              "Thông tin lễ cưới đã được thay đổi ở nơi khác. Vui lòng tải lại dữ liệu mới nhất."}
-          </span>
+          <span>{serverError || t("errors.conflict")}</span>
           {conflict && (
             <Button
               type="button"
@@ -492,7 +513,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               className="min-h-10 shrink-0 rounded-xl border-destructive/30 text-destructive hover:bg-white"
               onClick={() => void reloadLatestSetup()}
             >
-              Tải dữ liệu mới nhất
+              {t("reloadLatest")}
             </Button>
           )}
         </div>
@@ -515,17 +536,15 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
-                    01 · Nhận diện
+                    {t("stepIdentity")}
                   </p>
                   <h2 id="wedding-basic-heading" className="mt-1 font-display text-xl">
-                    Thông tin lễ cưới
+                    {t("weddingInformation")}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Tên và đường dẫn riêng cho workspace.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("identityDescription")}</p>
                 </div>
               </div>
-              <FormField control={form.control} name="name" label="Tên lễ cưới *">
+              <FormField control={form.control} name="name" label={t("weddingNameRequired")}>
                 {(field) => (
                   <Input
                     {...field}
@@ -534,7 +553,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     value={String(field.value ?? "")}
                     maxLength={200}
                     className="h-12 rounded-xl bg-card"
-                    placeholder="Ví dụ: Lễ cưới của Minh và Lan"
+                    placeholder={t("weddingNamePlaceholder")}
                     onChange={(event) => {
                       field.onChange(event);
                       if (!slugTouched.current)
@@ -567,13 +586,13 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
-                    02 · Thời gian
+                    {t("stepTiming")}
                   </p>
                   <h2 id="wedding-time-heading" className="mt-1 font-display text-xl">
-                    Ngày vui
+                    {t("weddingDay")}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Múi giờ: {initial?.timeZoneId || WEDDING_TIME_ZONE}
+                    {t("timeZone", { zone: initial?.timeZoneId || WEDDING_TIME_ZONE })}
                   </p>
                 </div>
               </div>
@@ -581,7 +600,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 <FormField
                   control={form.control}
                   name="eventDateTime"
-                  label="Ngày và giờ tổ chức *"
+                  label={t("eventDateRequired")}
                 >
                   {(field) => (
                     <Input
@@ -597,7 +616,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 <FormField
                   control={form.control}
                   name="rsvpDeadline"
-                  label="Hạn xác nhận tham dự *"
+                  label={t("rsvpDeadlineRequired")}
                 >
                   {(field) => (
                     <Input
@@ -623,18 +642,16 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
-                    03 · Địa điểm
+                    {t("stepVenue")}
                   </p>
                   <h2 id="wedding-venue-heading" className="mt-1 font-display text-xl">
-                    Nơi tổ chức
+                    {t("venueSection")}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Địa chỉ này sẽ giúp bạn nhận diện workspace.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("venueDescription")}</p>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField control={form.control} name="venueName" label="Tên địa điểm *">
+                <FormField control={form.control} name="venueName" label={t("venueNameRequired")}>
                   {(field) => (
                     <Input
                       {...field}
@@ -647,7 +664,11 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     />
                   )}
                 </FormField>
-                <FormField control={form.control} name="venueAddress" label="Địa chỉ *">
+                <FormField
+                  control={form.control}
+                  name="venueAddress"
+                  label={t("venueAddressRequired")}
+                >
                   {(field) => (
                     <Input
                       {...field}
@@ -656,7 +677,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                       value={String(field.value ?? "")}
                       maxLength={2000}
                       className="h-12 rounded-xl bg-card"
-                      placeholder="TP. Hồ Chí Minh"
+                      placeholder={t("cityPlaceholder")}
                     />
                   )}
                 </FormField>
@@ -673,17 +694,19 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
-                    04 · Khách mời
+                    {t("stepGuests")}
                   </p>
                   <h2 id="wedding-capacity-heading" className="mt-1 font-display text-xl">
-                    Sức chứa dự kiến
+                    {t("capacitySection")}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Có thể điều chỉnh khi kế hoạch thay đổi.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("capacityDescription")}</p>
                 </div>
               </div>
-              <FormField control={form.control} name="capacity" label="Số lượng khách tối đa *">
+              <FormField
+                control={form.control}
+                name="capacity"
+                label={t("maxGuestCapacityRequired")}
+              >
                 {(field) => (
                   <Input
                     {...field}
@@ -712,14 +735,12 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-hover">
-                    05 · Ảnh bìa
+                    {t("stepCover")}
                   </p>
                   <h2 id="wedding-cover-heading" className="mt-1 font-display text-xl">
-                    Một dấu ấn của hai bạn
+                    {t("coverSection")}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Ảnh sẽ xuất hiện tại trang tổng quan. Có thể thêm hoặc thay sau.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("coverDescription")}</p>
                 </div>
               </div>
               <WeddingCoverUploader
@@ -740,7 +761,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
           </fieldset>
           {!canEdit && (
             <p role="status" className="text-sm text-muted-foreground">
-              Bạn có quyền xem thông tin lễ cưới nhưng không có quyền chỉnh sửa.
+              {t("viewOnlyNotice")}
             </p>
           )}
           <div className="flex flex-col-reverse gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:justify-end sm:p-5">
@@ -753,14 +774,14 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                     className="min-h-11 rounded-xl px-5"
                     disabled={busy}
                   >
-                    Hủy
+                    {t("cancel")}
                   </Button>
                 }
-                title="Bỏ thay đổi chưa lưu?"
-                description="Thông tin bạn vừa nhập sẽ không được lưu."
+                title={t("discardChangesTitle")}
+                description={t("discardChangesDescription")}
                 onConfirm={cancelAction}
-                cancelLabel="Tiếp tục chỉnh sửa"
-                confirmLabel="Bỏ thay đổi"
+                cancelLabel={t("continueEditing")}
+                confirmLabel={t("discardChanges")}
               />
             ) : (
               <Button
@@ -770,7 +791,7 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                 disabled={busy}
                 onClick={cancelAction}
               >
-                Hủy
+                {t("cancel")}
               </Button>
             )}
             {canEdit && (
@@ -781,11 +802,11 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
               >
                 {busy
                   ? isEdit
-                    ? "Đang lưu…"
-                    : "Đang tạo lễ cưới…"
+                    ? t("savingWedding")
+                    : t("creatingWedding")
                   : isEdit
-                    ? "Lưu thay đổi"
-                    : "Tạo lễ cưới"}
+                    ? t("saveChanges")
+                    : t("createWedding")}
               </Button>
             )}
           </div>
@@ -796,10 +817,10 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
             <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
               <div className="bg-muted px-5 py-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-hover">
-                  Xem trước
+                  {t("preview")}
                 </p>
                 <h2 className="mt-2 break-words font-display text-2xl leading-snug text-foreground">
-                  {watchedName?.trim() || "Tên lễ cưới"}
+                  {watchedName?.trim() || t("weddingName")}
                 </h2>
                 <p className="mt-2 break-all text-xs text-muted-foreground">
                   /wedding/{slugValue || "duong-dan-cua-ban"}
@@ -813,27 +834,28 @@ export function WeddingSetupForm({ weddingId }: { weddingId?: string }) {
                   />
                   {watchedEventDate
                     ? watchedEventDate.replace("T", " · ")
-                    : "Chưa chọn ngày tổ chức"}
+                    : t("eventDateNotSelected")}
                 </p>
                 <p className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
                   <MapPin
                     className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
-                  {watchedVenue?.trim() || "Chưa nhập địa điểm"}
+                  {watchedVenue?.trim() || t("venueNotEntered")}
                 </p>
                 <p className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
                   <Users
                     className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
-                  {watchedCapacity ? `${watchedCapacity} khách tối đa` : "Chưa thiết lập sức chứa"}
+                  {watchedCapacity
+                    ? t("maxGuests", { count: watchedCapacity })
+                    : t("capacityNotSet")}
                 </p>
               </div>
             </section>
             <p className="rounded-2xl border border-border bg-white/65 p-4 text-xs leading-5 text-muted-foreground">
-              Đây là bản xem trước thông tin trong workspace. Đường dẫn công khai chỉ hoạt động sau
-              khi trang cưới được xuất bản.
+              {t("workspacePreviewNote")}
             </p>
           </div>
         </aside>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { CoHostPermission, PermissionScope } from "../api/co-host.api";
 import { CO_HOST_PERMISSIONS } from "../api/co-host.api";
 import {
   includeSeatingViewScope,
-  PERMISSION_LABELS,
   scopeDraftFromGrants,
   scopeValidationMessage,
   type ScopeDraft,
@@ -24,6 +24,7 @@ export function ScopeEditor({
   busy: boolean;
   onSubmit: (grants: PermissionScope[]) => void;
 }) {
+  const { t } = useTranslation("cohost");
   const [draft, setDraft] = useState<ScopeDraft>(() => scopeDraftFromGrants(initialGrants));
   const [error, setError] = useState("");
 
@@ -53,10 +54,10 @@ export function ScopeEditor({
       ];
     });
     if (!grants.length) {
-      setError("Hãy chọn ít nhất một quyền.");
+      setError(t("validation.selectPermission"));
       return;
     }
-    const validationMessage = scopeValidationMessage(grants);
+    const validationMessage = scopeValidationMessage(grants, t);
     if (validationMessage) {
       setError(validationMessage);
       return;
@@ -67,9 +68,7 @@ export function ScopeEditor({
 
   return (
     <div className="space-y-4 rounded-xl border border-foreground/10 bg-background p-4">
-      <p className="text-sm text-muted-foreground">
-        Mỗi quyền áp dụng cho toàn bộ đám cưới hoặc các nhóm khách đã chọn.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("scopeIntro")}</p>
       {CO_HOST_PERMISSIONS.map((permission) => {
         const scope = draft[permission];
         return (
@@ -80,15 +79,13 @@ export function ScopeEditor({
                 checked={scope.enabled}
                 onChange={(event) => togglePermission(permission, event.currentTarget.checked)}
               />
-              {PERMISSION_LABELS[permission]}
+              {t(`permissions.${permission}`)}
             </label>
             {scope.enabled && (
               <div className="space-y-3 pl-7">
                 {permission === "CHECKIN_MANAGE" ? (
                   <div className="space-y-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
-                    <p>
-                      Check-in áp dụng trên toàn bộ khách của wedding, không giới hạn theo nhóm.
-                    </p>
+                    <p>{t("checkInWideHint")}</p>
                     <label className="flex cursor-pointer items-start gap-2">
                       <input
                         type="checkbox"
@@ -105,7 +102,7 @@ export function ScopeEditor({
                           }));
                         }}
                       />
-                      <span>Tôi xác nhận cấp quyền check-in cho toàn bộ wedding</span>
+                      <span>{t("confirmCheckInWide")}</span>
                     </label>
                   </div>
                 ) : (
@@ -126,7 +123,7 @@ export function ScopeEditor({
                           }))
                         }
                       />
-                      Toàn bộ wedding
+                      {t("wholeWedding")}
                     </label>
                     <label className="flex cursor-pointer items-center gap-2 text-sm">
                       <input
@@ -140,13 +137,13 @@ export function ScopeEditor({
                           }))
                         }
                       />
-                      Chỉ một số nhóm khách
+                      {t("selectedGroups")}
                     </label>
                   </>
                 )}
                 {permission === "SEATING_VIEW" && draft.SEATING_EDIT.enabled && (
                   <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-                    Quyền xem sơ đồ được giữ bao phủ phạm vi chỉnh sửa để co-host có thể xếp bàn.
+                    {t("seatingViewCoverage")}
                   </p>
                 )}
                 {permission !== "CHECKIN_MANAGE" && !scope.weddingWide && (
@@ -180,10 +177,7 @@ export function ScopeEditor({
                         </label>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Chưa có nhóm khách. Hãy tạo nhóm trong danh sách khách hoặc cấp quyền toàn
-                        đám cưới.
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t("noGroupsHint")}</p>
                     )}
                   </div>
                 )}
@@ -203,7 +197,7 @@ export function ScopeEditor({
         onClick={save}
         className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
-        {busy ? "Đang lưu…" : submitLabel}
+        {busy ? t("saving") : submitLabel}
       </button>
     </div>
   );

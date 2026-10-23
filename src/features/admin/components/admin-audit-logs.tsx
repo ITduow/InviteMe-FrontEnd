@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { PageHeader } from "@/shared/components/page-header";
@@ -10,19 +11,17 @@ import { LoadingState } from "@/shared/feedback/loading-state";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { adminApi } from "../api/admin.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
 function bound(value: string, end: boolean) {
   return value
     ? new Date(`${value}T${end ? "23:59:59.999" : "00:00:00"}`).toISOString()
     : undefined;
 }
-function label(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(value),
-  );
-}
-
 export function AdminAuditLogs() {
+  const { t } = useTranslation("admin");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const [page, setPage] = useState(1);
   const [draft, setDraft] = useState({ action: "", entityType: "", from: "", to: "" });
@@ -40,7 +39,7 @@ export function AdminAuditLogs() {
   function apply(event: FormEvent) {
     event.preventDefault();
     if (draft.from && draft.to && draft.to < draft.from) {
-      setError("End date must be on or after start date.");
+      setError(t("invalidDateRange"));
       return;
     }
     setError("");
@@ -69,25 +68,25 @@ export function AdminAuditLogs() {
         className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-5"
       >
         <label className="grid gap-1 text-sm">
-          Action
+          {t("auditAction")}
           <Input
             value={draft.action}
             maxLength={100}
             onChange={(e) => setDraft({ ...draft, action: e.target.value })}
-            placeholder="e.g. GUEST_IMPORTED"
+            placeholder={t("auditActionPlaceholder")}
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Record type
+          {t("auditRecordType")}
           <Input
             value={draft.entityType}
             maxLength={100}
             onChange={(e) => setDraft({ ...draft, entityType: e.target.value })}
-            placeholder="e.g. planning_guests"
+            placeholder={t("auditRecordPlaceholder")}
           />
         </label>
         <label className="grid gap-1 text-sm">
-          From
+          {t("from")}
           <Input
             type="date"
             value={draft.from}
@@ -95,7 +94,7 @@ export function AdminAuditLogs() {
           />
         </label>
         <label className="grid gap-1 text-sm">
-          To
+          {t("to")}
           <Input
             type="date"
             value={draft.to}
@@ -103,9 +102,9 @@ export function AdminAuditLogs() {
           />
         </label>
         <div className="flex items-end gap-2">
-          <Button type="submit">Filter</Button>
+          <Button type="submit">{t("filter")}</Button>
           <Button type="button" variant="outline" onClick={reset}>
-            Reset
+            {t("reset")}
           </Button>
         </div>
       </form>
@@ -114,14 +113,11 @@ export function AdminAuditLogs() {
           {error}
         </p>
       )}
-      {logs.isPending && <LoadingState label="Loading platform activity…" />}
+      {logs.isPending && <LoadingState label={t("loadingAudit")} />}
       {logs.isError && <ErrorState error={logs.error} retry={() => void logs.refetch()} />}
       {logs.data &&
         (logs.data.items.length === 0 ? (
-          <EmptyState
-            title="No matching activity"
-            description="Try removing a filter or choosing a wider date range."
-          />
+          <EmptyState title={t("noMatchingActivity")} description={t("widenFilters")} />
         ) : (
           <>
             <div className="space-y-3">
@@ -135,20 +131,28 @@ export function AdminAuditLogs() {
                       </p>
                     </div>
                     <time className="text-sm text-muted-foreground" dateTime={log.createdAt}>
-                      {label(log.createdAt)}
+                      {formatDate(log.createdAt, language, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
                     </time>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                    {log.weddingTitle && <span>Wedding: {log.weddingTitle}</span>}
-                    {log.weddingId && <span>Wedding ID: {log.weddingId}</span>}
-                    {log.entityId && <span>Record ID: {log.entityId}</span>}
+                    {log.weddingTitle && (
+                      <span>{t("weddingLabel", { title: log.weddingTitle })}</span>
+                    )}
+                    {log.weddingId && <span>{t("weddingIdLabel", { id: log.weddingId })}</span>}
+                    {log.entityId && <span>{t("recordIdLabel", { id: log.entityId })}</span>}
                   </div>
                 </article>
               ))}
             </div>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                {logs.data.totalCount} events · Page {logs.data.page}/
+                {t("eventCount", {
+                  count: formatNumber(logs.data.totalCount, language),
+                  page: formatNumber(logs.data.page, language),
+                })}
                 {Math.max(logs.data.totalPages, 1)}
               </p>
               <div className="flex gap-2">
@@ -157,14 +161,14 @@ export function AdminAuditLogs() {
                   disabled={page <= 1 || logs.isFetching}
                   onClick={() => setPage((x) => x - 1)}
                 >
-                  Previous
+                  {t("previous", { ns: "common" })}
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page >= logs.data.totalPages || logs.isFetching}
                   onClick={() => setPage((x) => x + 1)}
                 >
-                  Next
+                  {t("next", { ns: "common" })}
                 </Button>
               </div>
             </div>

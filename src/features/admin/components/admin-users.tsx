@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { PageHeader } from "@/shared/components/page-header";
@@ -10,12 +11,12 @@ import { LoadingState } from "@/shared/feedback/loading-state";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { adminApi } from "../api/admin.api";
-
-function dateLabel(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(new Date(value));
-}
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
 export function AdminUsers() {
+  const { t } = useTranslation("admin");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const client = useQueryClient();
   const [page, setPage] = useState(1);
@@ -38,13 +39,13 @@ export function AdminUsers() {
     mutationFn: ({ id, value }: { id: string; value: "ACTIVE" | "SUSPENDED" }) =>
       adminApi.setUserStatus(api, id, value),
     onSuccess: changed,
-    onError: (e) => setError(e instanceof Error ? e.message : "Could not update account status."),
+    onError: () => setError(t("updateStatusFailed")),
   });
   const roleMutation = useMutation({
     mutationFn: ({ id, value }: { id: string; value: "ADMIN" | "USER" }) =>
       adminApi.setUserRole(api, id, value),
     onSuccess: changed,
-    onError: (e) => setError(e instanceof Error ? e.message : "Could not update account role."),
+    onError: () => setError(t("updateRoleFailed")),
   });
   function apply(event: FormEvent) {
     event.preventDefault();
@@ -62,16 +63,16 @@ export function AdminUsers() {
         className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_180px_180px_auto_auto] sm:items-end"
       >
         <label className="grid gap-1 text-sm">
-          Search name or email
+          {t("userSearchLabel")}
           <Input
             value={searchDraft}
             maxLength={100}
             onChange={(e) => setSearchDraft(e.target.value)}
-            placeholder="Email or full name"
+            placeholder={t("emailOrName")}
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Status
+          {t("status")}
           <select
             className="h-10 rounded-lg border bg-background px-3"
             value={status}
@@ -80,14 +81,14 @@ export function AdminUsers() {
               setPage(1);
             }}
           >
-            <option value="">All statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="SUSPENDED">Suspended</option>
-            <option value="DISABLED">Deleted</option>
+            <option value="">{t("allStatuses")}</option>
+            <option value="ACTIVE">{t("activeStatus")}</option>
+            <option value="SUSPENDED">{t("suspendedStatus")}</option>
+            <option value="DISABLED">{t("deletedStatus")}</option>
           </select>
         </label>
         <label className="grid gap-1 text-sm">
-          Platform role
+          {t("platformRole")}
           <select
             className="h-10 rounded-lg border bg-background px-3"
             value={role}
@@ -96,12 +97,12 @@ export function AdminUsers() {
               setPage(1);
             }}
           >
-            <option value="">All roles</option>
+            <option value="">{t("allRoles")}</option>
             <option value="USER">USER</option>
             <option value="ADMIN">ADMIN</option>
           </select>
         </label>
-        <Button type="submit">Search</Button>
+        <Button type="submit">{t("search")}</Button>
         <Button
           type="button"
           variant="outline"
@@ -113,7 +114,7 @@ export function AdminUsers() {
             setPage(1);
           }}
         >
-          Reset
+          {t("reset")}
         </Button>
       </form>
       {error && (
@@ -124,21 +125,18 @@ export function AdminUsers() {
           {error}
         </p>
       )}
-      {users.isPending && <LoadingState label="Loading accounts…" />}
+      {users.isPending && <LoadingState label={t("loadingAccounts")} />}
       {users.isError && <ErrorState error={users.error} retry={() => void users.refetch()} />}
       {users.data &&
         (users.data.items.length === 0 ? (
-          <EmptyState
-            title="No accounts found"
-            description="Change the search or filters and try again."
-          />
+          <EmptyState title={t("noAccounts")} description={t("changeFilters")} />
         ) : (
           <>
             <div className="overflow-x-auto rounded-2xl border bg-card">
               <table className="w-full min-w-[850px] text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground">
                   <tr>
-                    {["Account", "Role", "Status", "Created", "Actions"].map((x) => (
+                    {[t("account"), t("role"), t("status"), t("created"), t("actions")].map((x) => (
                       <th key={x} className="px-4 py-3 font-medium">
                         {x}
                       </th>
@@ -151,17 +149,16 @@ export function AdminUsers() {
                     return (
                       <tr key={user.id}>
                         <td className="px-4 py-4">
-                          <p className="font-medium">{user.fullName || "Unnamed account"}</p>
+                          <p className="font-medium">{user.fullName || t("unnamedAccount")}</p>
                           <p className="text-muted-foreground">{user.email}</p>
                         </td>
                         <td className="px-4 py-4">
                           <select
-                            aria-label={`Platform role for ${user.email}${protectedAdmin ? " (protected)" : ""}`}
-                            title={
-                              protectedAdmin
-                                ? "Admin accounts are protected from role and status changes."
-                                : undefined
-                            }
+                            aria-label={t("roleForAccount", {
+                              email: user.email,
+                              protected: protectedAdmin ? ` (${t("protected")})` : "",
+                            })}
+                            title={protectedAdmin ? t("protectedHint") : undefined}
                             className="h-9 rounded-lg border bg-background px-2"
                             value={user.role}
                             disabled={
@@ -182,11 +179,16 @@ export function AdminUsers() {
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${user.status === "ACTIVE" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
                           >
-                            {user.status}
+                            {t(
+                              user.status === "DISABLED"
+                                ? "deletedStatus"
+                                : `${user.status.toLowerCase()}Status`,
+                              { defaultValue: user.status },
+                            )}
                           </span>
                         </td>
                         <td className="px-4 py-4 text-muted-foreground">
-                          {dateLabel(user.createdAt)}
+                          {formatDate(user.createdAt, language, { dateStyle: "medium" })}
                         </td>
                         <td className="px-4 py-4">
                           <Button
@@ -197,11 +199,7 @@ export function AdminUsers() {
                               statusMutation.isPending ||
                               user.status === "DISABLED"
                             }
-                            title={
-                              protectedAdmin
-                                ? "Admin accounts are protected from role and status changes."
-                                : undefined
-                            }
+                            title={protectedAdmin ? t("protectedHint") : undefined}
                             onClick={() =>
                               statusMutation.mutate({
                                 id: user.id,
@@ -210,12 +208,12 @@ export function AdminUsers() {
                             }
                           >
                             {protectedAdmin
-                              ? "Protected"
+                              ? t("protected")
                               : user.status === "ACTIVE"
-                                ? "Suspend"
+                                ? t("suspend")
                                 : user.status === "SUSPENDED"
-                                  ? "Reactivate"
-                                  : "Unavailable"}
+                                  ? t("reactivate")
+                                  : t("unavailable")}
                           </Button>
                         </td>
                       </tr>
@@ -226,7 +224,10 @@ export function AdminUsers() {
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                {users.data.totalCount} accounts · Page {users.data.page}/
+                {t("accountCount", {
+                  count: formatNumber(users.data.totalCount, language),
+                  page: formatNumber(users.data.page, language),
+                })}
                 {Math.max(users.data.totalPages, 1)}
               </p>
               <div className="flex gap-2">
@@ -235,14 +236,14 @@ export function AdminUsers() {
                   disabled={page <= 1 || users.isFetching}
                   onClick={() => setPage((x) => x - 1)}
                 >
-                  Previous
+                  {t("previous", { ns: "common" })}
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page >= users.data.totalPages || users.isFetching}
                   onClick={() => setPage((x) => x + 1)}
                 >
-                  Next
+                  {t("next", { ns: "common" })}
                 </Button>
               </div>
             </div>

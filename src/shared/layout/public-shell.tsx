@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/shared/components/brand-logo";
+import { useTranslation } from "react-i18next";
 import { PublicNavigation } from "./public-navigation";
 
 export function PublicShell({ children }: { children: ReactNode }) {
+  const { t: tPublic } = useTranslation("public");
+  const { t: tNavigation } = useTranslation("navigation");
   return (
     <div className="public-shell">
       <PublicNavigation />
@@ -16,27 +21,24 @@ export function PublicShell({ children }: { children: ReactNode }) {
             href="/"
             size="sm"
             className="public-footer__brand"
-            ariaLabel="InviteMe — Trang chủ"
+            ariaLabel={`InviteMe — ${tNavigation("home")}`}
           />
-          <nav aria-label="Điều hướng chân trang" className="public-footer__links">
-            <Link href="/templates">Mẫu thiết kế</Link>
-            <Link href="/#guide">Hướng dẫn</Link>
-            <Link href="/#faq">FAQ</Link>
-            <Link href="/#contact">Liên hệ</Link>
-            <Link href="/terms">Điều khoản</Link>
-            <Link href="/privacy">Quyền riêng tư</Link>
+          <nav aria-label={tPublic("footerNavigation")} className="public-footer__links">
+            <Link href="/templates">{tPublic("templates")}</Link>
+            <Link href="/#guide">{tPublic("guide")}</Link>
+            <Link href="/#faq">{tPublic("faq")}</Link>
+            <Link href="/#contact">{tPublic("contact")}</Link>
+            <Link href="/terms">{tPublic("terms")}</Link>
+            <Link href="/privacy">{tPublic("privacy")}</Link>
           </nav>
         </div>
         <div id="contact" className="public-footer__support">
-          <strong>Liên hệ & hỗ trợ</strong>
-          <p>
-            Kênh hỗ trợ của InviteMe sẽ được cập nhật. Nếu link mời không mở được, hãy liên hệ người
-            gửi lời mời.
-          </p>
+          <strong>{tPublic("contactSupport")}</strong>
+          <p>{tPublic("supportPending")}</p>
         </div>
         <div className="public-footer__bottom">
-          <p>Dành cho những ngày vui đáng nhớ.</p>
-          <p>InviteMe đang phát triển · Preview dùng dữ liệu minh họa.</p>
+          <p>{tPublic("tagline")}</p>
+          <p>{tPublic("previewNotice")}</p>
         </div>
       </footer>
     </div>

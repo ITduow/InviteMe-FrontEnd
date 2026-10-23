@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -12,59 +12,71 @@ import { env } from "@/core/config/env";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
-import { loginSchema, type LoginInput } from "../schemas/login.schema";
+import { createLoginSchema, type LoginInput } from "../schemas/login.schema";
 import { authApi } from "../api/auth.api";
 import { useCurrentUser } from "../hooks/use-current-user";
 import { safeReturnTo } from "@/core/auth/safe-return-to";
 import { SessionLoading } from "@/shared/feedback/session-loading";
+import { useTranslation } from "react-i18next";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function mapLoginError(error: unknown): string {
+function mapLoginError(error: unknown, t: (key: string) => string): string {
   if (!(error instanceof ApiError)) {
-    return "Đăng nhập thất bại. Vui lòng thử lại.";
+    return t("loginFailed");
   }
   if (error.code === "network") {
-    return "Không thể kết nối đến máy chủ. Kiểm tra mạng và thử lại.";
+    return t("networkError");
   }
   if (error.status === 429) {
-    return "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau một phút.";
+    return t("rateLimited");
   }
   if (error.status === 401 || error.backendCode === "INVALID_CREDENTIALS") {
-    return "Email hoặc mật khẩu không đúng.";
+    return t("invalidCredentials");
   }
   if (error.backendCode === "EMAIL_NOT_CONFIRMED") {
-    return "Email chưa được xác nhận. Hãy kiểm tra hộp thư và nhấp vào link xác nhận.";
+    return t("emailUnconfirmed");
   }
   if (error.backendCode === "UNVERIFIED_GOOGLE_EMAIL") {
-    return "Email Google chưa được xác nhận. Vui lòng xác nhận email Google trước.";
+    return t("googleEmailUnverified");
   }
   if (error.backendCode === "INVALID_GOOGLE_TOKEN") {
-    return "Xác thực Google thất bại. Vui lòng thử lại.";
+    return t("googleFailed");
   }
-  return "Đăng nhập thất bại. Vui lòng thử lại sau.";
+  return t("loginFailed");
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function LoginForm() {
+  const { t } = useTranslation("auth");
   const { api, session } = useRuntime();
   const { isAuthenticated, isRestored } = useCurrentUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") ?? "/dashboard";
   const accountNotice = searchParams.get("passwordChanged")
-    ? "Mật khẩu đã được cập nhật. Hãy đăng nhập bằng mật khẩu mới."
+    ? t("successfullyUpdated")
     : searchParams.get("accountDeleted")
-      ? "Tài khoản đã được xóa và các phiên đăng nhập đã bị thu hồi."
+      ? t("accountDeleted")
       : "";
+  const validationSchema = useMemo(
+    () =>
+      createLoginSchema({
+        emailMax: t("validation.emailMax"),
+        emailInvalid: t("validation.emailInvalid"),
+        passwordRequired: t("validation.passwordRequired"),
+        passwordMax: t("validation.passwordMax"),
+      }),
+    [t],
+  );
 
   const [showPassword, setShowPassword] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
   const [googleError, setGoogleError] = useState("");
 
   const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: { email: "", password: "" },
   });
 
@@ -90,7 +102,7 @@ export function LoginForm() {
       session.setToken(token);
       redirect();
     } catch (error) {
-      form.setError("root.server", { message: mapLoginError(error) });
+      form.setError("root.server", { message: mapLoginError(error, t) });
     }
   }
 
@@ -98,7 +110,7 @@ export function LoginForm() {
   async function handleGoogleSuccess(response: CredentialResponse) {
     const idToken = response.credential;
     if (!idToken) {
-      setGoogleError("Google không trả về thông tin xác thực. Vui lòng thử lại.");
+      setGoogleError(t("googleFailed"));
       return;
     }
     setGoogleError("");
@@ -108,14 +120,14 @@ export function LoginForm() {
       session.setToken(token);
       redirect();
     } catch (error) {
-      setGoogleError(mapLoginError(error));
+      setGoogleError(mapLoginError(error, t));
     } finally {
       setGooglePending(false);
     }
   }
 
   function handleGoogleError() {
-    setGoogleError("Xác thực Google thất bại. Vui lòng thử lại.");
+    setGoogleError(t("googleFailed"));
   }
 
   const apiReady = !!env.apiUrl;
@@ -130,15 +142,13 @@ export function LoginForm() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-display text-3xl">Đăng nhập</h1>
+        <h1 className="font-display text-3xl">{t("login")}</h1>
         {accountNotice && (
           <p role="status" className="mt-3 rounded-lg bg-primary/5 p-3 text-sm text-foreground">
             {accountNotice}
           </p>
         )}
-        <p className="mt-2 text-sm text-muted-foreground">
-          Chào mừng trở lại! Đăng nhập để tiếp tục chuẩn bị ngày cưới.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("welcomeBack")}</p>
       </div>
 
       {/* Google login */}
@@ -163,13 +173,13 @@ export function LoginForm() {
             aria-disabled="true"
             className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground opacity-50"
           >
-            Tiếp tục với Google {!hasGoogleAuth && "(chưa cấu hình Client ID)"}
+            {t("continueGoogle")} {!hasGoogleAuth && t("continueGoogleNotConfigured")}
           </button>
         )}
 
         {googlePending && (
           <p role="status" className="text-center text-xs text-muted-foreground">
-            Đang xác thực với Google…
+            {t("googlePending")}
           </p>
         )}
         {googleError && (
@@ -185,7 +195,7 @@ export function LoginForm() {
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-card px-3 text-muted-foreground">hoặc đăng nhập bằng email</span>
+          <span className="bg-card px-3 text-muted-foreground">{t("orEmail")}</span>
         </div>
       </div>
 
@@ -197,7 +207,7 @@ export function LoginForm() {
         aria-busy={isSubmitting}
       >
         <fieldset disabled={isSubmitting || googlePending} className="space-y-4">
-          <FormField control={form.control} name="email" label="Địa chỉ email">
+          <FormField control={form.control} name="email" label={t("email")}>
             {(field) => (
               <Input
                 {...field}
@@ -211,7 +221,7 @@ export function LoginForm() {
             )}
           </FormField>
 
-          <FormField control={form.control} name="password" label="Mật khẩu">
+          <FormField control={form.control} name="password" label={t("password")}>
             {(field) => (
               <div className="relative">
                 <Input
@@ -229,7 +239,7 @@ export function LoginForm() {
                   size="icon"
                   className="absolute right-0 top-0"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                   aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff /> : <Eye />}
@@ -245,7 +255,7 @@ export function LoginForm() {
             href="/forgot-password"
             className="text-sm text-primary underline underline-offset-4"
           >
-            Quên mật khẩu?
+            {t("forgotPassword")}
           </Link>
         </div>
 
@@ -258,7 +268,7 @@ export function LoginForm() {
 
         {!apiReady && (
           <p role="status" className="text-sm text-muted-foreground">
-            Chức năng đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.
+            {t("loginNotReady")}
           </p>
         )}
 
@@ -268,15 +278,15 @@ export function LoginForm() {
           className="w-full"
           disabled={isSubmitting || googlePending || !apiReady}
         >
-          {isSubmitting ? "Đang đăng nhập…" : "Đăng nhập"}
+          {isSubmitting ? t("loggingIn") : t("login")}
         </Button>
       </form>
 
       {/* Register link */}
       <p className="text-center text-sm text-muted-foreground">
-        Chưa có tài khoản?{" "}
+        {t("noAccount")}{" "}
         <Link href="/register" className="font-medium text-primary underline underline-offset-4">
-          Tạo tài khoản
+          {t("register")}
         </Link>
       </p>
     </div>

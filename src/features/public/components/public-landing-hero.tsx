@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { gsap } from "gsap";
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { useTranslation } from "react-i18next";
 
 const POSTER = "/images/hero/wedding-poster.webp";
 const VIDEO = "/videos/wedding-hero.mp4";
@@ -20,6 +21,7 @@ const getMotion = () => window.matchMedia(MOTION_QUERY).matches;
 const getServerMotion = () => false;
 
 export function PublicLandingHero() {
+  const { t } = useTranslation("landing");
   const animated = useSyncExternalStore(subscribeMotion, getMotion, getServerMotion);
   const rootRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -398,7 +400,7 @@ export function PublicLandingHero() {
             ) : (
               <Image
                 src={POSTER}
-                alt="Cô dâu và chú rể bên nhau trong ngày cưới"
+                alt={t("demoCouple")}
                 fill
                 priority
                 unoptimized
@@ -409,16 +411,16 @@ export function PublicLandingHero() {
           </div>
         </div>
         <div className="wedding-hero__invitation" aria-hidden="true">
-          <span className="wedding-hero__invite-kicker">CHÚNG MÌNH SẮP CƯỚI</span>
+          <span className="wedding-hero__invite-kicker">{t("demoInviteKicker")}</span>
           <span className="wedding-hero__couple">Minh &amp; Lan</span>
           <span className="wedding-hero__invite-rule" />
           <span className="wedding-hero__invite-date">18 · 10 · 2026</span>
           <p>
-            Hẹn gặp bạn trong
+            {t("demoInviteLine1")}
             <br />
-            ngày vui của chúng mình.
+            {t("demoInviteLine2")}
           </p>
-          <span className="wedding-hero__invite-signature">Cùng viết tiếp câu chuyện yêu</span>
+          <span className="wedding-hero__invite-signature">{t("demoInviteSignature")}</span>
         </div>
         <div className="wedding-hero__card-edge" aria-hidden="true" />
         <BotanicalLayer />
@@ -442,9 +444,10 @@ export function PublicLandingHero() {
 }
 
 function HeroCopy({ light = false }: { light?: boolean }) {
+  const { t } = useTranslation("landing");
   const title = (
     <>
-      Ngày vui của mình <span>gần nhau hơn.</span>
+      {t("heroTitleFirst")} <span>{t("heroTitleSecond")}</span>
     </>
   );
   return (
@@ -454,7 +457,7 @@ function HeroCopy({ light = false }: { light?: boolean }) {
     >
       <p className="wedding-hero__eyebrow">
         <span />
-        Lời mời cho ngày mình thương
+        {t("heroEyebrow")}
       </p>
       {light ? (
         <div className="wedding-hero__title">{title}</div>
@@ -463,29 +466,27 @@ function HeroCopy({ light = false }: { light?: boolean }) {
           {title}
         </h1>
       )}
-      <p className="wedding-hero__description">
-        Một lời mời thật riêng, để câu chuyện của hai bạn và những người thân yêu cùng gặp nhau.
-      </p>
+      <p className="wedding-hero__description">{t("heroDescription")}</p>
       <div className="wedding-hero__actions">
         {light ? (
           <>
             <span className="wedding-hero__primary-cta">
-              Bắt đầu cùng InviteMe <ArrowRight size={16} />
+              {t("heroPrimary")} <ArrowRight size={16} />
             </span>
-            <span className="wedding-hero__secondary-cta">Khám phá InviteMe</span>
+            <span className="wedding-hero__secondary-cta">{t("heroSecondary")}</span>
           </>
         ) : (
           <>
             <Link href="/register" className="wedding-hero__primary-cta">
-              Bắt đầu cùng InviteMe <ArrowRight size={16} aria-hidden="true" />
+              {t("heroPrimary")} <ArrowRight size={16} aria-hidden="true" />
             </Link>
             <a href="#features" className="wedding-hero__secondary-cta">
-              Khám phá InviteMe
+              {t("heroSecondary")}
             </a>
           </>
         )}
       </div>
-      <p className="wedding-hero__note">Lưu giữ câu chuyện. Gửi trao lời mời. Cùng đón ngày vui.</p>
+      <p className="wedding-hero__note">{t("heroNote")}</p>
     </div>
   );
 }

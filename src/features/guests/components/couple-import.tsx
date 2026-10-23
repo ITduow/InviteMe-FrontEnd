@@ -1,6 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/i18n/format";
+import { useLanguage } from "@/i18n/language-context";
 import {
   ArrowLeft,
   Download,
@@ -32,61 +35,32 @@ import { readCoupleFile } from "../utils/read-couple-file";
 import { ApiError } from "@/core/api/api-error";
 
 const columns = [
-  [
-    "Tên người nhận",
-    "Bắt buộc",
-    "Tên người đại diện nhận một thiệp. Không cần nhập tên mọi người đi cùng.",
-    "Nguyễn Văn An",
-  ],
-  [
-    "Danh xưng",
-    "Tùy chọn",
-    "Cách gọi người nhận. Template thiệp quyết định cách tự xưng tương ứng; để trống dùng lời mời trung tính.",
-    "Bác, Cô, Anh, Chị, Bạn, Dì…",
-  ],
-  [
-    "Kiểu lời mời",
-    "Tùy chọn · trống = Cá nhân",
-    "Chọn Cá nhân, Gia đình hoặc Nhóm. Không tự suy mời gia đình từ số người. Ví dụ Gia đình + Bác + Nguyễn Văn An → Gia đình bác Nguyễn Văn An.",
-    "Gia đình",
-  ],
-  [
-    "Tổng người dự kiến",
-    "Trống = 1",
-    "Tính cả người nhận và người đi cùng. Gia đình bốn người nhập 4, không nhập 3.",
-    "4",
-  ],
-  [
-    "Phía khách mời",
-    "Chọn trong danh mục",
-    "Nhà gái, Nhà trai hoặc Chung. Để trống là chưa xác định, không tự coi là khách chung. Không cần ghi bên dâu/rể vào tên nhóm.",
-    "Nhà gái",
-  ],
-  [
-    "Nhóm khách",
-    "Danh mục · được thêm nhóm",
-    "Chọn nhóm có sẵn. Tên chưa khớp cần map lại hoặc xác nhận tạo nhóm mới ở preview; hệ thống không tự đoán lỗi gõ.",
-    "Bạn đại học",
-  ],
-  [
-    "SĐT",
-    "Tùy chọn",
-    "Số của người đại diện. Định dạng ô là văn bản để giữ số 0 đầu; không có số vẫn chuẩn bị được danh sách.",
-    "Để trống nếu chưa có",
-  ],
-  [
-    "Ghi chú",
-    "Tùy chọn",
-    "Ghi nhu cầu đặc biệt. Ghi chú chưa tự trở thành yêu cầu xếp bàn đã được áp dụng.",
-    "Muốn ngồi gần lối ra",
-  ],
-  [
-    "Email",
-    "Tùy chọn",
-    "Email người đại diện. Để trống nếu chưa có; nếu nhập cần đúng định dạng.",
-    "nam@example.com",
-  ],
+  ["recipient", "Nguyễn Văn An"],
+  ["honorific", "Bác, Cô, Anh, Chị, Bạn, Dì…"],
+  ["kind", "Gia đình"],
+  ["expected", "4"],
+  ["side", "Nhà gái"],
+  ["group", "Bạn đại học"],
+  ["phone", "Để trống nếu chưa có"],
+  ["note", "Muốn ngồi gần lối ra"],
+  ["email", "nam@example.com"],
 ];
+
+const rowMessageKeys: Record<string, string> = {
+  "SĐT cần 7–15 chữ số; chỉ dùng dấu + ở đầu, khoảng trắng, dấu chấm, gạch nối hoặc ngoặc.":
+    "phone",
+  "Email không đúng định dạng hoặc vượt quá 254 ký tự.": "email",
+  "Thiếu tên người nhận.": "name",
+  "Tổng người dự kiến phải là số nguyên từ 1 trở lên.": "expected",
+  "Kiểu lời mời chọn Cá nhân, Gia đình hoặc Nhóm.": "kind",
+  "Phía khách mời chọn Nhà gái, Nhà trai hoặc Chung.": "side",
+  "Chưa xác định phía khách mời; không mặc định là Chung.": "sideMissing",
+  "Chưa chọn kiểu lời mời: đang dùng Cá nhân. Chọn Gia đình nếu mời cả nhà; không suy từ số người.":
+    "kindMissing",
+  "Dùng văn bản hoặc số, không dùng công thức trong các ô.": "formula",
+  "Tên hoặc SĐT trùng dòng trước. Kiểm tra lại; các dòng vẫn được giữ riêng.": "duplicate",
+  "Dòng cần đủ 9 ô, kể cả ô để trống.": "rowCells",
+};
 
 export function CoupleImport({
   onClose,
@@ -95,6 +69,8 @@ export function CoupleImport({
   onClose: () => void;
   onImport?: (rows: CoupleRow[]) => Promise<void>;
 }) {
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "importPage" });
+  const { language } = useLanguage();
   const input = useRef<HTMLInputElement>(null);
   const request = useRef(0);
   const [rows, setRows] = useState<CoupleRow[] | null>(null);
@@ -115,34 +91,23 @@ export function CoupleImport({
       await onImport(normalizedRows);
     } catch (e) {
       const issues: Record<number, string[]> = {};
-      const labels: Record<string, string> = {
-        recipientName: "Tên người nhận",
-        honorific: "Danh xưng",
-        invitationKind: "Kiểu lời mời",
-        expectedPeople: "Tổng người dự kiến (1–500)",
-        side: "Phía khách mời",
-        group: "Nhóm khách",
-        phone: "SĐT",
-        email: "Email",
-        note: "Ghi chú",
-        rowNumber: "Số dòng",
-        rows: "Danh sách",
-      };
       if (e instanceof ApiError)
         for (const key of Object.keys(e.fieldErrors)) {
           const match = /^rows\.(\d+)\.(\w+)$/.exec(key);
           if (match)
             (issues[Number(match[1])] ??= []).push(
-              `Kiểm tra ${labels[match[2] ?? ""] ?? match[2]}.`,
+              t("errors.rowField", {
+                field: t(`fields.${match[2] ?? "rows"}`, { defaultValue: match[2] }),
+              }),
             );
         }
       setServerErrors(issues);
       setError(
         Object.keys(issues).length
-          ? "BE chưa lưu dữ liệu. Sửa các trường được đánh dấu rồi nhập lại."
+          ? t("errors.savedNone")
           : e instanceof ApiError && e.status === 409
-            ? "Yêu cầu bị xung đột. Hãy tải lại danh sách để kiểm tra trước khi nhập lại."
-            : "Chưa nhận được kết quả nhập. Giữ nguyên dữ liệu và bấm thử lại; hệ thống chống tạo trùng khi retry.",
+            ? t("errors.conflict")
+            : t("errors.retry"),
       );
     } finally {
       setSaving(false);
@@ -157,14 +122,13 @@ export function CoupleImport({
     setSeating(false);
     try {
       const response = await fetch(`/templates/${file}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("Chưa tải được dữ liệu mẫu. Hãy thử lại.");
+      if (!response.ok) throw new Error(t("errors.missingSample"));
       const content = await response.text();
       if (id !== request.current) return;
       setRows(parseCoupleCsv(content));
       setFilename(file);
-    } catch (e) {
-      if (id === request.current)
-        setError(e instanceof Error ? e.message : "Không tải được dữ liệu mẫu.");
+    } catch {
+      if (id === request.current) setError(t("errors.missingFile"));
     } finally {
       if (id === request.current) setBusy(false);
     }
@@ -179,12 +143,12 @@ export function CoupleImport({
     setFilename(file.name);
     if (!/\.(csv|xlsx)$/i.test(file.name)) {
       setBusy(false);
-      setError("Chọn file Excel (.xlsx) hoặc CSV UTF-8 (.csv). Không hỗ trợ .xls, .xlsm.");
+      setError(t("errors.fileType"));
       return;
     }
     if (!file.size || file.size > 5 * 1024 * 1024) {
       setBusy(false);
-      setError("File phải có dữ liệu và không vượt quá 5 MB.");
+      setError(t("errors.fileSize"));
       return;
     }
     setBusy(true);
@@ -192,9 +156,8 @@ export function CoupleImport({
       const data = await readCoupleFile(file);
       if (id !== request.current) return;
       setRows(data);
-    } catch (e) {
-      if (id === request.current)
-        setError(e instanceof Error ? e.message : "Không đọc được file. Hãy chọn lại.");
+    } catch {
+      if (id === request.current) setError(t("errors.readFile"));
     } finally {
       if (id === request.current) setBusy(false);
     }
@@ -229,36 +192,55 @@ export function CoupleImport({
     values[5] = findGroup(values[5] ?? "", catalog) ?? values[5] ?? "";
     return { ...row, values };
   });
+  const localizeRowMessage = (message: string) => {
+    const key = rowMessageKeys[message];
+    return key ? t(`validation.${key}`) : message;
+  };
+  const headerLabels: Record<string, string> = {
+    "Tên người nhận": t("fields.recipientName"),
+    "Danh xưng": t("fields.honorific"),
+    "Kiểu lời mời": t("fields.invitationKind"),
+    "Tổng người dự kiến": t("fields.expectedPeople"),
+    "Phía khách mời": t("fields.side"),
+    "Nhóm khách": t("fields.group"),
+    SĐT: t("fields.phone"),
+    "Ghi chú": t("fields.note"),
+    Email: t("fields.email"),
+  };
+  const translatedSide = (value: string) =>
+    ({ "Nhà gái": t("enums.bride"), "Nhà trai": t("enums.groom"), Chung: t("enums.shared") })[
+      value
+    ] ?? value;
+  const translatedKind = (value: string) =>
+    ({ "Cá nhân": t("enums.individual"), "Gia đình": t("enums.family"), Nhóm: t("enums.group") })[
+      value
+    ] ?? value;
   if (seating && normalizedRows)
     return <CoupleSeatingPreview rows={normalizedRows} onBack={() => setSeating(false)} />;
   return (
     <fieldset disabled={saving} className="min-w-0 space-y-6">
       <Button variant="ghost" onClick={onClose}>
-        <ArrowLeft /> Danh sách khách mời
+        <ArrowLeft /> {t("headerBack")}
       </Button>
       <header className="space-y-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Chuẩn bị ngày chung vui
-        </p>
-        <h1 className="font-serif text-3xl sm:text-4xl">Danh sách khách, bắt đầu thật đơn giản</h1>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Mỗi dòng là một người đại diện nhận thiệp. Chỉ cần biết nhóm dự kiến bao nhiêu người; tên
-          người đi cùng có thể bổ sung sau.
-        </p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("eyebrow")}</p>
+        <h1 className="font-serif text-3xl sm:text-4xl">{t("title")}</h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{t("intro")}</p>
       </header>
-      <ol className="grid gap-3 sm:grid-cols-3" aria-label="Các bước chuẩn bị danh sách">
-        {[
-          "Tải mẫu 9 cột",
-          "Điền người nhận & số người",
-          onImport ? "Kiểm tra & nhập danh sách" : "Kiểm tra nhóm & thử xếp bàn",
-        ].map((label, i) => (
-          <li key={label} className="flex items-center gap-3 rounded-xl border bg-card p-4 text-sm">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary">
-              {i + 1}
-            </span>
-            {label}
-          </li>
-        ))}
+      <ol className="grid gap-3 sm:grid-cols-3" aria-label={t("stepsLabel")}>
+        {[t("stepTemplate"), t("stepFill"), onImport ? t("stepImport") : t("stepReview")].map(
+          (label, i) => (
+            <li
+              key={label}
+              className="flex items-center gap-3 rounded-xl border bg-card p-4 text-sm"
+            >
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary">
+                {i + 1}
+              </span>
+              {label}
+            </li>
+          ),
+        )}
       </ol>
       <div className="grid gap-5 lg:grid-cols-2">
         <section
@@ -268,35 +250,29 @@ export function CoupleImport({
           <FileSpreadsheet className="size-8 text-primary" />
           <div>
             <h2 id="sample-title" className="font-serif text-2xl">
-              Một file nhỏ, đủ để bắt đầu
+              {t("sampleTitle")}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Mẫu có sẵn 5 người nhận thiệp, tổng 10 người dự kiến. Thay toàn bộ dòng ví dụ bằng
-              khách của hai bạn.
-            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("sampleDescription")}</p>
           </div>
           <Button asChild>
             <a href="/templates/khach-moi.xlsx" download>
-              <Download /> Tải mẫu Excel có dropdown
+              <Download /> {t("downloadExcel")}
             </a>
           </Button>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Mẫu 9 cột có danh sách chọn cho phía khách mời, nhóm khách, danh xưng và kiểu lời mời.
-            Giữ nguyên tên và thứ tự cột; có thể tải lại file .xlsx trực tiếp.
-          </p>
+          <p className="text-xs leading-5 text-muted-foreground">{t("excelHelp")}</p>
           <a
             href="/templates/khach-moi.csv"
             download
             className="inline-block text-xs underline underline-offset-4"
           >
-            Hoặc tải mẫu CSV (không có dropdown)
+            {t("downloadCsv")}
           </a>
           <a className="inline-block text-sm underline underline-offset-4" href="#couple-example">
-            Xem ví dụ ngay bên dưới ↓
+            {t("showExample")}
           </a>
           <div className="border-t pt-4">
             <Button variant="outline" disabled={busy} onClick={() => void trySample()}>
-              Thử ngay với 20 người mẫu
+              {t("trySample")}
             </Button>
             <Button
               className="mt-2"
@@ -304,14 +280,14 @@ export function CoupleImport({
               disabled={busy}
               onClick={() => void trySample("khach-moi-can-xu-ly.csv")}
             >
-              Thử tên nhóm sai / nhóm mới
+              {t("tryUnknownGroups")}
             </Button>
             <a
               href="/templates/khach-moi-20-nguoi.csv"
               download
               className="mt-3 block text-xs underline underline-offset-4"
             >
-              Tải dữ liệu thử: 10 thiệp, 20 người
+              {t("downloadSampleData")}
             </a>
           </div>
         </section>
@@ -329,18 +305,18 @@ export function CoupleImport({
           onDrop={(event) => {
             event.preventDefault();
             setDragging(false);
-            if (event.dataTransfer.files.length !== 1) setError("Chọn một file mỗi lần.");
+            if (event.dataTransfer.files.length !== 1) setError(t("errors.oneFile"));
             else void choose(event.dataTransfer.files[0]);
           }}
         >
           <Upload className="mx-auto mb-4 size-8 text-primary" />
           <h2 id="upload-title" className="font-serif text-2xl">
-            Xem trước danh sách của bạn
+            {t("previewTitle")}
           </h2>
           <p className="mb-5 mt-2 text-sm text-muted-foreground">
-            Kéo file vào đây hoặc chọn từ thiết bị
+            {t("dropFile")}
             <br />
-            .xlsx / CSV UTF-8 · tối đa 5 MB · 500 dòng
+            {t("fileLimits")}
           </p>
           <Button
             variant="outline"
@@ -348,22 +324,20 @@ export function CoupleImport({
             disabled={busy}
             onClick={() => input.current?.click()}
           >
-            {busy ? "Đang đọc file…" : "Chọn file Excel / CSV"}
+            {busy ? t("readingFile") : t("chooseFile")}
           </Button>
           <input
             ref={input}
             type="file"
             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
-            aria-label="Chọn danh sách khách mẫu 9 cột"
+            aria-label={t("chooseFileAria")}
             onChange={(event) => {
               void choose(event.target.files?.[0]);
               event.target.value = "";
             }}
           />
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Bước này chỉ kiểm tra trên thiết bị, chưa lưu khách hoặc gửi thiệp.
-          </p>
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("localOnly")}</p>
         </section>
       </div>
       {error && (
@@ -380,19 +354,27 @@ export function CoupleImport({
       {rows && (
         <section
           className="space-y-4 rounded-2xl border bg-card p-5"
-          aria-label="Kết quả kiểm tra file"
+          aria-label={t("previewResult")}
         >
-          <h2 className="break-all font-serif text-2xl">Xem trước · {filename}</h2>
+          <h2 className="break-all font-serif text-2xl">
+            {t("previewResult")} · {filename}
+          </h2>
           <p role="status" className="text-sm">
-            {valid.length} dòng đúng định dạng · {total} người dự kiến ·{" "}
-            {rows.length - valid.length} dòng lỗi dữ liệu · {pendingGroups.length} tên nhóm chờ xác
-            nhận. Tổng chưa tính các dòng lỗi.
+            {t("validRows", { count: formatNumber(valid.length, language) })} ·{" "}
+            {t("expectedTotal", { count: formatNumber(total, language) })} ·{" "}
+            {t("invalidRows", { count: formatNumber(rows.length - valid.length, language) })} ·{" "}
+            {t("groupsPending", { count: formatNumber(pendingGroups.length, language) })}.{" "}
+            {t("invalidRowsNote")}
           </p>
           <div className="max-h-96 overflow-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="sticky top-0 bg-muted">
                 <tr>
-                  {["Dòng", ...coupleHeaders, "Kiểm tra"].map((h) => (
+                  {[
+                    t("columnRow"),
+                    ...coupleHeaders.map((header) => headerLabels[header] ?? header),
+                    t("checkColumn"),
+                  ].map((h) => (
                     <th key={h} scope="col" className="p-3 font-medium">
                       {h}
                     </th>
@@ -402,30 +384,32 @@ export function CoupleImport({
               <tbody>
                 {rows.map((row) => (
                   <tr className="border-t align-top" key={row.line}>
-                    <td className="p-3">{row.line}</td>
+                    <td className="p-3">{formatNumber(row.line, language)}</td>
                     {coupleHeaders.map((h, i) => (
                       <td key={h} className="max-w-64 break-words p-3">
                         {i === 4 ? (
                           <select
                             className="h-9 rounded-lg border bg-background px-2 text-xs"
-                            aria-label={`Phía khách mời dòng ${row.line}`}
+                            aria-label={`${t("fields.side")} ${formatNumber(row.line, language)}`}
                             value={row.values[4] ?? ""}
                             onChange={(e) => setSide(row.line, e.target.value)}
                           >
-                            <option value="">Chưa xác định</option>
+                            <option value="">{t("unknownSide")}</option>
                             {row.values[4] &&
                               !["Nhà gái", "Nhà trai", "Chung"].includes(row.values[4]) && (
                                 <option value={row.values[4]}>
-                                  {row.values[4]} (không hợp lệ)
+                                  {translatedSide(row.values[4])} {t("invalidValue")}
                                 </option>
                               )}
                             {["Nhà gái", "Nhà trai", "Chung"].map((label) => (
-                              <option key={label}>{label}</option>
+                              <option key={label} value={label}>
+                                {translatedSide(label)}
+                              </option>
                             ))}
                           </select>
                         ) : onImport && i === 2 ? (
                           <select
-                            aria-label={`${h} dòng ${row.line}`}
+                            aria-label={`${headerLabels[h] ?? h} ${formatNumber(row.line, language)}`}
                             value={row.values[2]}
                             className="rounded border bg-background p-2"
                             onChange={(e) =>
@@ -446,12 +430,14 @@ export function CoupleImport({
                             }
                           >
                             {["Cá nhân", "Gia đình", "Nhóm"].map((label) => (
-                              <option key={label}>{label}</option>
+                              <option key={label} value={label}>
+                                {translatedKind(label)}
+                              </option>
                             ))}
                           </select>
                         ) : onImport ? (
                           <input
-                            aria-label={`${h} dòng ${row.line}`}
+                            aria-label={`${headerLabels[h] ?? h} ${formatNumber(row.line, language)}`}
                             className="w-36 rounded border bg-background p-2"
                             value={row.values[i] ?? ""}
                             onChange={(e) => {
@@ -473,7 +459,7 @@ export function CoupleImport({
                             }}
                           />
                         ) : i === 3 && row.defaulted ? (
-                          "1 (mặc định)"
+                          t("defaultValue")
                         ) : (
                           row.values[i] || "—"
                         )}
@@ -482,27 +468,27 @@ export function CoupleImport({
                     <td className="min-w-52 p-3">
                       {serverErrors[row.line]?.map((message) => (
                         <p key={message} className="text-destructive">
-                          {message}
+                          {localizeRowMessage(message)}
                         </p>
                       ))}
                       {row.errors.map((message) => (
                         <p key={message} className="text-destructive">
-                          {message}
+                          {localizeRowMessage(message)}
                         </p>
                       ))}
                       {row.warnings.map((message) => (
                         <p key={message} className="text-amber-800">
-                          {message}
+                          {localizeRowMessage(message)}
                         </p>
                       ))}
                       {row.values[5] && !findGroup(row.values[5], catalog) && (
-                        <p className="text-amber-800">Nhóm chưa nhận diện · cần xử lý phía trên</p>
+                        <p className="text-amber-800">{t("unknownGroup")}</p>
                       )}
                       {!row.errors.length &&
                         !serverErrors[row.line]?.length &&
                         !row.warnings.length &&
                         (!row.values[5] || !!findGroup(row.values[5], catalog)) && (
-                          <span className="text-emerald-700">Hợp lệ</span>
+                          <span className="text-emerald-700">{t("valid")}</span>
                         )}
                     </td>
                   </tr>
@@ -512,9 +498,7 @@ export function CoupleImport({
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
             <p className="max-w-xl text-sm text-muted-foreground">
-              {onImport
-                ? "Kiểm tra toàn bộ danh sách trước khi nhập. Hệ thống lưu tất cả khi hợp lệ; chưa gửi thiệp hoặc xếp bàn."
-                : "Bản thử không lưu khách, không gửi thiệp và không lưu vị trí bàn."}
+              {onImport ? t("importReview") : t("demoReview")}
             </p>
             <Button
               disabled={
@@ -528,26 +512,27 @@ export function CoupleImport({
             >
               {onImport ? (
                 saving ? (
-                  "Đang nhập…"
+                  t("importing")
                 ) : (
-                  `Nhập ${valid.length} đầu mối · ${total} người dự kiến`
+                  t("importButton", {
+                    recipients: formatNumber(valid.length, language),
+                    guests: formatNumber(total, language),
+                  })
                 )
               ) : (
                 <>
-                  <Armchair /> Thử gợi ý xếp bàn
+                  <Armchair /> {t("trySeating")}
                 </>
               )}
             </Button>
           </div>
           {pendingGroups.length > 0 && (
             <p className="text-xs text-amber-900">
-              Xử lý {pendingGroups.length} tên nhóm chưa nhận diện trước khi thử gợi ý xếp bàn.
+              {t("resolveGroups", { count: formatNumber(pendingGroups.length, language) })}
             </p>
           )}
           {!onImport && total > 500 && (
-            <p className="text-xs text-muted-foreground">
-              Bản minh họa xếp bàn hỗ trợ tối đa 500 chỗ dự kiến. Hãy dùng một file thử nhỏ hơn.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("demoLimit")}</p>
           )}
         </section>
       )}
@@ -556,16 +541,15 @@ export function CoupleImport({
         className="scroll-mt-6 overflow-hidden rounded-2xl border bg-card"
       >
         <div className="p-5 sm:p-6">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Ví dụ minh họa</p>
-          <h2 className="mt-2 font-serif text-2xl">5 thiệp, dự kiến 10 người</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Bác An và gia đình: một dòng, tổng 4 người. Minh Anh và Thu Hà: hai thiệp riêng dù cùng
-            nhóm bạn.
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+            {t("exampleEyebrow")}
           </p>
+          <h2 className="mt-2 font-serif text-2xl">{t("exampleTitle")}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{t("exampleDescription")}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
-            <caption className="sr-only">Nội dung giống file mẫu tải xuống</caption>
+            <caption className="sr-only">{t("sampleCaption")}</caption>
             <thead className="bg-muted">
               <tr>
                 {coupleHeaders.map((h) => (
@@ -590,13 +574,9 @@ export function CoupleImport({
         </div>
         <div className="grid gap-4 border-t bg-muted/30 p-5 sm:grid-cols-3">
           {[
-            [Mail, "5 nhóm nhận thiệp", "Người có tên là đầu mối nhận thiệp."],
-            [Users, "5 tên đã biết", "5 người đi cùng chưa khai báo tên; không tạo khách giả."],
-            [
-              Armchair,
-              "10 chỗ dự kiến",
-              "Tổng tính cả đại diện, không cộng người đi cùng lần nữa.",
-            ],
+            [Mail, t("exampleRecipients"), t("exampleRecipientsDescription")],
+            [Users, t("exampleNames"), t("exampleNamesDescription")],
+            [Armchair, t("exampleSeats"), t("exampleSeatsDescription")],
           ].map(([Icon, title, description]) => {
             const Symbol = Icon as typeof Mail;
             return (
@@ -613,53 +593,51 @@ export function CoupleImport({
       </section>
       <section aria-labelledby="column-guide">
         <h2 id="column-guide" className="mb-4 font-serif text-2xl">
-          Điền gì vào từng cột?
+          {t("columnsTitle")}
         </h2>
         <div className="grid gap-3 md:grid-cols-2">
-          {columns.map(([name, badge, description, example]) => (
+          {columns.map(([name, example]) => (
             <article key={name} className="rounded-xl border bg-card p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-medium">{name}</h3>
-                <span className="rounded-full bg-muted px-2.5 py-1 text-xs">{badge}</span>
+                <h3 className="font-medium">{t(`guide.${name}`)}</h3>
+                <span className="rounded-full bg-muted px-2.5 py-1 text-xs">
+                  {name === "recipient"
+                    ? t("guide.recipientBadge")
+                    : name === "kind"
+                      ? t("guide.kindBadge")
+                      : name === "expected"
+                        ? t("guide.expectedBadge")
+                        : name === "side"
+                          ? t("guide.sideBadge")
+                          : name === "group"
+                            ? t("guide.groupBadge")
+                            : t("guide.optional")}
+                </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {t(`guide.${name}Description`)}
+              </p>
               <p className="mt-3 text-sm">
-                Ví dụ: <span className="font-medium">{example}</span>
+                {t("columnExample")}{" "}
+                <span className="font-medium">
+                  {t(`guide.${name}Example`, { defaultValue: example })}
+                </span>
               </p>
             </article>
           ))}
         </div>
       </section>
       <section className="rounded-2xl border bg-card p-5 sm:p-6">
-        <h2 className="mb-3 font-serif text-2xl">Những chỗ dễ nhầm</h2>
-        {[
-          [
-            "Chưa biết tên người đi cùng thì sao?",
-            "Nhập tên đại diện và tổng người dự kiến. Ví dụ bác An + ba người đi cùng = 4. Bổ sung tên sau không làm tổng tăng thêm nếu vẫn trong bốn người đã dự trù.",
-          ],
-          [
-            "Nhóm bạn nhận một thiệp hay mỗi người một thiệp?",
-            "Mặc định mỗi dòng nhận một thiệp riêng. Minh Anh và Thu Hà cùng nhóm Bạn đại học cô dâu nhưng là hai đầu mối. Chỉ nhập leader khi thực sự muốn leader nhận và phản hồi thay cả nhóm.",
-          ],
-          [
-            "Danh xưng khác cách tự xưng như thế nào?",
-            "Sheet nhập Bác. Template thiệp cấu hình Bác → chúng cháu, hoặc cách tự xưng phù hợp với người đứng tên mời. Không nhập “chúng cháu” vào cột Danh xưng. Mapping chưa có thì dùng câu trung tính.",
-          ],
-          [
-            "Nhóm khách có phải chọn đúng danh sách sẵn?",
-            "Ưu tiên chọn danh mục sẵn như Họ ngoại, Bạn đại học, Đồng nghiệp. Tên chưa có sẽ cần map về nhóm cũ hoặc xác nhận tạo mới ở preview. Không bắt prefix cô dâu/chú rể; dùng cột Phía khách mời để phân biệt. Tên khớp danh mục chưa chứng minh khách thực tế thuộc nhóm đó.",
-          ],
-          [
-            "Nhập danh sách có gửi thiệp ngay không?",
-            "Không. Bạn kiểm tra và lưu danh sách trước, chọn mẫu thiệp và cách gửi sau. Ghi chú gần lối ra hoặc tránh ngồi gần ai cần được xác nhận khi xếp bàn.",
-          ],
-        ].map(([question, answer]) => (
-          <details key={question} className="group border-t py-4">
+        <h2 className="mb-3 font-serif text-2xl">{t("faqTitle")}</h2>
+        {[0, 1, 2, 3, 4].map((index) => (
+          <details key={index} className="group border-t py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium">
-              {question}
+              {t(`faq.title.${index}`)}
               <ChevronDown className="size-4 shrink-0 group-open:rotate-180" />
             </summary>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{answer}</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+              {t(`faq.answer.${index}`)}
+            </p>
           </details>
         ))}
       </section>

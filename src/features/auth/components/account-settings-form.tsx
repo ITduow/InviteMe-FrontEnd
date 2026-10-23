@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useTranslation } from "react-i18next";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiError } from "@/core/api/api-error";
@@ -12,24 +13,28 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
 import { AccountAvatar } from "./account-avatar";
+import { useLocale } from "@/i18n/language-context";
+import { LanguageSwitcher } from "@/shared/components/language-switcher";
 import { authApi } from "../api/auth.api";
 import { currentUserKeys, useCurrentUser } from "../hooks/use-current-user";
 import {
-  changePasswordSchema,
-  profileSchema,
+  createChangePasswordSchema,
+  createProfileSchema,
   type ChangePasswordInput,
   type ProfileInput,
 } from "../schemas/account-management.schema";
 
-function validationMessage(error: unknown, fallback: string) {
+function validationMessage(error: unknown, fallback: string, t: (key: string) => string) {
   if (!(error instanceof ApiError)) return fallback;
-  if (error.status === 429) return "Bạn thao tác quá nhanh. Vui lòng chờ một phút rồi thử lại.";
-  if (error.code === "network") return "Không thể kết nối đến máy chủ. Kiểm tra mạng và thử lại.";
-  if (error.code === "validation") return "Thông tin chưa hợp lệ. Hãy kiểm tra lại các trường.";
+  if (error.status === 429) return t("rateLimitError");
+  if (error.code === "network") return t("networkError");
+  if (error.code === "validation") return t("validationError");
   return fallback;
 }
 
 export function AccountSettingsForm() {
+  const { t } = useTranslation("settings");
+  const { language } = useLocale();
   const { api, session, queryClient } = useRuntime();
   const router = useRouter();
   const { user, isLoading } = useCurrentUser();
@@ -43,12 +48,42 @@ export function AccountSettingsForm() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [showGoogleError, setShowGoogleError] = useState(false);
 
+  const validationMessages = useMemo(
+    () => ({
+      emailMax: t("validation.emailMax"),
+      emailInvalid: t("validation.emailInvalid"),
+      passwordMin: t("validation.passwordMin"),
+      passwordMax: t("validation.passwordMax"),
+      lowercase: t("validation.lowercase"),
+      uppercase: t("validation.uppercase"),
+      digit: t("validation.digit"),
+      special: t("validation.special"),
+      confirmRequired: t("validation.confirmRequired"),
+      passwordMismatch: t("validation.mismatch"),
+      currentPasswordRequired: t("validation.passwordRequired"),
+      passwordMustDiffer: t("validation.passwordMustDiffer"),
+      nameRequired: t("validation.nameRequired"),
+      nameMax: t("validation.nameMax"),
+      phoneInvalid: t("validation.phoneInvalid"),
+      avatarUrlInvalid: t("validation.avatarUrlInvalid"),
+    }),
+    [t],
+  );
+  const profileValidationSchema = useMemo(
+    () => createProfileSchema(validationMessages),
+    [validationMessages],
+  );
+  const passwordValidationSchema = useMemo(
+    () => createChangePasswordSchema(validationMessages),
+    [validationMessages],
+  );
+
   const profileForm = useForm<ProfileInput>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileValidationSchema),
     defaultValues: { displayName: "", phone: "", avatarUrl: "" },
   });
   const passwordForm = useForm<ChangePasswordInput>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(passwordValidationSchema),
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
   });
   const previewName = useWatch({ control: profileForm.control, name: "displayName" });
@@ -73,10 +108,10 @@ export function AccountSettingsForm() {
         avatarUrl: values.avatarUrl || null,
       });
       queryClient.setQueryData(currentUserKeys.me(), updated);
-      setProfileNotice("Thông tin tài khoản đã được lưu.");
+      setProfileNotice(t("profileSaved"));
     } catch (error) {
       profileForm.setError("root.server", {
-        message: validationMessage(error, "Chưa thể lưu thông tin. Vui lòng thử lại."),
+        message: validationMessage(error, t("saveFailed"), t),
       });
     } finally {
       setSavingProfile(false);
@@ -97,13 +132,13 @@ export function AccountSettingsForm() {
       router.replace("/login?passwordChanged=1");
     } catch (error) {
       if (error instanceof ApiError && error.fieldErrors.CurrentPassword) {
-        passwordForm.setError("currentPassword", { message: "Mật khẩu hiện tại không đúng." });
+        passwordForm.setError("currentPassword", { message: t("currentPasswordIncorrect") });
         return;
       }
       const message =
         error instanceof ApiError && error.status === 401
-          ? "Mật khẩu hiện tại không đúng hoặc phiên đăng nhập đã hết hạn."
-          : validationMessage(error, "Chưa thể đổi mật khẩu. Vui lòng thử lại.");
+          ? t("currentPasswordOrSessionInvalid")
+          : validationMessage(error, t("changePasswordFailed"), t);
       passwordForm.setError("root.server", { message });
     } finally {
       setChangingPassword(false);
@@ -112,20 +147,16 @@ export function AccountSettingsForm() {
 
   async function deleteAccount() {
     setDeleteError("");
-    if (deleteConfirmation !== "XOA TAI KHOAN") {
-      setDeleteError("Nhập chính xác XOA TAI KHOAN để xác nhận.");
+    const confirmationPhrase = "XOA TAI KHOAN";
+    if (deleteConfirmation !== confirmationPhrase) {
+      setDeleteError(t("deleteConfirmMismatch", { phrase: confirmationPhrase }));
       return;
     }
     if (!deletePassword && !deleteGoogleToken) {
-      setDeleteError("Hãy nhập mật khẩu hoặc xác thực lại với Google.");
+      setDeleteError(t("deletePasswordRequired"));
       return;
     }
-    if (
-      !window.confirm(
-        "Tài khoản sẽ bị vô hiệu hóa và thông tin định danh sẽ được ẩn. Bạn có chắc muốn tiếp tục?",
-      )
-    )
-      return;
+    if (!window.confirm(t("deleteAccountConfirm"))) return;
 
     setDeleting(true);
     try {
@@ -140,14 +171,14 @@ export function AccountSettingsForm() {
       const code = error instanceof ApiError ? error.backendCode : undefined;
       const message =
         code === "ACTIVE_WEDDING_OWNED"
-          ? "Bạn đang sở hữu đám cưới còn hoạt động. Hãy đóng hoặc chuyển quyền sở hữu trước khi xóa tài khoản."
+          ? t("activeWeddingOwned")
           : code === "ADMIN_CANNOT_SELF_DELETE"
-            ? "Tài khoản quản trị không thể tự xóa."
+            ? t("adminCannotDelete")
             : code === "PASSWORD_REQUIRED" || code === "GOOGLE_TOKEN_REQUIRED"
-              ? "Cần xác thực lại bằng phương thức đăng nhập của tài khoản."
+              ? t("reauthRequired")
               : error instanceof ApiError && error.status === 401
-                ? "Thông tin xác thực không đúng hoặc phiên đăng nhập đã hết hạn."
-                : validationMessage(error, "Chưa thể xóa tài khoản. Vui lòng thử lại.");
+                ? t("credentialsInvalid")
+                : validationMessage(error, t("deleteFailed"), t);
       setDeleteError(message);
       setDeleteGoogleToken("");
     } finally {
@@ -169,7 +200,7 @@ export function AccountSettingsForm() {
   if (isLoading || !user) {
     return (
       <p role="status" className="text-sm text-muted-foreground">
-        Đang tải thông tin tài khoản…
+        {t("accountLoading")}
       </p>
     );
   }
@@ -177,19 +208,32 @@ export function AccountSettingsForm() {
   return (
     <div className="max-w-3xl space-y-8">
       <section
+        aria-labelledby="language-heading"
+        className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:p-7"
+      >
+        <div>
+          <h2 id="language-heading" className="text-xl font-semibold">
+            {t("languageHeading")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("languageDescription")}</p>
+        </div>
+        <LanguageSwitcher />
+        <span className="sr-only" aria-live="polite">
+          {language === "en" ? t("languageEnglish") : t("languageVietnamese")}
+        </span>
+      </section>
+      <section
         aria-labelledby="profile-heading"
         className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-7"
       >
         <div>
           <h2 id="profile-heading" className="text-xl font-semibold">
-            Thông tin cá nhân
+            {t("profileHeading")}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cập nhật thông tin hiển thị trên InviteMe.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("profileDescription")}</p>
         </div>
         <form onSubmit={profileForm.handleSubmit(saveProfile)} className="space-y-5" noValidate>
-          <FormField control={profileForm.control} name="displayName" label="Họ và tên">
+          <FormField control={profileForm.control} name="displayName" label={t("profileName")}>
             {(field) => (
               <Input
                 {...field}
@@ -213,9 +257,9 @@ export function AccountSettingsForm() {
               aria-readonly="true"
               className="bg-muted"
             />
-            <p className="text-xs text-muted-foreground">Email không thể thay đổi tại đây.</p>
+            <p className="text-xs text-muted-foreground">{t("profileEmail")}</p>
           </div>
-          <FormField control={profileForm.control} name="phone" label="Số điện thoại">
+          <FormField control={profileForm.control} name="phone" label={t("profilePhone")}>
             {(field) => (
               <Input
                 {...field}
@@ -230,7 +274,7 @@ export function AccountSettingsForm() {
               />
             )}
           </FormField>
-          <FormField control={profileForm.control} name="avatarUrl" label="URL ảnh đại diện">
+          <FormField control={profileForm.control} name="avatarUrl" label={t("avatarUrl")}>
             {(field) => (
               <Input
                 {...field}
@@ -250,10 +294,8 @@ export function AccountSettingsForm() {
               size="large"
             />
             <div className="min-w-0">
-              <p className="text-sm font-medium">Xem trước ảnh đại diện</p>
-              <p className="mt-1 break-all text-xs text-muted-foreground">
-                URL ảnh sẽ được lưu khi bạn nhấn “Lưu hồ sơ”. Nên dùng link HTTPS trực tiếp tới ảnh.
-              </p>
+              <p className="text-sm font-medium">{t("avatarPreview")}</p>
+              <p className="mt-1 break-all text-xs text-muted-foreground">{t("avatarHint")}</p>
             </div>
           </div>
           {profileForm.formState.errors.root?.server && (
@@ -267,7 +309,7 @@ export function AccountSettingsForm() {
             </p>
           )}
           <Button type="submit" disabled={savingProfile || !env.apiUrl}>
-            {savingProfile ? "Đang lưu…" : "Lưu hồ sơ"}
+            {savingProfile ? t("saving") : t("saveProfile")}
           </Button>
         </form>
       </section>
@@ -278,17 +320,15 @@ export function AccountSettingsForm() {
       >
         <div>
           <h2 id="password-heading" className="text-xl font-semibold">
-            Đổi mật khẩu
+            {t("changePassword")}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Sau khi đổi, bạn sẽ cần đăng nhập lại trên các thiết bị.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("changePasswordHint")}</p>
         </div>
         <form onSubmit={passwordForm.handleSubmit(changePassword)} className="space-y-5" noValidate>
           <FormField
             control={passwordForm.control}
             name="currentPassword"
-            label="Mật khẩu hiện tại"
+            label={t("currentPassword")}
           >
             {(field) => (
               <Input
@@ -302,7 +342,7 @@ export function AccountSettingsForm() {
               />
             )}
           </FormField>
-          <FormField control={passwordForm.control} name="newPassword" label="Mật khẩu mới">
+          <FormField control={passwordForm.control} name="newPassword" label={t("newPassword")}>
             {(field) => (
               <Input
                 {...field}
@@ -318,7 +358,7 @@ export function AccountSettingsForm() {
           <FormField
             control={passwordForm.control}
             name="confirmPassword"
-            label="Nhập lại mật khẩu mới"
+            label={t("confirmNewPassword")}
           >
             {(field) => (
               <Input
@@ -332,16 +372,14 @@ export function AccountSettingsForm() {
               />
             )}
           </FormField>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Mật khẩu cần tối thiểu 12 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
-          </p>
+          <p className="text-xs leading-5 text-muted-foreground">{t("passwordRequirements")}</p>
           {passwordForm.formState.errors.root?.server && (
             <p role="alert" className="text-sm text-destructive">
               {passwordForm.formState.errors.root.server.message}
             </p>
           )}
           <Button type="submit" disabled={changingPassword || !env.apiUrl}>
-            {changingPassword ? "Đang cập nhật…" : "Đổi mật khẩu"}
+            {changingPassword ? t("updating") : t("changePassword")}
           </Button>
         </form>
       </section>
@@ -352,21 +390,19 @@ export function AccountSettingsForm() {
       >
         <div>
           <h2 id="delete-heading" className="text-xl font-semibold text-destructive">
-            Xóa tài khoản
+            {t("deleteAccount")}
           </h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Tài khoản sẽ bị vô hiệu hóa, thông tin định danh được ẩn và các phiên đăng nhập bị thu
-            hồi. Nếu bạn còn đám cưới đang hoạt động do mình sở hữu, hãy đóng hoặc chuyển quyền sở
-            hữu trước.
+            {t("deleteAccountDescription")}
           </p>
         </div>
         {user.role === "ADMIN" ? (
-          <p className="text-sm text-muted-foreground">Tài khoản quản trị không thể tự xóa.</p>
+          <p className="text-sm text-muted-foreground">{t("adminCannotDelete")}</p>
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="delete-password" className="text-sm font-medium">
-                Mật khẩu hiện tại
+                {t("currentPassword")}
               </label>
               <Input
                 id="delete-password"
@@ -379,15 +415,10 @@ export function AccountSettingsForm() {
                 }}
                 disabled={deleting}
               />
-              <p className="text-xs text-muted-foreground">
-                Với tài khoản chỉ đăng nhập bằng Google, dùng nút xác thực Google bên dưới.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("googleOnlyReauth")}</p>
             </div>
             {!env.googleClientId && (
-              <p className="text-xs text-muted-foreground">
-                Xác thực Google chưa được cấu hình trong ứng dụng; tài khoản chỉ dùng Google cần mật
-                khẩu trước khi xóa.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("googleNotConfigured")}</p>
             )}
             {env.googleClientId && (
               <div className="space-y-2">
@@ -397,19 +428,19 @@ export function AccountSettingsForm() {
                 />
                 {deleteGoogleToken && (
                   <p role="status" className="text-sm text-emerald-700">
-                    Đã xác thực Google. Token chỉ được giữ trong phiên trang này.
+                    {t("googleVerified")}
                   </p>
                 )}
                 {showGoogleError && (
                   <p role="alert" className="text-sm text-destructive">
-                    Không thể xác thực Google. Vui lòng thử lại.
+                    {t("googleVerificationFailed")}
                   </p>
                 )}
               </div>
             )}
             <div className="space-y-2">
               <label htmlFor="delete-confirmation" className="text-sm font-medium">
-                Nhập <span className="font-mono">XOA TAI KHOAN</span> để xác nhận
+                {t("deleteConfirmationLabel", { phrase: "XOA TAI KHOAN" })}
               </label>
               <Input
                 id="delete-confirmation"
@@ -430,7 +461,7 @@ export function AccountSettingsForm() {
               disabled={deleting || !env.apiUrl}
               onClick={() => void deleteAccount()}
             >
-              {deleting ? "Đang xóa tài khoản…" : "Xóa tài khoản của tôi"}
+              {deleting ? t("deleting") : t("deleteAccountAction")}
             </Button>
           </div>
         )}

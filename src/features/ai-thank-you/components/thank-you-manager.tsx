@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
@@ -18,30 +21,26 @@ import {
   type ThankYouTemplate,
 } from "../api/thank-you.api";
 
-const tones = [
-  { id: "WARM", name: "Ấm áp" },
-  { id: "FORMAL", name: "Trang trọng" },
-  { id: "FRIENDLY", name: "Thân mật" },
-] as const;
+const tones = ["WARM", "FORMAL", "FRIENDLY"] as const;
 
-function niceError(error: unknown) {
+function niceError(error: unknown, t: (key: string) => string) {
   if (error instanceof ApiError && error.backendCode === "AI_NOT_CONFIGURED")
-    return "AI chưa được cấu hình; hệ thống sẽ dùng mẫu dự phòng nếu nhà cung cấp gặp lỗi.";
-  if (error instanceof ApiError && error.status === 429)
-    return "Bạn đã dùng hết lượt tạo thư trong thời gian ngắn. Hãy đợi rồi thử lại.";
-  if (error instanceof ApiError && error.status === 409)
-    return "Mẫu thư đã thay đổi trên máy khác. Tải lại trước khi tiếp tục.";
+    return t("errors.aiUnavailable");
+  if (error instanceof ApiError && error.status === 429) return t("errors.rateLimited");
+  if (error instanceof ApiError && error.status === 409) return t("errors.conflict");
   if (error instanceof ApiError && error.backendCode === "THANK_YOU_CONTACT_REQUIRED")
-    return "Một số khách chưa có thông tin liên hệ cho kênh đã chọn.";
-  return "Không hoàn tất được thao tác. Vui lòng kiểm tra thông tin và thử lại.";
+    return t("errors.contactRequired");
+  return t("errors.generic");
 }
 
 export function ThankYouManager({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("thankYou");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const client = useQueryClient();
   const [guestPage, setGuestPage] = useState(1);
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
-  const [tone, setTone] = useState<(typeof tones)[number]["id"]>("WARM");
+  const [tone, setTone] = useState<(typeof tones)[number]>("WARM");
   const [variantCount, setVariantCount] = useState<1 | 3>(3);
   const [includeGiftAmount, setIncludeGiftAmount] = useState(false);
   const [sendChannels, setSendChannels] = useState<string[]>(["EMAIL"]);
@@ -88,7 +87,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
       setPreviewContent("");
       await invalidateTemplates();
     },
-    onError: (reason) => setError(niceError(reason)),
+    onError: (reason) => setError(niceError(reason, t)),
   });
   const save = useMutation({
     mutationFn: () =>
@@ -104,7 +103,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
       setContent(template.content);
       await invalidateTemplates();
     },
-    onError: (reason) => setError(niceError(reason)),
+    onError: (reason) => setError(niceError(reason, t)),
   });
   const approve = useMutation({
     mutationFn: () =>
@@ -115,7 +114,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
       setError("");
       await invalidateTemplates();
     },
-    onError: (reason) => setError(niceError(reason)),
+    onError: (reason) => setError(niceError(reason, t)),
   });
   const preview = useMutation({
     mutationFn: () =>
@@ -126,7 +125,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
       setError("");
       setPreviewContent(result.renderedContent);
     },
-    onError: (reason) => setError(niceError(reason)),
+    onError: (reason) => setError(niceError(reason, t)),
   });
   const send = useMutation({
     mutationFn: () =>
@@ -144,7 +143,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
       setError("");
       setBatchId(result.id);
     },
-    onError: (reason) => setError(niceError(reason)),
+    onError: (reason) => setError(niceError(reason, t)),
   });
   const retry = useMutation({
     mutationFn: () => retryThankYouBatch(api, weddingId, batchId),
@@ -173,11 +172,8 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Thư cảm ơn cá nhân hóa</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          AI tạo một vài mẫu trong một lần. Couple duyệt mẫu dùng chung; tên và đường dẫn riêng được
-          thêm lúc gửi cho từng khách.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
       </header>
       {error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
@@ -187,36 +183,33 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
 
       <section className="space-y-4 rounded-xl border p-4">
         <div>
-          <h2 className="font-semibold">1. Chọn người nhận và tạo mẫu</h2>
-          <p className="text-sm text-muted-foreground">
-            Tạo 1 hoặc 3 phương án bằng một yêu cầu AI duy nhất. AI chỉ nhận số liệu tổng hợp về
-            nhóm, RSVP và lời chúc công khai, không nhận tên hay nội dung lời chúc riêng.
-          </p>
+          <h2 className="font-semibold">1. {t("createStepTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("createStepDescription")}</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="text-sm font-medium">
-            Tông giọng
+            {t("tone")}
             <select
               className="mt-1 block w-full rounded-md border bg-background px-3 py-2"
               value={tone}
               onChange={(event) => setTone(event.target.value as typeof tone)}
             >
               {tones.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
+                <option key={item} value={item}>
+                  {t(`tones.${item}`)}
                 </option>
               ))}
             </select>
           </label>
           <label className="text-sm font-medium">
-            Số phương án
+            {t("variantCount")}
             <select
               className="mt-1 block w-full rounded-md border bg-background px-3 py-2"
               value={variantCount}
               onChange={(event) => setVariantCount(Number(event.target.value) as 1 | 3)}
             >
-              <option value={1}>1 mẫu</option>
-              <option value={3}>3 mẫu trong 1 lần AI</option>
+              <option value={1}>{t("oneOption")}</option>
+              <option value={3}>{t("threeOption")}</option>
             </select>
           </label>
           <label className="flex items-start gap-2 pt-6 text-sm">
@@ -225,26 +218,23 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
               checked={includeGiftAmount}
               onChange={(event) => setIncludeGiftAmount(event.target.checked)}
             />
-            <span>
-              Ghi rõ số tiền quà đã xác nhận; chỉ hiển thị cho giao dịch PAID và chỉ khi bạn bật mục
-              này
-            </span>
+            <span>{t("includeGiftAmount")}</span>
           </label>
         </div>
         {guests.isPending ? (
-          <p role="status">Đang tải danh sách khách…</p>
+          <p role="status">{t("loadingGuests")}</p>
         ) : guests.isError ? (
           <p role="alert" className="text-sm text-destructive">
-            Không tải được danh sách khách.
+            {t("guestsFailed")}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full min-w-[600px] text-left text-sm">
               <thead className="bg-muted">
                 <tr>
-                  {["Chọn", "Khách", "Nhóm", "Liên hệ"].map((label) => (
-                    <th key={label} className="px-3 py-2">
-                      {label}
+                  {["select", "guest", "group", "contact"].map((key) => (
+                    <th key={key} className="px-3 py-2">
+                      {t(`columns.${key}`)}
                     </th>
                   ))}
                 </tr>
@@ -255,14 +245,14 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                     <td className="px-3 py-2">
                       <input
                         type="checkbox"
-                        aria-label={`Chọn ${guest.recipientName}`}
+                        aria-label={t("selectGuest", { name: guest.recipientName })}
                         checked={selectedGuestIds.includes(guest.id)}
                         onChange={() => toggleGuest(guest.id)}
                       />
                     </td>
                     <td className="px-3 py-2">{guest.recipientName}</td>
                     <td className="px-3 py-2">{guest.group?.name ?? guest.side}</td>
-                    <td className="px-3 py-2">{guest.email || guest.phone || "Chưa có"}</td>
+                    <td className="px-3 py-2">{guest.email || guest.phone || t("noContact")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -272,8 +262,11 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
         {guests.data && (
           <div className="flex items-center justify-between text-sm">
             <span>
-              Đang chọn {selectedGuestIds.length}/180 · Trang {guestPage}/
-              {Math.max(1, Math.ceil(guests.data.totalItems / guests.data.pageSize))}
+              {t("selectionSummary", {
+                count: selectedGuestIds.length,
+                page: guestPage,
+                pages: Math.max(1, Math.ceil(guests.data.totalItems / guests.data.pageSize)),
+              })}
             </span>
             <div className="flex gap-2">
               <Button
@@ -283,7 +276,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                 disabled={guestPage <= 1}
                 onClick={() => setGuestPage((page) => page - 1)}
               >
-                Trước
+                {t("previous")}
               </Button>
               <Button
                 type="button"
@@ -292,7 +285,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                 disabled={guestPage * guests.data.pageSize >= guests.data.totalItems}
                 onClick={() => setGuestPage((page) => page + 1)}
               >
-                Tiếp
+                {t("next")}
               </Button>
             </div>
           </div>
@@ -302,23 +295,20 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
           disabled={selectedGuestIds.length === 0 || generate.isPending}
           onClick={() => generate.mutate()}
         >
-          {generate.isPending ? "Đang tạo phương án…" : `Tạo ${variantCount} mẫu bằng một lần AI`}
+          {generate.isPending ? t("generating") : t("generateButton", { count: variantCount })}
         </Button>
       </section>
 
       <section className="space-y-4 rounded-xl border p-4">
         <div>
-          <h2 className="font-semibold">2. Chọn, xem thử và duyệt mẫu dùng chung</h2>
-          <p className="text-sm text-muted-foreground">
-            Mẫu có thể dùng lại cho nhiều batch. Chỉnh sửa và duyệt mẫu một lần; từng khách vẫn có
-            job gửi và trạng thái riêng.
-          </p>
+          <h2 className="font-semibold">2. {t("reviewStepTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("reviewStepDescription")}</p>
         </div>
         {templates.isPending ? (
-          <p role="status">Đang tải mẫu…</p>
+          <p role="status">{t("loadingTemplates")}</p>
         ) : templates.isError ? (
           <p role="alert" className="text-sm text-destructive">
-            Không tải được danh sách mẫu.
+            {t("templatesFailed")}
           </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(240px,0.75fr)_minmax(0,1.25fr)]">
@@ -330,27 +320,22 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                   onClick={() => selectTemplate(template)}
                   className={`w-full rounded-lg border p-3 text-left ${template.id === activeTemplateId ? "border-primary bg-primary/5" : ""}`}
                 >
-                  <strong>
-                    {template.tone === "WARM"
-                      ? "Ấm áp"
-                      : template.tone === "FORMAL"
-                        ? "Trang trọng"
-                        : "Thân mật"}
-                  </strong>
+                  <strong>{t(`tones.${template.tone}`)}</strong>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    {template.status === "APPROVED" ? "Đã duyệt · dùng được" : "Bản nháp"}
-                    {template.usedFallback ? " · mẫu dự phòng" : ""}
-                    {template.includesGiftAmount ? " · có câu quà tặng tùy điều kiện" : ""}
+                    {template.status === "APPROVED" ? t("approvedReady") : t("draft")}
+                    {template.usedFallback ? ` · ${t("fallback")}` : ""}
+                    {template.includesGiftAmount ? ` · ${t("giftLineConditional")}` : ""}
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    {new Date(template.createdAt).toLocaleString("vi-VN")}
+                    {formatDate(template.createdAt, language, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </span>
                 </button>
               ))}
               {templates.data.items.length === 0 && (
-                <p className="rounded-lg bg-muted p-4 text-sm">
-                  Chưa có mẫu. Chọn khách và tạo mẫu ở trên.
-                </p>
+                <p className="rounded-lg bg-muted p-4 text-sm">{t("emptyTemplates")}</p>
               )}
             </div>
             <div className="space-y-3">
@@ -358,22 +343,23 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <h3 className="font-medium">Mẫu dùng chung</h3>
+                      <h3 className="font-medium">{t("sharedTemplate")}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {activeTemplate.status} · phiên bản {activeTemplate.version}
+                        {t(`statuses.${activeTemplate.status}`)} ·{" "}
+                        {t("version", { version: activeTemplate.version })}
                         {activeTemplate.includesGiftAmount
-                          ? " · câu quà chỉ hiện với giao dịch PAID"
-                          : " · không nhắc số tiền"}
+                          ? ` · ${t("giftLinePaidOnly")}`
+                          : ` · ${t("noGiftAmount")}`}
                       </p>
                     </div>
                     {activeTemplate.status === "APPROVED" && (
                       <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-800">
-                        Đã duyệt
+                        {t("approved")}
                       </span>
                     )}
                   </div>
                   <textarea
-                    aria-label="Nội dung mẫu thư cảm ơn"
+                    aria-label={t("templateContent")}
                     className="min-h-64 w-full rounded-lg border bg-background p-3 text-sm leading-7"
                     maxLength={3000}
                     value={content}
@@ -381,23 +367,22 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                     onChange={(event) => setContent(event.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Dùng đúng một ký hiệu <code>{"{{GuestName}}"}</code>.{" "}
+                    {t("templatePlaceholderHint")} <code>{"{{GuestName}}"}</code>.{" "}
                     {activeTemplate.includesGiftAmount && (
                       <>
-                        Ký hiệu <code>{"{{GiftThanks}}"}</code> được thay bằng câu cảm ơn khoản PAID
-                        hoặc tự bỏ đi.
+                        {t("giftPlaceholderHint")} <code>{"{{GiftThanks}}"}</code>.
                       </>
                     )}
                   </p>
                   <div className="flex flex-wrap items-end gap-2">
                     <label className="text-sm">
-                      Khách xem thử
+                      {t("previewGuest")}
                       <select
                         className="mt-1 block min-w-56 rounded-md border bg-background px-3 py-2"
                         value={previewGuestId}
                         onChange={(event) => setPreviewGuestId(event.target.value)}
                       >
-                        <option value="">Chọn khách đã tải ở trang hiện tại</option>
+                        <option value="">{t("selectLoadedGuest")}</option>
                         {guests.data?.items.map((guest) => (
                           <option key={guest.id} value={guest.id}>
                             {guest.recipientName}
@@ -411,7 +396,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                       disabled={!previewGuestId || preview.isPending}
                       onClick={() => preview.mutate()}
                     >
-                      {preview.isPending ? "Đang xem…" : "Xem thử"}
+                      {preview.isPending ? t("previewing") : t("preview")}
                     </Button>
                   </div>
                   {previewContent && (
@@ -427,20 +412,20 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                         disabled={save.isPending}
                         onClick={() => save.mutate()}
                       >
-                        Lưu chỉnh sửa
+                        {t("saveChanges")}
                       </Button>
                       <Button
                         type="button"
                         disabled={approve.isPending}
                         onClick={() => approve.mutate()}
                       >
-                        Duyệt mẫu
+                        {t("approveTemplate")}
                       </Button>
                     </div>
                   )}
                 </>
               ) : (
-                <p className="rounded-lg bg-muted p-5 text-sm">Chọn một mẫu để xem và rà soát.</p>
+                <p className="rounded-lg bg-muted p-5 text-sm">{t("selectTemplateHint")}</p>
               )}
             </div>
           </div>
@@ -449,14 +434,11 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
 
       <section className="space-y-4 rounded-xl border p-4">
         <div>
-          <h2 className="font-semibold">3. Gửi mẫu cho người nhận</h2>
-          <p className="text-sm text-muted-foreground">
-            Có thể gửi cùng một mẫu cho tối đa 180 khách trong batch. Tên và link cá nhân được điền
-            riêng tại thời điểm gửi.
-          </p>
+          <h2 className="font-semibold">3. {t("sendStepTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("sendStepDescription")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <span className="text-sm font-medium">Kênh gửi:</span>
+          <span className="text-sm font-medium">{t("channelsLabel")}</span>
           {(["EMAIL", "SMS"] as const).map((channel) => (
             <label key={channel} className="flex items-center gap-2 text-sm">
               <input
@@ -479,9 +461,7 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
           }
           onClick={() => send.mutate()}
         >
-          {send.isPending
-            ? "Đang đưa vào hàng đợi…"
-            : `Gửi mẫu đã duyệt cho ${selectedGuestIds.length} khách`}
+          {send.isPending ? t("queueing") : t("sendButton", { count: selectedGuestIds.length })}
         </Button>
       </section>
 
@@ -489,9 +469,12 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
         <section className="space-y-3 rounded-xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold">4. Trạng thái gửi</h2>
+              <h2 className="font-semibold">4. {t("deliveryStatus")}</h2>
               <p className="text-sm text-muted-foreground">
-                Batch {batchId.slice(0, 8)} · {batch.data?.status ?? "Đang xếp hàng"}
+                {t("batchSummary", {
+                  id: batchId.slice(0, 8),
+                  status: batch.data ? t(`statuses.${batch.data.status}`) : t("queued"),
+                })}
               </p>
             </div>
             {batch.data?.failedCount ? (
@@ -501,18 +484,18 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                 disabled={retry.isPending}
                 onClick={() => retry.mutate()}
               >
-                Gửi lại thư lỗi
+                {t("retryFailed")}
               </Button>
             ) : null}
           </div>
           {batch.isPending ? (
-            <p>Đang tải tiến độ…</p>
+            <p>{t("loadingProgress")}</p>
           ) : batch.data ? (
             <>
               <div className="flex flex-wrap gap-4 text-sm">
-                <span>Đã gửi: {batch.data.sentCount}</span>
-                <span>Lỗi: {batch.data.failedCount}</span>
-                <span>Đang chờ: {batch.data.pendingCount}</span>
+                <span>{t("sentCount", { count: batch.data.sentCount })}</span>
+                <span>{t("failedCount", { count: batch.data.failedCount })}</span>
+                <span>{t("pendingCount", { count: batch.data.pendingCount })}</span>
               </div>
               <div className="space-y-2">
                 {batch.data.jobs.map((job) => (
@@ -524,16 +507,13 @@ export function ThankYouManager({ weddingId }: { weddingId: string }) {
                       {job.channel} · {job.recipient}
                     </span>
                     <span>
-                      {job.status}
+                      {t(`statuses.${job.status}`, { defaultValue: job.status })}
                       {job.errorCode ? ` · ${job.errorCode}` : ""}
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Mỗi khách và kênh có trạng thái riêng. Khách mở lại thư qua link cá nhân sau khi có
-                lần gửi thành công.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("deliveryHint")}</p>
             </>
           ) : null}
         </section>

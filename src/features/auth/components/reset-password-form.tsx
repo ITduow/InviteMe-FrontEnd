@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,17 +14,43 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
 import { authApi } from "../api/auth.api";
-import { resetPasswordSchema, type ResetPasswordInput } from "../schemas/account-management.schema";
+import {
+  createResetPasswordSchema,
+  type ResetPasswordInput,
+} from "../schemas/account-management.schema";
 
 export function ResetPasswordForm({ email, code }: { email: string; code: string }) {
+  const { t } = useTranslation("auth");
   const { api, session, queryClient } = useRuntime();
   const router = useRouter();
   const [done, setDone] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const validationSchema = useMemo(
+    () =>
+      createResetPasswordSchema({
+        emailMax: t("validation.emailMax"),
+        emailInvalid: t("validation.emailInvalid"),
+        passwordMin: t("validation.passwordMin"),
+        passwordMax: t("validation.passwordMax"),
+        lowercase: t("validation.lowercase"),
+        uppercase: t("validation.uppercase"),
+        digit: t("validation.digit"),
+        special: t("validation.special"),
+        confirmRequired: t("validation.confirmRequired"),
+        passwordMismatch: t("validation.mismatch"),
+        currentPasswordRequired: t("validation.passwordRequired"),
+        passwordMustDiffer: t("validation.passwordMustDiffer"),
+        nameRequired: t("validation.nameRequired"),
+        nameMax: t("validation.nameMax"),
+        phoneInvalid: t("validation.phoneInvalid"),
+        avatarUrlInvalid: t("validation.avatarUrlInvalid"),
+      }),
+    [t],
+  );
   const validLink =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && code.trim().length > 0 && code.length <= 2048;
   const form = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
@@ -42,12 +69,12 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
     } catch (error) {
       const message =
         error instanceof ApiError && error.status === 429
-          ? "Bạn thử quá nhiều lần. Vui lòng chờ một phút rồi thử lại."
+          ? t("tooManyAttempts")
           : error instanceof ApiError && error.code === "network"
-            ? "Không thể kết nối đến máy chủ. Kiểm tra mạng và thử lại."
+            ? t("networkError")
             : error instanceof ApiError && error.status >= 500
-              ? "Hệ thống đang gặp sự cố. Vui lòng thử lại sau."
-              : "Link đặt lại không hợp lệ hoặc đã hết hạn. Hãy yêu cầu gửi link mới.";
+              ? t("systemError")
+              : t("resetLinkExpired");
       form.setError("root.server", { message });
     }
   }
@@ -55,12 +82,12 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
   if (done) {
     return (
       <div className="space-y-5">
-        <h1 className="font-display text-3xl">Đã đổi mật khẩu</h1>
+        <h1 className="font-display text-3xl">{t("passwordChanged")}</h1>
         <p role="status" className="text-sm leading-6 text-muted-foreground">
-          Mật khẩu đã được cập nhật. Vì lý do bảo mật, hãy đăng nhập lại bằng mật khẩu mới.
+          {t("passwordChangedDetails")}
         </p>
         <Button asChild className="w-full">
-          <Link href="/login">Đến trang đăng nhập</Link>
+          <Link href="/login">{t("goToLogin")}</Link>
         </Button>
       </div>
     );
@@ -69,12 +96,12 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
   if (!validLink) {
     return (
       <div className="space-y-5">
-        <h1 className="font-display text-3xl">Link không hợp lệ</h1>
+        <h1 className="font-display text-3xl">{t("invalidLink")}</h1>
         <p role="alert" className="text-sm leading-6 text-muted-foreground">
-          Link thiếu thông tin hoặc không còn hợp lệ. Hãy yêu cầu gửi link đặt lại mới.
+          {t("invalidLinkDetails")}
         </p>
         <Button asChild className="w-full">
-          <Link href="/forgot-password">Yêu cầu link mới</Link>
+          <Link href="/forgot-password">{t("requestNewLink")}</Link>
         </Button>
       </div>
     );
@@ -83,12 +110,13 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
   return (
     <form onSubmit={form.handleSubmit(submit)} className="space-y-5" noValidate>
       <div className="space-y-2">
-        <h1 className="font-display text-3xl">Đặt lại mật khẩu</h1>
+        <h1 className="font-display text-3xl">{t("resetPassword")}</h1>
         <p className="break-all text-sm text-muted-foreground">
-          Tạo mật khẩu mới cho <strong className="text-foreground">{email}</strong>.
+          {t("newPasswordFor")} <strong className="text-foreground">{email}</strong>
+          {t("newPasswordForEnd")}
         </p>
       </div>
-      <FormField control={form.control} name="newPassword" label="Mật khẩu mới">
+      <FormField control={form.control} name="newPassword" label={t("newPassword")}>
         {(field) => (
           <div className="relative">
             <Input
@@ -96,7 +124,7 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
               value={String(field.value ?? "")}
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              placeholder="Ít nhất 12 ký tự"
+              placeholder={t("passwordPlaceholder")}
               aria-invalid={field["aria-invalid"]}
               aria-describedby={field["aria-describedby"]}
               disabled={form.formState.isSubmitting}
@@ -104,7 +132,7 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
             />
             <button
               type="button"
-              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-label={showPassword ? t("hidePassword") : t("showPassword")}
               aria-pressed={showPassword}
               onClick={() => setShowPassword((visible) => !visible)}
               className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground"
@@ -114,7 +142,7 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
           </div>
         )}
       </FormField>
-      <FormField control={form.control} name="confirmPassword" label="Nhập lại mật khẩu mới">
+      <FormField control={form.control} name="confirmPassword" label={t("confirmNewPassword")}>
         {(field) => (
           <Input
             {...field}
@@ -127,9 +155,7 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
           />
         )}
       </FormField>
-      <p className="text-xs leading-5 text-muted-foreground">
-        Mật khẩu cần tối thiểu 12 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
-      </p>
+      <p className="text-xs leading-5 text-muted-foreground">{t("passwordRequirements")}</p>
       {form.formState.errors.root?.server && (
         <p role="alert" className="text-sm text-destructive">
           {form.formState.errors.root.server.message}
@@ -137,7 +163,7 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
       )}
       {!env.apiUrl && (
         <p role="alert" className="text-sm text-destructive">
-          Kết nối máy chủ chưa được cấu hình.
+          {t("serverNotConfigured")}
         </p>
       )}
       <Button
@@ -145,14 +171,14 @@ export function ResetPasswordForm({ email, code }: { email: string; code: string
         className="w-full"
         disabled={form.formState.isSubmitting || !env.apiUrl}
       >
-        {form.formState.isSubmitting ? "Đang cập nhật…" : "Lưu mật khẩu mới"}
+        {form.formState.isSubmitting ? t("updating") : t("saveNewPassword")}
       </Button>
       <button
         type="button"
         className="w-full text-sm text-primary underline"
         onClick={() => router.push("/login")}
       >
-        Quay lại đăng nhập
+        {t("backToLogin")}
       </button>
     </form>
   );

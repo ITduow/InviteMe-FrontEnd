@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { trapDialogFocus } from "@/shared/lib/dialog-focus";
 import { Button } from "./button";
+import { useTranslation } from "react-i18next";
 
 export function Modal({
   open,
@@ -18,6 +19,7 @@ export function Modal({
   description?: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation("common");
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   useEffect(() => {
@@ -71,7 +73,7 @@ export function Modal({
           variant="ghost"
           size="icon"
           className="size-11 shrink-0"
-          aria-label={`Đóng ${title.toLocaleLowerCase("vi")}`}
+          aria-label={t("closeDialogTitle", { title: title.toLocaleLowerCase() })}
           onClick={onClose}
         >
           <X className="size-5" />

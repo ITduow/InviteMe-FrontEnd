@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, CameraOff } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
@@ -19,6 +20,7 @@ export function QrCameraScanner({
   autoStart?: boolean;
   onDetected: (value: string) => void;
 }) {
+  const { t } = useTranslation("guests", { keyPrefix: "reception.camera" });
   const [active, setActive] = useState(autoStart);
   const [error, setError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -44,14 +46,12 @@ export function QrCameraScanner({
       const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorConstructor })
         .BarcodeDetector;
       if (!Detector) {
-        setError(
-          "Trình duyệt này chưa hỗ trợ quét QR bằng camera. Hãy dán link hoặc dùng máy quét QR.",
-        );
+        setError(t("unsupported"));
         setActive(false);
         return;
       }
       if (!navigator.mediaDevices?.getUserMedia) {
-        setError("Không truy cập được camera trên kết nối này. Hãy dán link thiệp vào ô tra cứu.");
+        setError(t("unavailable"));
         setActive(false);
         return;
       }
@@ -89,18 +89,14 @@ export function QrCameraScanner({
       } catch (cause) {
         if (disposed) return;
         const name = cause instanceof Error ? cause.name : "";
-        setError(
-          name === "NotAllowedError"
-            ? "Chưa được cấp quyền camera. Cho phép camera hoặc dán link thiệp để tiếp tục."
-            : "Không mở được camera. Hãy dán link thiệp hoặc thử camera khác.",
-        );
+        setError(name === "NotAllowedError" ? t("permission") : t("openFailed"));
         setActive(false);
       }
     }
 
     void start();
     return stop;
-  }, [active]);
+  }, [active, t]);
 
   return (
     <div className="space-y-3">
@@ -115,7 +111,7 @@ export function QrCameraScanner({
         aria-pressed={active}
       >
         {active ? <CameraOff aria-hidden="true" /> : <Camera aria-hidden="true" />}
-        {active ? "Tắt camera" : "Quét bằng camera"}
+        {active ? t("off") : t("on")}
       </Button>
       {active && (
         <div className="space-y-2 rounded-xl border bg-black p-2">
@@ -124,11 +120,9 @@ export function QrCameraScanner({
             className="mx-auto max-h-72 w-full rounded-lg object-cover"
             muted
             playsInline
-            aria-label="Hình ảnh camera để quét mã QR thiệp"
+            aria-label={t("videoAria")}
           />
-          <p className="text-center text-sm text-white">
-            Đưa mã QR vào khung hình. Quét chỉ tra cứu, chưa ghi nhận check-in.
-          </p>
+          <p className="text-center text-sm text-white">{t("hint")}</p>
         </div>
       )}
       {error && (
