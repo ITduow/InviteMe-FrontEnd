@@ -1,24 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormField } from "@/shared/forms/form-field";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { planningGuestCreateSchema, type PlanningGuestCreate } from "../api/planning.api";
-
-const sideOptions = [
-  ["BRIDE", "Nhà gái"],
-  ["GROOM", "Nhà trai"],
-  ["MUTUAL", "Chung"],
-  ["UNSPECIFIED", "Chưa xác định"],
-] as const;
-
-const kindOptions = [
-  ["INDIVIDUAL", "Cá nhân"],
-  ["FAMILY", "Gia đình"],
-  ["GROUP", "Nhóm"],
-] as const;
+import { createPlanningGuestCreateSchema, type PlanningGuestCreate } from "../api/planning.api";
 
 export function PlanningGuestCreateForm({
   groups,
@@ -33,8 +22,25 @@ export function PlanningGuestCreateForm({
   onCancel: () => void;
   onSave: (input: PlanningGuestCreate) => void;
 }) {
+  const { t } = useTranslation("guests");
+  const schema = useMemo(
+    () =>
+      createPlanningGuestCreateSchema({
+        nameRequired: t("planning.validation.nameRequired"),
+        nameMax: t("planning.validation.nameMax"),
+        honorificMax: t("planning.validation.honorificMax"),
+        phoneMax: t("planning.validation.phoneMax"),
+        phoneInvalid: t("planning.validation.phoneInvalid"),
+        noteMax: t("planning.validation.noteMax"),
+        emailInvalid: t("planning.validation.emailInvalid"),
+        versionInvalid: t("planning.validation.versionInvalid"),
+        expectedPeopleMin: t("planning.validation.expectedPeopleMin"),
+        expectedPeopleMax: t("planning.validation.expectedPeopleMax"),
+      }),
+    [t],
+  );
   const form = useForm<PlanningGuestCreate>({
-    resolver: zodResolver(planningGuestCreateSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       recipientName: "",
       honorific: "",
@@ -52,7 +58,7 @@ export function PlanningGuestCreateForm({
     if (!isWeddingWide && !values.groupId) {
       form.setError("groupId", {
         type: "manual",
-        message: "Chọn nhóm khách thuộc phạm vi được giao.",
+        message: t("planning.validation.groupRequired"),
       });
       return;
     }
@@ -74,53 +80,59 @@ export function PlanningGuestCreateForm({
       noValidate
     >
       <div>
-        <h2 className="text-lg font-semibold">Thêm khách thủ công</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Tạo khách và số chỗ dự kiến. Link thiệp riêng sẽ được sinh tự động.
-        </p>
+        <h2 className="text-lg font-semibold">{t("planning.createTitle")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("planning.createDescription")}</p>
       </div>
       <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
-        <FormField control={form.control} name="recipientName" label="Tên người nhận">
+        <FormField control={form.control} name="recipientName" label={t("planning.recipientName")}>
           {(field) => (
             <Input {...field} value={String(field.value ?? "")} maxLength={150} required />
           )}
         </FormField>
-        <FormField control={form.control} name="honorific" label="Xưng hô">
+        <FormField control={form.control} name="honorific" label={t("planning.honorific")}>
           {(field) => (
             <Input
               {...field}
               value={String(field.value ?? "")}
               maxLength={50}
-              placeholder="Anh, Chị, Bác…"
+              placeholder={t("planning.honorificPlaceholder")}
             />
           )}
         </FormField>
-        <FormField control={form.control} name="email" label="Email">
+        <FormField control={form.control} name="email" label={t("planning.email")}>
           {(field) => (
             <Input {...field} value={String(field.value ?? "")} type="email" maxLength={254} />
           )}
         </FormField>
-        <FormField control={form.control} name="phone" label="Số điện thoại">
+        <FormField control={form.control} name="phone" label={t("planning.phone")}>
           {(field) => (
             <Input {...field} value={String(field.value ?? "")} type="tel" maxLength={30} />
           )}
         </FormField>
-        <FormField control={form.control} name="invitationKind" label="Loại lời mời">
+        <FormField
+          control={form.control}
+          name="invitationKind"
+          label={t("planning.invitationKind")}
+        >
           {(field) => (
             <select
               {...field}
               value={String(field.value)}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              {kindOptions.map(([value, label]) => (
+              {(["INDIVIDUAL", "FAMILY", "GROUP"] as const).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(`planning.kind.${value}`)}
                 </option>
               ))}
             </select>
           )}
         </FormField>
-        <FormField control={form.control} name="expectedPeople" label="Số người dự kiến">
+        <FormField
+          control={form.control}
+          name="expectedPeople"
+          label={t("planning.expectedPeople")}
+        >
           {(field) => (
             <Input
               type="number"
@@ -132,22 +144,22 @@ export function PlanningGuestCreateForm({
             />
           )}
         </FormField>
-        <FormField control={form.control} name="side" label="Phía khách mời">
+        <FormField control={form.control} name="side" label={t("planning.side")}>
           {(field) => (
             <select
               {...field}
               value={String(field.value)}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              {sideOptions.map(([value, label]) => (
+              {(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"] as const).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(`planning.sideValues.${value}`)}
                 </option>
               ))}
             </select>
           )}
         </FormField>
-        <FormField control={form.control} name="groupId" label="Nhóm khách">
+        <FormField control={form.control} name="groupId" label={t("planning.group")}>
           {(field) => (
             <select
               {...field}
@@ -156,7 +168,7 @@ export function PlanningGuestCreateForm({
               required={!isWeddingWide}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              {isWeddingWide && <option value="">Chưa phân nhóm</option>}
+              {isWeddingWide && <option value="">{t("planning.noGroup")}</option>}
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -166,7 +178,7 @@ export function PlanningGuestCreateForm({
           )}
         </FormField>
         <div className="sm:col-span-2">
-          <FormField control={form.control} name="note" label="Ghi chú">
+          <FormField control={form.control} name="note" label={t("planning.note")}>
             {(field) => (
               <textarea
                 {...field}
@@ -186,10 +198,10 @@ export function PlanningGuestCreateForm({
       )}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={busy}>
-          {busy ? "Đang tạo…" : "Tạo khách"}
+          {busy ? t("planning.creating") : t("planning.create")}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-          Hủy
+          {t("planning.cancel")}
         </Button>
       </div>
     </form>

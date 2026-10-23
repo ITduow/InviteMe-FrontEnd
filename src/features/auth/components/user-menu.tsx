@@ -7,8 +7,11 @@ import { useCurrentUser } from "../hooks/use-current-user";
 import { useLogout } from "../hooks/use-logout";
 import { cn } from "@/shared/lib/utils";
 import { AccountAvatar } from "./account-avatar";
+import { useTranslation } from "react-i18next";
 
 export function UserMenu() {
+  const { t } = useTranslation("auth");
+  const { t: tNavigation } = useTranslation("navigation");
   const { user, isLoading } = useCurrentUser();
   const { logout, isLoggingOut } = useLogout();
   const [open, setOpen] = useState(false);
@@ -86,7 +89,7 @@ export function UserMenu() {
         href="/login"
         className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        Đăng nhập
+        {t("login")}
       </Link>
     );
   }
@@ -135,7 +138,7 @@ export function UserMenu() {
               {isAdmin && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary-hover">
                   <ShieldCheck className="size-3" />
-                  Admin
+                  {t("administrator")}
                 </span>
               )}
             </div>
@@ -151,7 +154,7 @@ export function UserMenu() {
               className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <User className="size-4 text-muted-foreground" />
-              Hồ sơ & cài đặt
+              {t("profileAndSettings")}
             </Link>
             {/* Navigation links based on role */}
             {isAdmin &&
@@ -164,7 +167,7 @@ export function UserMenu() {
                   className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <User className="size-4 text-muted-foreground" />
-                  Không gian Cưới hỏi
+                  {tNavigation("workspace")}
                 </Link>
               ) : (
                 <Link
@@ -175,7 +178,7 @@ export function UserMenu() {
                   className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <ShieldCheck className="size-4 text-muted-foreground" />
-                  Trang Quản trị (Admin)
+                  {t("adminPortal")}
                 </Link>
               ))}
           </div>
@@ -195,7 +198,7 @@ export function UserMenu() {
               className="flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
               <LogOut className="size-4" />
-              {isLoggingOut ? "Đang đăng xuất…" : "Đăng xuất"}
+              {isLoggingOut ? t("loggingOut") : t("logout")}
             </button>
           </div>
         </div>

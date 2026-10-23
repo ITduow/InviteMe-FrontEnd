@@ -4,14 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import { claimGuestGift, createGuestGift, getGuestGiftPage } from "../api/gifts.api";
-
-function money(value: number) {
-  return new Intl.NumberFormat("vi-VN").format(value) + "₫";
-}
+import { useLocale } from "@/i18n/language-context";
+import { formatCurrency } from "@/i18n/format";
 
 export function GuestGiftPanel({ token }: { token: string }) {
+  const { t } = useTranslation("gifts");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState(200_000);
@@ -43,34 +44,29 @@ export function GuestGiftPanel({ token }: { token: string }) {
       setMessage("");
       await queryClient.invalidateQueries({ queryKey });
     },
-    onError: () => setError("Không tạo được mã quà mừng. Kiểm tra tài khoản nhận và thử lại."),
+    onError: () => setError(t("createError")),
   });
   const claim = useMutation({
     mutationFn: (id: string) => claimGuestGift(api, token, id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
     },
-    onError: () => setError("Không cập nhật được trạng thái chuyển khoản. Vui lòng thử lại."),
+    onError: () => setError(t("claimError")),
   });
 
-  if (page.isPending) return <p role="status">Đang tải thông tin tài khoản nhận quà…</p>;
+  if (page.isPending) return <p role="status">{t("loadingAccounts")}</p>;
   if (page.isError)
     return (
       <p role="alert" className="text-sm text-red-700">
-        Chưa tải được thông tin quà mừng. Vui lòng thử lại sau.
+        {t("loadFailed")}
       </p>
     );
   const data = page.data;
   return (
     <div className="space-y-4 text-left">
-      <p className="text-sm text-muted-foreground">
-        Gửi lời chúc và tạo mã VietQR chuyển khoản trực tiếp đến tài khoản của {data.weddingTitle}.
-        InviteMe không giữ tiền.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("intro", { wedding: data.weddingTitle })}</p>
       {data.accounts.length === 0 ? (
-        <p className="rounded-lg bg-muted p-3 text-sm">
-          Cặp đôi chưa thiết lập tài khoản nhận quà.
-        </p>
+        <p className="rounded-lg bg-muted p-3 text-sm">{t("noAccounts")}</p>
       ) : (
         <form
           className="space-y-3"
@@ -81,7 +77,7 @@ export function GuestGiftPanel({ token }: { token: string }) {
           }}
         >
           <label className="block text-sm font-medium">
-            Số tiền
+            {t("amount")}
             <div className="mt-2 flex flex-wrap gap-2">
               {data.suggestedAmounts.map((value) => (
                 <button
@@ -91,7 +87,7 @@ export function GuestGiftPanel({ token }: { token: string }) {
                   aria-pressed={amount === value}
                   className={`rounded-full border px-3 py-1.5 text-sm ${amount === value ? "border-primary bg-primary text-primary-foreground" : "bg-background"}`}
                 >
-                  {money(value)}
+                  {formatCurrency(value, language)}
                 </button>
               ))}
             </div>
@@ -108,14 +104,14 @@ export function GuestGiftPanel({ token }: { token: string }) {
           </label>
           {data.accounts.length > 1 && (
             <label className="block text-sm font-medium">
-              Tài khoản nhận
+              {t("recipientAccount")}
               <select
                 className="mt-1 w-full rounded-md border bg-background px-3 py-2"
                 value={accountId}
                 onChange={(event) => setAccountId(event.target.value)}
                 required
               >
-                <option value="">Chọn tài khoản</option>
+                <option value="">{t("chooseAccount")}</option>
                 {data.accounts.map((account) => (
                   <option key={account.id} value={account.id}>
                     {account.label || account.bankName} · {account.accountName} ·{" "}
@@ -126,13 +122,13 @@ export function GuestGiftPanel({ token }: { token: string }) {
             </label>
           )}
           <label className="block text-sm font-medium">
-            Lời chúc
+            {t("wish")}
             <textarea
               className="mt-1 min-h-24 w-full rounded-md border bg-background px-3 py-2"
               maxLength={500}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Gửi lời chúc đến cặp đôi"
+              placeholder={t("wishPlaceholder")}
             />
           </label>
           <label className="flex items-start gap-2 text-sm">
@@ -141,7 +137,7 @@ export function GuestGiftPanel({ token }: { token: string }) {
               checked={messagePublic}
               onChange={(event) => setMessagePublic(event.target.checked)}
             />
-            <span>Cho phép cặp đôi hiển thị lời chúc này trong sổ lời chúc.</span>
+            <span>{t("showWish")}</span>
           </label>
           {error && (
             <p role="alert" className="text-sm text-red-700">
@@ -149,24 +145,24 @@ export function GuestGiftPanel({ token }: { token: string }) {
             </p>
           )}
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Đang tạo…" : "Tạo mã VietQR"}
+            {create.isPending ? t("creating") : t("createQr")}
           </Button>
         </form>
       )}
       {data.myGifts.length > 0 && (
         <div className="space-y-3 border-t pt-4">
-          <h3 className="font-semibold">Mã chuyển khoản của bạn</h3>
+          <h3 className="font-semibold">{t("myTransfers")}</h3>
           {data.myGifts.map((gift) => (
             <article key={gift.id} className="rounded-xl border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <strong>{money(gift.amount ?? 0)}</strong>
+                <strong>{formatCurrency(gift.amount ?? 0, language)}</strong>
                 <span className="rounded-full bg-muted px-2 py-1 text-xs">
                   {gift.status === "PENDING"
-                    ? "Chờ chuyển khoản"
+                    ? t("pending")
                     : gift.status === "CLAIMED"
-                      ? "Đang chờ xác nhận"
+                      ? t("claimed")
                       : gift.status === "PAID"
-                        ? "Đã xác nhận"
+                        ? t("paid")
                         : gift.status}
                 </span>
               </div>
@@ -178,13 +174,14 @@ export function GuestGiftPanel({ token }: { token: string }) {
               )}
               {gift.transferContent && (
                 <p className="mt-1 break-all text-sm">
-                  Nội dung chuyển khoản: <strong>{gift.transferContent}</strong>
+                  {t("transferContent")}
+                  <strong>{gift.transferContent}</strong>
                 </p>
               )}
               {gift.qrImageUrl && (
                 <Image
                   src={gift.qrImageUrl}
-                  alt="Mã VietQR mừng cưới"
+                  alt={t("giftQrAlt")}
                   width={220}
                   height={220}
                   unoptimized
@@ -201,7 +198,7 @@ export function GuestGiftPanel({ token }: { token: string }) {
                   disabled={claim.isPending}
                   onClick={() => claim.mutate(gift.id)}
                 >
-                  Tôi đã chuyển khoản
+                  {t("markTransferred")}
                 </Button>
               )}
             </article>

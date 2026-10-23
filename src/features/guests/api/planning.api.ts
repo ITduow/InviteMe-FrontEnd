@@ -56,41 +56,87 @@ const result = z.object({
 });
 export type PlanningGuest = z.infer<typeof planningGuestSchema>;
 export type PlanningDetail = z.infer<typeof planningDetailSchema>;
-const phoneSchema = z
-  .string()
-  .trim()
-  .max(30)
-  .refine(
-    (value) =>
-      value.length === 0 ||
-      (/^\+?[0-9][0-9 ().-]*$/.test(value) &&
-        value.replace(/[^0-9]/g, "").length >= 7 &&
-        value.replace(/[^0-9]/g, "").length <= 15),
+export type PlanningGuestValidationMessages = {
+  nameRequired: string;
+  nameMax: string;
+  honorificMax: string;
+  phoneMax: string;
+  phoneInvalid: string;
+  noteMax: string;
+  emailInvalid: string;
+  versionInvalid: string;
+  expectedPeopleMin: string;
+  expectedPeopleMax: string;
+};
+
+function createPhoneSchema(messages: PlanningGuestValidationMessages) {
+  return z
+    .string()
+    .trim()
+    .max(30, messages.phoneMax)
+    .refine(
+      (value) =>
+        value.length === 0 ||
+        (/^\+?[0-9][0-9 ().-]*$/.test(value) &&
+          value.replace(/[^0-9]/g, "").length >= 7 &&
+          value.replace(/[^0-9]/g, "").length <= 15),
+      messages.phoneInvalid,
+    )
+    .nullable();
+}
+
+export function createPlanningGuestUpdateSchema(messages: PlanningGuestValidationMessages) {
+  return z.object({
+    expectedVersion: z.number().int().positive(messages.versionInvalid),
+    recipientName: z.string().trim().min(1, messages.nameRequired).max(150, messages.nameMax),
+    honorific: z.string().trim().max(50, messages.honorificMax).nullable(),
+    side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
+    groupId: z.string().nullable(),
+    phone: createPhoneSchema(messages),
+    note: z.string().trim().max(2000, messages.noteMax).nullable(),
+    email: z.union([z.email({ error: messages.emailInvalid }), z.literal("")]).nullable(),
+  });
+}
+
+export function createPlanningGuestCreateSchema(messages: PlanningGuestValidationMessages) {
+  return z.object({
+    recipientName: z.string().trim().min(1, messages.nameRequired).max(150, messages.nameMax),
+    honorific: z.string().trim().max(50, messages.honorificMax).nullable(),
+    invitationKind: z.enum(["INDIVIDUAL", "FAMILY", "GROUP"]),
+    expectedPeople: z
+      .number()
+      .int()
+      .min(1, messages.expectedPeopleMin)
+      .max(500, messages.expectedPeopleMax),
+    side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
+    groupId: z.string().nullable(),
+    phone: createPhoneSchema(messages),
+    note: z.string().trim().max(2000, messages.noteMax).nullable(),
+    email: z.union([z.email({ error: messages.emailInvalid }), z.literal("")]).nullable(),
+  });
+}
+
+const defaultGuestValidationMessages: PlanningGuestValidationMessages = {
+  nameRequired: "Vui lòng nhập tên người nhận.",
+  nameMax: "Tên người nhận không được vượt quá 150 ký tự.",
+  honorificMax: "Xưng hô không được vượt quá 50 ký tự.",
+  phoneMax: "Số điện thoại không được vượt quá 30 ký tự.",
+  phoneInvalid:
     "Số điện thoại cần có 7–15 chữ số; có thể dùng dấu +, khoảng trắng, dấu chấm, gạch nối hoặc ngoặc.",
-  )
-  .nullable();
-export const planningGuestUpdateSchema = z.object({
-  expectedVersion: z.number().int().positive(),
-  recipientName: z.string().trim().min(1).max(150),
-  honorific: z.string().trim().max(50).nullable(),
-  side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
-  groupId: z.string().nullable(),
-  phone: phoneSchema,
-  note: z.string().trim().max(2000).nullable(),
-  email: z.union([z.email(), z.literal("")]).nullable(),
-});
+  noteMax: "Ghi chú không được vượt quá 2.000 ký tự.",
+  emailInvalid: "Email không hợp lệ.",
+  versionInvalid: "Phiên bản thông tin không hợp lệ.",
+  expectedPeopleMin: "Cần có ít nhất một chỗ mời.",
+  expectedPeopleMax: "Số chỗ mời không được vượt quá 500.",
+};
+
+export const planningGuestUpdateSchema = createPlanningGuestUpdateSchema(
+  defaultGuestValidationMessages,
+);
 export type PlanningGuestUpdate = z.infer<typeof planningGuestUpdateSchema>;
-export const planningGuestCreateSchema = z.object({
-  recipientName: z.string().trim().min(1).max(150),
-  honorific: z.string().trim().max(50).nullable(),
-  invitationKind: z.enum(["INDIVIDUAL", "FAMILY", "GROUP"]),
-  expectedPeople: z.number().int().min(1).max(500),
-  side: z.enum(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"]),
-  groupId: z.string().nullable(),
-  phone: phoneSchema,
-  note: z.string().trim().max(2000).nullable(),
-  email: z.union([z.email(), z.literal("")]).nullable(),
-});
+export const planningGuestCreateSchema = createPlanningGuestCreateSchema(
+  defaultGuestValidationMessages,
+);
 export type PlanningGuestCreate = z.infer<typeof planningGuestCreateSchema>;
 export const sideLabels = {
   BRIDE: "Nhà gái",

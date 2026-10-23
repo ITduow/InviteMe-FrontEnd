@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
@@ -24,30 +27,29 @@ import {
   type RsvpSettings,
 } from "../api/host-rsvp.api";
 
-const statusOptions: { value: RsvpListStatus | ""; label: string }[] = [
-  { value: "", label: "Tất cả" },
-  { value: "NOT_RESPONDED", label: "Chưa trả lời" },
-  { value: "ATTENDING", label: "Tham dự" },
-  { value: "DECLINED", label: "Không tham dự" },
-  { value: "WAITING", label: "Có người chờ duyệt" },
-  { value: "PENDING_REQUEST", label: "Có yêu cầu thay đổi" },
+const statusOptions: (RsvpListStatus | "")[] = [
+  "",
+  "NOT_RESPONDED",
+  "ATTENDING",
+  "DECLINED",
+  "WAITING",
+  "PENDING_REQUEST",
 ];
-const statusLabel = Object.fromEntries(statusOptions.map((item) => [item.value, item.label]));
 const fieldClass = "h-10 w-full rounded-lg border bg-background px-3 text-sm";
 
-function message(error: unknown) {
+function message(error: unknown, t: (key: string) => string) {
   if (error instanceof ApiError) {
-    if (error.backendCode === "CONCURRENCY_CONFLICT")
-      return "Dữ liệu vừa thay đổi. Hãy tải lại rồi thử lại.";
-    if (error.backendCode === "INSUFFICIENT_SLOTS")
-      return "Sức chứa còn lại không đủ cho số người này.";
-    if (error.status === 403) return "Bạn không có quyền thực hiện thao tác này.";
-    return error.message;
+    if (error.backendCode === "CONCURRENCY_CONFLICT") return t("hostRsvp.errors.conflict");
+    if (error.backendCode === "INSUFFICIENT_SLOTS") return t("hostRsvp.errors.insufficientSlots");
+    if (error.status === 403) return t("hostRsvp.errors.forbidden");
+    return t("hostRsvp.errors.generic");
   }
-  return "Không hoàn tất được thao tác. Vui lòng thử lại.";
+  return t("hostRsvp.errors.generic");
 }
 
 export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("guests");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const cache = useQueryClient();
   const { can } = usePermission();
@@ -96,7 +98,7 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
-      setActionError(message(error));
+      setActionError(message(error, t));
     } finally {
       setExporting(false);
     }
@@ -106,11 +108,11 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Xác nhận tham dự"
-        description="Theo dõi câu trả lời và số chỗ của từng thiệp."
+        title={t("hostRsvp.title")}
+        description={t("hostRsvp.description")}
         action={
           <Button variant="outline" disabled={exporting} onClick={() => void download()}>
-            {exporting ? "Đang xuất…" : "Xuất CSV"}
+            {exporting ? t("hostRsvp.exporting") : t("hostRsvp.exportCsv")}
           </Button>
         }
       />
@@ -119,20 +121,26 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
           {actionError}
         </p>
       )}
-      {summary.isPending && <LoadingState label="Đang tải số liệu RSVP…" />}
+      {summary.isPending && <LoadingState label={t("hostRsvp.loadingSummary")} />}
       {summary.isError && <ErrorState error={summary.error} retry={() => void summary.refetch()} />}
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["Thiệp đã trả lời", `${stats.invitations.responded}/${stats.invitations.invited}`],
-            ["Người xác nhận đi", String(stats.people.confirmed)],
             [
-              "Sức chứa còn lại",
-              stats.capacity.remaining === null
-                ? "Chưa giới hạn"
-                : String(stats.capacity.remaining),
+              t("hostRsvp.respondedInvitations"),
+              `${formatNumber(stats.invitations.responded, language)}/${formatNumber(stats.invitations.invited, language)}`,
             ],
-            ["Đang chờ xử lý", String(stats.pendingRequests + stats.people.waitlisted)],
+            [t("hostRsvp.confirmedGuests"), formatNumber(stats.people.confirmed, language)],
+            [
+              t("hostRsvp.capacityRemaining"),
+              stats.capacity.remaining === null
+                ? t("hostRsvp.unlimited")
+                : formatNumber(stats.capacity.remaining, language),
+            ],
+            [
+              t("hostRsvp.waitingRequests"),
+              formatNumber(stats.pendingRequests + stats.people.waitlisted, language),
+            ],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl border bg-card p-5">
               <p className="text-sm text-muted-foreground">{label}</p>
@@ -140,8 +148,11 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
             </div>
           ))}
           <p className="col-span-full text-sm text-muted-foreground">
-            {stats.invitations.notResponded} thiệp chưa trả lời · {stats.invitations.declined} thiệp
-            từ chối · {stats.lockedGuests} thiệp bị khóa
+            {t("hostRsvp.summaryFootnote", {
+              notResponded: formatNumber(stats.invitations.notResponded, language),
+              declined: formatNumber(stats.invitations.declined, language),
+              locked: formatNumber(stats.lockedGuests, language),
+            })}
           </p>
         </div>
       )}
@@ -157,12 +168,12 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
         <ErrorState error={settings.error} retry={() => void settings.refetch()} />
       )}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl">Danh sách thiệp</h2>
+        <h2 className="font-display text-2xl">{t("hostRsvp.invitationList")}</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <input
             className={fieldClass}
-            aria-label="Tìm khách"
-            placeholder="Tìm theo tên khách…"
+            aria-label={t("hostRsvp.searchGuest")}
+            placeholder={t("hostRsvp.searchPlaceholder")}
             value={search}
             maxLength={100}
             onChange={(event) => {
@@ -172,36 +183,36 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
           />
           <select
             className={fieldClass}
-            aria-label="Lọc trạng thái"
+            aria-label={t("hostRsvp.filterStatus")}
             value={status}
             onChange={(event) => {
               setStatus(event.target.value as RsvpListStatus | "");
               setPage(1);
             }}
           >
-            {statusOptions.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
+            {statusOptions.map((value) => (
+              <option key={value} value={value}>
+                {t(`hostRsvp.status.${value || "ALL"}`)}
               </option>
             ))}
           </select>
           <select
             className={fieldClass}
-            aria-label="Lọc bên"
+            aria-label={t("hostRsvp.filterSide")}
             value={side}
             onChange={(event) => {
               setSide(event.target.value);
               setPage(1);
             }}
           >
-            <option value="">Hai bên</option>
-            <option value="BRIDE">Nhà gái</option>
-            <option value="GROOM">Nhà trai</option>
-            <option value="MUTUAL">Chung</option>
-            <option value="UNSPECIFIED">Chưa phân bên</option>
+            <option value="">{t("hostRsvp.sides.ALL")}</option>
+            <option value="BRIDE">{t("planning.sideValues.BRIDE")}</option>
+            <option value="GROOM">{t("planning.sideValues.GROOM")}</option>
+            <option value="MUTUAL">{t("planning.sideValues.MUTUAL")}</option>
+            <option value="UNSPECIFIED">{t("planning.sideValues.UNSPECIFIED")}</option>
           </select>
         </div>
-        {guests.isPending && <LoadingState label="Đang tải danh sách thiệp…" />}
+        {guests.isPending && <LoadingState label={t("hostRsvp.loadingGuests")} />}
         {guests.isError && <ErrorState error={guests.error} retry={() => void guests.refetch()} />}
         {guests.data && (
           <>
@@ -209,11 +220,11 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="p-3">Người nhận</th>
-                    <th className="p-3">Trạng thái</th>
-                    <th className="p-3">Đã đi / chỗ mời</th>
-                    <th className="p-3">Chờ</th>
-                    <th className="p-3">Thao tác</th>
+                    <th className="p-3">{t("hostRsvp.columns.recipient")}</th>
+                    <th className="p-3">{t("hostRsvp.columns.status")}</th>
+                    <th className="p-3">{t("hostRsvp.columns.attending")}</th>
+                    <th className="p-3">{t("hostRsvp.columns.waiting")}</th>
+                    <th className="p-3">{t("hostRsvp.columns.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,9 +237,13 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
                         )}
                       </td>
                       <td className="p-3">
-                        {statusLabel[guest.rsvpStatus] ?? guest.rsvpStatus}
+                        {t(`hostRsvp.status.${guest.rsvpStatus}`, {
+                          defaultValue: guest.rsvpStatus,
+                        })}
                         {guest.pendingRequest && (
-                          <small className="block text-amber-800">Có yêu cầu sửa</small>
+                          <small className="block text-amber-800">
+                            {t("hostRsvp.pendingChange")}
+                          </small>
                         )}
                       </td>
                       <td className="p-3">
@@ -237,7 +252,7 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
                       <td className="p-3">{guest.waitlistedPeople}</td>
                       <td className="p-3">
                         <Button size="sm" variant="outline" onClick={() => setSelected(guest)}>
-                          Xem RSVP
+                          {t("hostRsvp.viewRsvp")}
                         </Button>
                       </td>
                     </tr>
@@ -245,11 +260,17 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
                 </tbody>
               </table>
               {guests.data.items.length === 0 && (
-                <p className="p-6 text-center text-muted-foreground">Không có thiệp phù hợp.</p>
+                <p className="p-6 text-center text-muted-foreground">
+                  {t("hostRsvp.noInvitations")}
+                </p>
               )}
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span>{guests.data.totalCount} thiệp</span>
+              <span>
+                {t("hostRsvp.invitationCount", {
+                  count: formatNumber(guests.data.totalCount, language),
+                })}
+              </span>
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -257,16 +278,16 @@ export function HostRsvpDashboard({ weddingId }: { weddingId: string }) {
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
                 >
-                  Trước
+                  {t("hostRsvp.previous")}
                 </Button>
-                <span className="self-center">Trang {page}</span>
+                <span className="self-center">{t("hostRsvp.page", { page })}</span>
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={page * 25 >= guests.data.totalCount}
                   onClick={() => setPage(page + 1)}
                 >
-                  Sau
+                  {t("hostRsvp.next")}
                 </Button>
               </div>
             </div>
@@ -298,6 +319,8 @@ function SettingsEditor({
   settings: RsvpSettings;
   editable: boolean;
 }) {
+  const { t } = useTranslation("guests");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const cache = useQueryClient();
   const [limit, setLimit] = useState(settings.plusOneLimit);
@@ -305,13 +328,13 @@ function SettingsEditor({
   const [error, setError] = useState("");
   return (
     <section className="space-y-3 rounded-xl border bg-card p-5">
-      <h2 className="font-display text-xl">Quy tắc RSVP</h2>
+      <h2 className="font-display text-xl">{t("hostRsvp.rulesTitle")}</h2>
       <p className="text-sm">
-        Hạn xác nhận:{" "}
+        {t("hostRsvp.deadlineLabel")}:{" "}
         {settings.rsvpDeadline
-          ? new Date(settings.rsvpDeadline).toLocaleString("vi-VN")
-          : "Chưa đặt"}
-        . Thay đổi hạn chót trong Wedding Setup.
+          ? formatDate(settings.rsvpDeadline, language, { dateStyle: "medium", timeStyle: "short" })
+          : t("hostRsvp.notSet")}
+        . {t("hostRsvp.deadlineHelp")}
       </p>
       <form
         className="flex flex-wrap items-end gap-3"
@@ -321,12 +344,12 @@ function SettingsEditor({
           setError("");
           void saveRsvpSettings(api, weddingId, settings.version, limit)
             .then(() => cache.invalidateQueries({ queryKey: hostRsvpKeys.all(weddingId) }))
-            .catch((cause) => setError(message(cause)))
+            .catch((cause) => setError(message(cause, t)))
             .finally(() => setSaving(false));
         }}
       >
         <label className="text-sm">
-          Số người đi kèm tối đa mỗi thiệp
+          {t("hostRsvp.plusOneLimit")}
           <input
             className={`${fieldClass} mt-1 w-44`}
             type="number"
@@ -339,7 +362,7 @@ function SettingsEditor({
         </label>
         {editable && (
           <Button disabled={saving || limit === settings.plusOneLimit} type="submit">
-            Lưu giới hạn
+            {t("hostRsvp.saveLimit")}
           </Button>
         )}
       </form>
@@ -363,6 +386,7 @@ function HostRsvpDetail({
   editable: boolean;
   close: () => void;
 }) {
+  const { t } = useTranslation("guests");
   const { api } = useRuntime();
   const cache = useQueryClient();
   const detail = useQuery({
@@ -384,10 +408,12 @@ function HostRsvpDetail({
         group ? undefined : [guest.guestId],
         group ? (guest.groupId ?? undefined) : undefined,
       );
-      setNotice(`Đã ${locked ? "khóa" : "mở khóa"} ${result.affected} thiệp.`);
+      setNotice(
+        t(locked ? "hostRsvp.lockedCount" : "hostRsvp.unlockedCount", { count: result.affected }),
+      );
       await cache.invalidateQueries({ queryKey: hostRsvpKeys.all(weddingId) });
     } catch (cause) {
-      setError(message(cause));
+      setError(message(cause, t));
     } finally {
       setSaving(false);
     }
@@ -395,33 +421,38 @@ function HostRsvpDetail({
   return (
     <section
       className="space-y-4 rounded-xl border bg-card p-5"
-      aria-label={`RSVP của ${guest.recipientName}`}
+      aria-label={t("hostRsvp.guestRsvp", { name: guest.recipientName })}
     >
       <div className="flex justify-between gap-3">
         <h2 className="font-display text-2xl">{guest.recipientName}</h2>
         <Button variant="ghost" onClick={close}>
-          Đóng
+          {t("hostRsvp.close")}
         </Button>
       </div>
-      {detail.isPending && <LoadingState label="Đang tải RSVP…" />}
+      {detail.isPending && <LoadingState label={t("hostRsvp.loadingRsvp")} />}
       {detail.isError && <ErrorState error={detail.error} retry={() => void detail.refetch()} />}
       {detail.data && (
         <>
           <p className="text-sm">
-            {detail.data.confirmedPartySize} người xác nhận · {detail.data.waitlistedPartySize}{" "}
-            người chờ · {detail.data.places.length} chỗ mời{detail.data.locked ? " · Đã khóa" : ""}
+            {t("hostRsvp.detailSummary", {
+              confirmed: detail.data.confirmedPartySize,
+              waiting: detail.data.waitlistedPartySize,
+              places: detail.data.places.length,
+            })}
+            {detail.data.locked ? ` · ${t("hostRsvp.locked")}` : ""}
           </p>
           <ul className="space-y-1 text-sm">
             {detail.data.participants.map((person) => (
               <li key={person.id}>
-                {person.fullName} — {person.attendanceStatus}
+                {person.fullName} —{" "}
+                {t(`hostRsvp.status.${person.attendanceStatus}`, {
+                  defaultValue: person.attendanceStatus,
+                })}
               </li>
             ))}
           </ul>
           {detail.data.pendingRequest && (
-            <p className="rounded-lg bg-amber-50 p-3 text-sm">
-              Khách đang có yêu cầu thay đổi chờ duyệt.
-            </p>
+            <p className="rounded-lg bg-amber-50 p-3 text-sm">{t("hostRsvp.guestPendingChange")}</p>
           )}
           {editable && (
             <>
@@ -432,7 +463,9 @@ function HostRsvpDetail({
                   disabled={saving}
                   onClick={() => void setLock(!detail.data.locked)}
                 >
-                  {detail.data.locked ? "Mở khóa thiệp" : "Khóa thiệp"}
+                  {detail.data.locked
+                    ? t("hostRsvp.unlockInvitation")
+                    : t("hostRsvp.lockInvitation")}
                 </Button>
                 {guest.groupId && (
                   <>
@@ -442,7 +475,7 @@ function HostRsvpDetail({
                       disabled={saving}
                       onClick={() => void setLock(true, true)}
                     >
-                      Khóa nhóm
+                      {t("hostRsvp.lockGroup")}
                     </Button>
                     <Button
                       size="sm"
@@ -450,7 +483,7 @@ function HostRsvpDetail({
                       disabled={saving}
                       onClick={() => void setLock(false, true)}
                     >
-                      Mở khóa nhóm
+                      {t("hostRsvp.unlockGroup")}
                     </Button>
                   </>
                 )}
@@ -461,7 +494,7 @@ function HostRsvpDetail({
                 guestId={guest.guestId}
                 rsvp={detail.data}
                 saved={() => {
-                  setNotice("Đã lưu câu trả lời thay khách.");
+                  setNotice(t("hostRsvp.responseSavedForGuest"));
                   void cache.invalidateQueries({ queryKey: hostRsvpKeys.all(weddingId) });
                 }}
                 failed={setError}
@@ -497,6 +530,7 @@ function HostAnswerForm({
   saved: () => void;
   failed: (error: string) => void;
 }) {
+  const { t } = useTranslation("guests");
   const { api } = useRuntime();
   const [selected, setSelected] = useState(
     () =>
@@ -532,14 +566,18 @@ function HostAnswerForm({
       });
       saved();
     } catch (error) {
-      failed(message(error));
+      failed(
+        error instanceof ApiError && error.backendCode === "CONCURRENCY_CONFLICT"
+          ? t("hostRsvp.errors.conflict")
+          : t("hostRsvp.errors.generic"),
+      );
     } finally {
       setSaving(false);
     }
   }
   return (
     <form className="space-y-3 border-t pt-4" onSubmit={(event) => void submit(event)}>
-      <h3 className="font-medium">Nhập câu trả lời thay khách</h3>
+      <h3 className="font-medium">{t("hostRsvp.enterForGuest")}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {rsvp.participants.map((person) => (
           <label key={person.id} className="flex items-center gap-2 text-sm">
@@ -560,7 +598,7 @@ function HostAnswerForm({
         ))}
       </div>
       <label className="block text-sm">
-        Tên người mới đi cùng (mỗi dòng một người)
+        {t("hostRsvp.newGuestNames")}
         <textarea
           className="mt-1 w-full rounded-lg border bg-background p-3"
           value={newNames}
@@ -569,7 +607,7 @@ function HostAnswerForm({
         />
       </label>
       <label className="block text-sm">
-        Ghi chú
+        {t("hostRsvp.note")}
         <textarea
           className="mt-1 w-full rounded-lg border bg-background p-3"
           value={note}
@@ -579,20 +617,20 @@ function HostAnswerForm({
         />
       </label>
       <label className="block text-sm">
-        Nguồn trả lời
+        {t("hostRsvp.responseSource")}
         <select
           className={`${fieldClass} mt-1 max-w-xs`}
           value={source}
           onChange={(event) => setSource(event.target.value as typeof source)}
         >
-          <option value="PHONE">Điện thoại</option>
-          <option value="CHAT">Tin nhắn</option>
-          <option value="IN_PERSON">Trực tiếp</option>
-          <option value="OTHER">Khác</option>
+          <option value="PHONE">{t("hostRsvp.sources.PHONE")}</option>
+          <option value="CHAT">{t("hostRsvp.sources.CHAT")}</option>
+          <option value="IN_PERSON">{t("hostRsvp.sources.IN_PERSON")}</option>
+          <option value="OTHER">{t("hostRsvp.sources.OTHER")}</option>
         </select>
       </label>
       <Button type="submit" disabled={saving}>
-        {saving ? "Đang lưu…" : "Lưu thay khách"}
+        {saving ? t("hostRsvp.saving") : t("hostRsvp.saveForGuest")}
       </Button>
     </form>
   );

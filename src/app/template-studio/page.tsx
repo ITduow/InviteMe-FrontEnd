@@ -1,6 +1,9 @@
 import { TemplateStudio } from "@/features/template-studio";
 import { WeddingTemplateStudio } from "@/app/_components/wedding-template-studio";
 import { z } from "zod";
+import { cookies } from "next/headers";
+import { defaultLanguage, isLanguage, languageCookieName } from "@/i18n/config";
+import { createI18nInstance } from "@/i18n/client";
 
 export default async function Page({
   searchParams,
@@ -13,9 +16,13 @@ export default async function Page({
   }>;
 }) {
   const params = await searchParams;
+  const cookieStore = await cookies();
+  const languageCookie = cookieStore.get(languageCookieName)?.value;
+  const language = isLanguage(languageCookie) ? languageCookie : defaultLanguage;
+  const t = createI18nInstance(language).getFixedT(language, "screens");
   if (params.weddingId) {
     const id = z.uuid().safeParse(params.weddingId);
-    if (!id.success) return <main id="main-content">Wedding không hợp lệ.</main>;
+    if (!id.success) return <main id="main-content">{t("invalidWedding")}</main>;
     return (
       <WeddingTemplateStudio
         key={`${id.data}:${params.template ?? "blank"}:${params.preview ?? "0"}`}

@@ -1,0 +1,21 @@
+{
+  "ownerOnlyTitle": "Only the couple can view activity history",
+  "ownerOnlyDescription": "This log shows changes made within this wedding.",
+  "endDateBeforeStart": "The end date must be on or after the start date.",
+  "title": "Activity history",
+  "description": "See who performed each action in this wedding.",
+  "action": "Action",
+  "actionPlaceholder": "For example: GUEST_UPDATED",
+  "entityType": "Record type",
+  "entityPlaceholder": "For example: Guest",
+  "fromDate": "From date",
+  "toDate": "To date",
+  "filter": "Filter",
+  "clearFilters": "Clear filters",
+  "loading": "Loading activity history…",
+  "noMatches": "No matching activity",
+  "noMatchesHint": "Remove some filters or select a different date range.",
+  "entityId": "Record ID: {{id}}",
+  "activityCount": "{{count}} activities",
+  "page": "Page {{current}}/"
+}

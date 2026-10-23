@@ -1,0 +1,10 @@
+{
+  "welcome": "Welcome to InviteMe",
+  "workspaceDescription": "Manage your wedding, guests, and the moments you'll remember.",
+  "createWedding": "Create a wedding",
+  "viewWeddings": "View weddings",
+  "recentWeddings": "Recent weddings",
+  "noWeddings": "You don't have any weddings yet",
+  "noWeddingsDescription": "Start by creating a private space for your special day.",
+  "loadingDashboard": "Loading your dashboard…"
+}

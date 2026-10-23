@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { PageHeader } from "@/shared/components/page-header";
@@ -11,6 +12,8 @@ import { Modal } from "@/shared/ui/modal";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { adminApi, type AdminTemplate } from "../api/admin.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
 type FormValue = {
   name: string;
@@ -40,6 +43,8 @@ function toForm(template: AdminTemplate): FormValue {
 }
 
 export function AdminTemplates() {
+  const { t: translate } = useTranslation("admin");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const client = useQueryClient();
   const [page, setPage] = useState(1);
@@ -76,15 +81,13 @@ export function AdminTemplates() {
       setEditing(null);
       await invalidate();
     },
-    onError: (reason) =>
-      setError(reason instanceof Error ? reason.message : "Could not save this template."),
+    onError: () => setError(translate("saveTemplateFailed")),
   });
   const setStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "ACTIVE" | "INACTIVE" }) =>
       adminApi.setTemplateStatus(api, id, status),
     onSuccess: invalidate,
-    onError: (reason) =>
-      setError(reason instanceof Error ? reason.message : "Could not change template visibility."),
+    onError: () => setError(translate("templateVisibilityFailed")),
   });
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -92,7 +95,7 @@ export function AdminTemplates() {
     try {
       if (form.configurationJson.trim()) JSON.parse(form.configurationJson);
     } catch {
-      setError("Configuration must be a valid JSON object.");
+      setError(translate("invalidTemplateJson"));
       return;
     }
     save.mutate();
@@ -110,7 +113,7 @@ export function AdminTemplates() {
               setOpen(true);
             }}
           >
-            Add template
+            {translate("addTemplate")}
           </Button>
         }
       />
@@ -123,16 +126,16 @@ export function AdminTemplates() {
         className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_200px_auto_auto] sm:items-end"
       >
         <label className="grid gap-1 text-sm">
-          Search name or slug
+          {translate("templateSearchLabel")}
           <Input
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             maxLength={100}
-            placeholder="Template name"
+            placeholder={translate("templateName")}
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Status
+          {translate("status")}
           <select
             className="h-10 rounded-lg border bg-background px-3"
             value={statusFilter}
@@ -141,13 +144,13 @@ export function AdminTemplates() {
               setPage(1);
             }}
           >
-            <option value="">All statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="DRAFT">Draft</option>
-            <option value="INACTIVE">Hidden</option>
+            <option value="">{translate("allStatuses")}</option>
+            <option value="ACTIVE">{translate("activeStatus")}</option>
+            <option value="DRAFT">{translate("draftStatus")}</option>
+            <option value="INACTIVE">{translate("hidden")}</option>
           </select>
         </label>
-        <Button type="submit">Search</Button>
+        <Button type="submit">{translate("search")}</Button>
         <Button
           type="button"
           variant="outline"
@@ -158,7 +161,7 @@ export function AdminTemplates() {
             setPage(1);
           }}
         >
-          Reset
+          {translate("reset")}
         </Button>
       </form>
       {error && !open && (
@@ -169,15 +172,15 @@ export function AdminTemplates() {
           {error}
         </p>
       )}
-      {templates.isPending && <LoadingState label="Loading templates…" />}
+      {templates.isPending && <LoadingState label={translate("loadingTemplates")} />}
       {templates.isError && (
         <ErrorState error={templates.error} retry={() => void templates.refetch()} />
       )}
       {templates.data &&
         (templates.data.items.length === 0 ? (
           <EmptyState
-            title="No templates found"
-            description="Add a template or change the search filters."
+            title={translate("noTemplates")}
+            description={translate("addOrFilterTemplates")}
           />
         ) : (
           <>
@@ -185,7 +188,13 @@ export function AdminTemplates() {
               <table className="w-full min-w-[780px] text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground">
                   <tr>
-                    {["Template", "Theme", "Status", "Updated", "Actions"].map((x) => (
+                    {[
+                      translate("template"),
+                      translate("theme"),
+                      translate("status"),
+                      translate("updated"),
+                      translate("actions"),
+                    ].map((x) => (
                       <th key={x} className="px-4 py-3 font-medium">
                         {x}
                       </th>
@@ -204,13 +213,14 @@ export function AdminTemplates() {
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-medium ${t.status === "ACTIVE" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
                         >
-                          {t.status}
+                          {translate(
+                            t.status === "INACTIVE" ? "hidden" : `${t.status.toLowerCase()}Status`,
+                            { defaultValue: t.status },
+                          )}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-muted-foreground">
-                        {new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
-                          new Date(t.updatedAt),
-                        )}
+                        {formatDate(t.updatedAt, language, { dateStyle: "medium" })}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex gap-2">
@@ -223,7 +233,7 @@ export function AdminTemplates() {
                               setOpen(true);
                             }}
                           >
-                            Edit
+                            {translate("edit")}
                           </Button>
                           <Button
                             size="sm"
@@ -236,7 +246,7 @@ export function AdminTemplates() {
                               })
                             }
                           >
-                            {t.status === "ACTIVE" ? "Hide" : "Publish"}
+                            {t.status === "ACTIVE" ? translate("hide") : translate("publish")}
                           </Button>
                         </div>
                       </td>
@@ -247,7 +257,10 @@ export function AdminTemplates() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                {templates.data.totalCount} templates · Page {templates.data.page}/
+                {translate("templateCount", {
+                  count: formatNumber(templates.data.totalCount, language),
+                  page: formatNumber(templates.data.page, language),
+                })}
                 {Math.max(templates.data.totalPages, 1)}
               </p>
               <div className="flex gap-2">
@@ -256,14 +269,14 @@ export function AdminTemplates() {
                   disabled={page <= 1 || templates.isFetching}
                   onClick={() => setPage((x) => x - 1)}
                 >
-                  Previous
+                  {translate("previous", { ns: "common" })}
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page >= templates.data.totalPages || templates.isFetching}
                   onClick={() => setPage((x) => x + 1)}
                 >
-                  Next
+                  {translate("next", { ns: "common" })}
                 </Button>
               </div>
             </div>
@@ -275,8 +288,8 @@ export function AdminTemplates() {
           setOpen(false);
           setError("");
         }}
-        title={editing ? "Edit template" : "Add template"}
-        description="Save template metadata and optional design configuration."
+        title={editing ? translate("editTemplate") : translate("addTemplate")}
+        description={translate("templateMetadataDescription")}
       >
         <form onSubmit={submit} className="grid gap-4">
           {error && (
@@ -288,7 +301,7 @@ export function AdminTemplates() {
             </p>
           )}
           <label className="grid gap-1 text-sm">
-            Name
+            {translate("name")}
             <Input
               required
               maxLength={150}
@@ -297,7 +310,7 @@ export function AdminTemplates() {
             />
           </label>
           <label className="grid gap-1 text-sm">
-            Slug
+            {translate("slug")}
             <Input
               required
               maxLength={160}
@@ -311,7 +324,7 @@ export function AdminTemplates() {
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-1 text-sm">
-              Theme
+              {translate("theme")}
               <Input
                 maxLength={100}
                 value={form.theme}
@@ -319,7 +332,7 @@ export function AdminTemplates() {
               />
             </label>
             <label className="grid gap-1 text-sm">
-              Preview URL
+              {translate("previewUrl")}
               <Input
                 maxLength={2048}
                 value={form.previewUrl}
@@ -329,19 +342,19 @@ export function AdminTemplates() {
             </label>
           </div>
           <label className="grid gap-1 text-sm">
-            Status
+            {translate("status")}
             <select
               className="h-10 rounded-lg border bg-background px-3"
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as FormValue["status"] })}
             >
-              <option value="DRAFT">Draft</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Hidden</option>
+              <option value="DRAFT">{translate("draftStatus")}</option>
+              <option value="ACTIVE">{translate("activeStatus")}</option>
+              <option value="INACTIVE">{translate("hidden")}</option>
             </select>
           </label>
           <label className="grid gap-1 text-sm">
-            Design configuration JSON
+            {translate("designConfig")}
             <textarea
               className="min-h-36 rounded-lg border bg-background p-3 font-mono text-xs"
               value={form.configurationJson}
@@ -349,17 +362,15 @@ export function AdminTemplates() {
               placeholder="{ }"
             />
             <span className="text-xs leading-5 text-muted-foreground">
-              To add a new design to Studio, paste its exported Studio document JSON (schemaVersion
-              1 with nodes.ROOT). Leave this empty when registering an existing built-in design by
-              its slug.
+              {translate("designConfigHelp")}
             </span>
           </label>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {translate("cancel")}
             </Button>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? "Saving…" : "Save template"}
+              {save.isPending ? translate("saving") : translate("saveTemplate")}
             </Button>
           </div>
         </form>

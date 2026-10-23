@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdminLoginForm } from "@/features/auth";
+import { LanguageSwitcher } from "@/shared/components/language-switcher";
 
 export const metadata: Metadata = {
   title: "Đăng nhập Admin",
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
 
 export default function AdminLoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-5 py-12">
+    <main className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12">
+      <LanguageSwitcher className="absolute right-5 top-5" />
       <AdminLoginForm />
     </main>
   );

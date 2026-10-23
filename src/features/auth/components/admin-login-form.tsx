@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { ShieldCheck } from "lucide-react";
 import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
-import { loginSchema, type LoginInput } from "../schemas/login.schema";
+import { createLoginSchema, type LoginInput } from "../schemas/login.schema";
 import { authApi } from "../api/auth.api";
 import { useCurrentUser, currentUserKeys } from "../hooks/use-current-user";
 import { useLogout } from "../hooks/use-logout";
@@ -18,25 +19,32 @@ import { FormField } from "@/shared/forms/form-field";
 import { BrandLogo } from "@/shared/components/brand-logo";
 import { SessionLoading } from "@/shared/feedback/session-loading";
 
-function errorMessage(error: unknown) {
-  if (error instanceof ApiError && error.status === 429)
-    return "Bạn đã thử quá nhiều lần. Vui lòng chờ một phút rồi thử lại.";
-  if (error instanceof ApiError && error.code === "network")
-    return "Không thể kết nối đến máy chủ. Hãy kiểm tra mạng và thử lại.";
-  if (error instanceof ApiError && error.status === 403)
-    return "Yêu cầu đăng nhập không hợp lệ từ nguồn này. Hãy mở trang InviteMe chính thức rồi thử lại.";
-  if (error instanceof ApiError && error.status === 401)
-    return "Thông tin đăng nhập không đúng hoặc tài khoản không có quyền Admin.";
-  return "Đăng nhập Admin thất bại. Vui lòng thử lại.";
+function errorMessage(error: unknown, t: (key: string) => string) {
+  if (error instanceof ApiError && error.status === 429) return t("rateLimited");
+  if (error instanceof ApiError && error.code === "network") return t("networkError");
+  if (error instanceof ApiError && error.status === 403) return t("adminLoginInvalidSource");
+  if (error instanceof ApiError && error.status === 401) return t("adminLoginDenied");
+  return t("adminLoginFailed");
 }
 
 export function AdminLoginForm() {
+  const { t } = useTranslation("auth");
   const { api, session, queryClient } = useRuntime();
   const router = useRouter();
   const { user, isAuthenticated, isRestored, isLoading } = useCurrentUser();
   const { logout, isLoggingOut } = useLogout();
+  const validationSchema = useMemo(
+    () =>
+      createLoginSchema({
+        emailMax: t("validation.emailMax"),
+        emailInvalid: t("validation.emailInvalid"),
+        passwordRequired: t("validation.passwordRequired"),
+        passwordMax: t("validation.passwordMax"),
+      }),
+    [t],
+  );
   const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: { email: "", password: "" },
   });
 
@@ -52,13 +60,13 @@ export function AdminLoginForm() {
       const account = await authApi.me(api);
       if (account.role !== "ADMIN") {
         session.clear();
-        form.setError("root.server", { message: "Tài khoản không có quyền Admin." });
+        form.setError("root.server", { message: t("notAdminAccount") });
         return;
       }
       queryClient.setQueryData(currentUserKeys.me(), account);
       router.replace("/admin");
     } catch (error) {
-      form.setError("root.server", { message: errorMessage(error) });
+      form.setError("root.server", { message: errorMessage(error, t) });
     }
   }
 
@@ -68,18 +76,18 @@ export function AdminLoginForm() {
       <section className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-sm sm:p-10">
         <ShieldCheck className="mx-auto size-9 text-primary-foreground" aria-hidden="true" />
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          403 · Không có quyền
+          {t("adminForbidden")}
         </p>
-        <h1 className="mt-2 font-display text-3xl">Tài khoản này không phải Admin</h1>
+        <h1 className="mt-2 font-display text-3xl">{t("notAdmin")}</h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Hãy đăng xuất tài khoản hiện tại hoặc quay lại không gian làm việc.
+          {t("adminForbiddenDescription")}
         </p>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild variant="outline">
-            <Link href="/dashboard">Về trang làm việc</Link>
+            <Link href="/dashboard">{t("backToWorkspace")}</Link>
           </Button>
           <Button type="button" disabled={isLoggingOut} onClick={() => void logout()}>
-            {isLoggingOut ? "Đang đăng xuất…" : "Đăng xuất"}
+            {isLoggingOut ? t("loggingOut") : t("logout")}
           </Button>
         </div>
       </section>
@@ -90,12 +98,10 @@ export function AdminLoginForm() {
     <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-sm sm:p-9">
       <BrandLogo href="/" size="md" ariaLabel="InviteMe — Trang chủ" />
       <p className="mt-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        Cổng quản trị
+        {t("adminGate")}
       </p>
-      <h1 className="mt-2 font-display text-3xl">Đăng nhập Admin</h1>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Dành cho tài khoản quản trị viên được cấp sẵn.
-      </p>
+      <h1 className="mt-2 font-display text-3xl">{t("adminLogin")}</h1>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("adminAccountOnly")}</p>
 
       <form
         onSubmit={form.handleSubmit(submit)}
@@ -104,7 +110,7 @@ export function AdminLoginForm() {
         aria-busy={form.formState.isSubmitting}
       >
         <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
-          <FormField control={form.control} name="email" label="Email quản trị">
+          <FormField control={form.control} name="email" label={t("adminEmail")}>
             {(field) => (
               <Input
                 {...field}
@@ -117,7 +123,7 @@ export function AdminLoginForm() {
               />
             )}
           </FormField>
-          <FormField control={form.control} name="password" label="Mật khẩu">
+          <FormField control={form.control} name="password" label={t("password")}>
             {(field) => (
               <Input
                 {...field}
@@ -136,7 +142,7 @@ export function AdminLoginForm() {
           </p>
         )}
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Đang xác thực…" : "Đăng nhập Admin"}
+          {form.formState.isSubmitting ? t("authenticating") : t("adminLogin")}
         </Button>
       </form>
 
@@ -144,7 +150,7 @@ export function AdminLoginForm() {
         href="/"
         className="mt-6 block text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
       >
-        Quay lại InviteMe
+        {t("backToInviteMe")}
       </Link>
     </section>
   );

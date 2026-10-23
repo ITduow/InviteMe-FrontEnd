@@ -5,16 +5,19 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/shared/components/brand-logo";
+import { LanguageSwitcher } from "@/shared/components/language-switcher";
+import { useTranslation } from "react-i18next";
 
 const links = [
-  { href: "/templates", label: "Mẫu thiết kế" },
-  { href: "/#features", label: "Tính năng" },
-  { href: "/#guide", label: "Hướng dẫn" },
-  { href: "/login", label: "Đăng nhập" },
-  { href: "/register", label: "Bắt đầu" },
+  { href: "/templates", namespace: "public", key: "templates" },
+  { href: "/#features", namespace: "public", key: "features" },
+  { href: "/#guide", namespace: "public", key: "guide" },
+  { href: "/login", namespace: "auth", key: "login" },
+  { href: "/register", namespace: "auth", key: "register" },
 ] as const;
 
 export function PublicNavigation() {
+  const { t } = useTranslation(["public", "auth"]);
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -56,13 +59,13 @@ export function PublicNavigation() {
           href="/"
           size="lg"
           className="public-nav__brand"
-          ariaLabel="InviteMe — Trang chủ"
+          ariaLabel={`${"InviteMe"} — ${t("home", { ns: "navigation" })}`}
         />
         <button
           ref={toggleRef}
           type="button"
           className="public-nav__toggle"
-          aria-label={open ? "Đóng menu điều hướng" : "Mở menu điều hướng"}
+          aria-label={open ? t("closeMenu", { ns: "public" }) : t("openMenu", { ns: "public" })}
           aria-expanded={open}
           aria-controls="public-navigation-links"
           onClick={() => setOpen((value) => !value)}
@@ -71,10 +74,10 @@ export function PublicNavigation() {
         </button>
         <nav
           id="public-navigation-links"
-          aria-label="Điều hướng chính"
+          aria-label={t("mainNavigation", { ns: "navigation" })}
           className="public-nav__links"
         >
-          {links.map(({ href, label }) => (
+          {links.map(({ href, namespace, key }) => (
             <Link
               key={href}
               href={href}
@@ -82,9 +85,10 @@ export function PublicNavigation() {
               className={href === "/register" ? "public-nav__cta" : undefined}
               onClick={() => setOpen(false)}
             >
-              {label}
+              {t(key, { ns: namespace })}
             </Link>
           ))}
+          <LanguageSwitcher className="public-nav__language" />
         </nav>
       </div>
     </header>

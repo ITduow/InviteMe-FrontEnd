@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { GuestGiftPanel } from "@/features/gifts";
+import { useTranslation } from "react-i18next";
 
 export function GuestGiftOverlay({ token }: { token: string }) {
+  const { t } = useTranslation("guests");
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const show = () => setOpen(true);
@@ -28,16 +30,16 @@ export function GuestGiftOverlay({ token }: { token: string }) {
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Mừng cưới & lời chúc
+              {t("giftAndWishes")}
             </p>
             <h2 id="guest-gift-title" className="mt-1 text-xl font-semibold">
-              Gửi quà mừng
+              {t("sendGift")}
             </h2>
           </div>
           <button
             type="button"
             className="grid size-9 place-items-center rounded-full hover:bg-muted"
-            aria-label="Đóng"
+            aria-label={t("closeDialog")}
             onClick={() => setOpen(false)}
           >
             <X aria-hidden="true" />

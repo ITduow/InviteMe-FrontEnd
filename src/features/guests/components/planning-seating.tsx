@@ -24,6 +24,7 @@ import {
   TraversalOrder,
 } from "@dnd-kit/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import Image from "next/image";
 import { X } from "lucide-react";
@@ -116,6 +117,7 @@ function DragSource({
   children: ReactNode;
   label?: string;
 }) {
+  const { t } = useTranslation("guestPlanning");
   const lock = useSeatingDragLock(ids);
   const { setNodeRef, attributes, listeners, isDragging } = useDraggable({
     id,
@@ -129,7 +131,7 @@ function DragSource({
       {...listeners}
       type="button"
       aria-label={label}
-      title={lock ? `Đang được xử lí bởi ${lock.displayName}` : undefined}
+      title={lock ? t("seating.lockBy", { name: lock.displayName }) : undefined}
       onClick={onClick}
       className={className}
       style={{ touchAction: "none", opacity: isDragging || lock ? 0.4 : 1 }}
@@ -185,19 +187,18 @@ function DropTarget({
     </div>
   );
 }
-function recipient(g: PlanningGuest) {
+function recipient(g: PlanningGuest, familyLabel: string, groupLabel: string) {
   const prefix =
-    g.invitationKind === "FAMILY" ? "Gia đình " : g.invitationKind === "GROUP" ? "Nhóm " : "";
+    g.invitationKind === "FAMILY"
+      ? `${familyLabel} `
+      : g.invitationKind === "GROUP"
+        ? `${groupLabel} `
+        : "";
   return `${prefix}${g.honorific ? `${g.honorific.toLocaleLowerCase("vi")} ` : ""}${g.recipientName}`;
 }
-const statuses: Record<string, string> = {
-  PENDING: "Chưa xác nhận",
-  ATTENDING: "Đã xác nhận tham dự",
-  DECLINED: "Từ chối",
-  WAITLISTED: "Đang chờ",
-};
 
 export function PlanningSeating({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("guestPlanning");
   const { api, realtime } = useRuntime();
   const { can, isWeddingWide } = usePermission();
   const editable = can("SEATING_EDIT") && can("SEATING_VIEW");
@@ -224,10 +225,8 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     try {
       await setSeatingPublication(api, weddingId, !publication.data.published);
       await cache.invalidateQueries({ queryKey: seatingPublicationKey(weddingId) });
-    } catch (cause) {
-      setPublicationError(
-        cause instanceof ApiError ? cause.message : "Không cập nhật được trạng thái công bố.",
-      );
+    } catch {
+      setPublicationError(t("seating.publicationFailed"));
     } finally {
       setPublishing(false);
     }
@@ -267,10 +266,8 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
   }, []);
   const collaborationError = useCallback(() => {
     setFailure(true);
-    setMessage(
-      "Chưa giữ được quyền kéo hoặc kết nối đã mất. Vui lòng thử lại khi đồng bộ kết nối.",
-    );
-  }, []);
+    setMessage(t("seating.connectionLost"));
+  }, [t]);
   const collaboration = useSeatingCollaboration(weddingId, abortDrag, collaborationError);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -322,7 +319,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     savingRef.current = true;
     setSaving(true);
     setFailure(false);
-    setMessage("Đang lưu…");
+    setMessage(t("seating.saving"));
     if (optimistic) setPreview(optimistic);
     try {
       const source = planQuery.data;
@@ -340,10 +337,10 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       if (input.action === "MOVE_PLACES") {
         const destination = latest.tables.find((t) => t.id === input.tableId);
         const notice = destination
-          ? `Đã xếp ${input.placeIds.length} người vào ${destination.name}`
-          : `Đã bỏ xếp ${input.placeIds.length} người`;
+          ? t("seating.assigned", { count: input.placeIds.length, table: destination.name })
+          : t("seating.unassigned", { count: input.placeIds.length });
         setMessage(notice);
-      } else setMessage("Đã lưu");
+      } else setMessage(t("seating.saved"));
       setSelection([]);
       if (input.action === "DELETE_TABLE") {
         setTableId(null);
@@ -358,16 +355,16 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         );
       setMessage(
         dragProblem
-          ? "Quyền kéo đã mất hoặc người khác đang thao tác. Chưa lưu thay đổi; hãy chọn lại khi đồng bộ kết nối."
+          ? t("seating.dragConflict")
           : error instanceof ApiError && error.backendCode === "SEATING_PLACE_LOCKED"
-            ? "Người khác đang thao tác với các chỗ này. Hãy chờ họ hoàn tất rồi thử lại."
+            ? t("seating.placeLocked")
             : error instanceof ApiError && error.backendCode === "SEATING_DRAG_EXPIRED"
-              ? "Quyền kéo đã hết hạn. Chưa lưu thay đổi; hãy kéo hoặc chọn lại."
+              ? t("seating.dragExpired")
               : error instanceof ApiError && error.status === 409
-                ? "Sơ đồ hoặc danh sách khách vừa thay đổi. Đã hủy thao tác; hãy kiểm tra bản mới và tính lại gợi ý nếu cần."
+                ? t("seating.dataConflict")
                 : error instanceof ApiError && error.status === 403
-                  ? "Bạn không có quyền sửa sơ đồ này."
-                  : "Chưa lưu được: kiểm tra sức chứa, ghế đang có khách hoặc kết nối. Đang tải lại trạng thái đã lưu.",
+                  ? t("seating.forbidden")
+                  : t("seating.saveFailed"),
       );
     } finally {
       setPreview(null);
@@ -386,9 +383,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
     if (lock) {
       collaboration.cancel(false);
       setFailure(true);
-      setMessage(
-        `Người trong lựa chọn này đang được xử lí bởi ${lock.displayName}. Hãy chờ thao tác hoàn tất.`,
-      );
+      setMessage(t("seating.lockedBy", { name: lock.displayName }));
       return;
     }
     const next = previewSeatMove(plan, ids, target, seatNumber);
@@ -402,8 +397,8 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       const shortage = table ? ids.length - (table.capacity - occupied) : 0;
       setMessage(
         shortage > 0
-          ? `${table?.name} thiếu ${shortage} chỗ. Chưa thay đổi vị trí.`
-          : "Ghế đã có khách hoặc không còn khả dụng. Chưa thay đổi vị trí.",
+          ? t("seating.shortage", { table: table?.name, count: shortage })
+          : t("seating.placeUnavailable"),
       );
       return;
     }
@@ -417,11 +412,12 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       next,
     );
   }
-  if (planQuery.isPending) return <p role="status">Đang tải sơ đồ…</p>;
+  if (planQuery.isPending) return <p role="status">{t("seating.loadingPlan")}</p>;
   if (planQuery.isError || !plan)
     return (
       <div role="alert">
-        Không tải được sơ đồ. <Button onClick={() => void planQuery.refetch()}>Thử lại</Button>
+        {t("seating.loadFailed")}{" "}
+        <Button onClick={() => void planQuery.refetch()}>{t("retry")}</Button>
       </div>
     );
   const guests = new Map(plan.guests.map((g) => [g.id, g]));
@@ -440,7 +436,12 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       g = p ? guests.get(p.guestId) : undefined;
     return (
       p?.person?.fullName ??
-      `Chỗ dự kiến ${p?.position ?? ""} · ${g ? recipient(g) : "Chưa có tên"}`
+      t("seating.plannedPlace", {
+        position: p?.position ?? "",
+        guest: g
+          ? recipient(g, t("seating.family"), t("seating.groupPrefix"))
+          : t("seating.noName"),
+      })
     );
   };
   return (
@@ -466,14 +467,13 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
         }}
         accessibility={{
           screenReaderInstructions: {
-            draggable:
-              "Bấm chọn người hoặc nhóm, rồi bấm bàn để xếp. Trên tay cầm kéo, nhấn Space hoặc Enter để bắt đầu, dùng phím mũi tên chọn bàn, nhấn Space hoặc Enter để thả, Escape để hủy.",
+            draggable: t("seating.screenReaderHelp"),
           },
           announcements: {
-            onDragStart: () => "Đang kéo chỗ dự kiến.",
-            onDragOver: () => "Thả vào bàn hoặc ghế để lưu.",
-            onDragEnd: () => "Đã thả. Hệ thống kiểm tra và lưu vị trí.",
-            onDragCancel: () => "Đã hủy kéo.",
+            onDragStart: () => t("seating.dragStart"),
+            onDragOver: () => t("seating.dragOver"),
+            onDragEnd: () => t("seating.dragEnd"),
+            onDragCancel: () => t("seating.dragCancel"),
           },
         }}
         sensors={sensors}
@@ -525,16 +525,18 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
       >
         <section className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Sắp xếp chỗ ngồi</h1>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t("seating.title")}
+            </h1>
             <Button variant="outline" asChild>
-              <Link href={`/weddings/${weddingId}/guests`}>Danh sách khách</Link>
+              <Link href={`/weddings/${weddingId}/guests`}>{t("seating.guestList")}</Link>
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3 text-sm">
             <span>
               {publication.data?.published
-                ? "Khách đang xem được bàn và ghế"
-                : "Chỗ ngồi chưa công bố cho khách"}
+                ? t("seating.visibleToGuests")
+                : t("seating.notPublished")}
             </span>
             {editable && canPublishSeating && publication.data && (
               <Button
@@ -544,21 +546,20 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                 onClick={() => void togglePublication()}
               >
                 {publishing
-                  ? "Đang cập nhật…"
+                  ? t("seating.updating")
                   : publication.data.published
-                    ? "Thu hồi công bố"
-                    : "Công bố chỗ ngồi"}
+                    ? t("seating.unpublish")
+                    : t("seating.publish")}
               </Button>
             )}
             {editable && !canPublishSeating && (
               <span className="text-xs text-muted-foreground">
-                Chỉ người có quyền xếp bàn trên toàn đám cưới mới được công bố sơ đồ.
+                {t("seating.publishPermission")}
               </span>
             )}
             {can("SEATING_VIEW") && !can("SEATING_EDIT") && (
               <span role="status" className="basis-full text-amber-900">
-                Chế độ xem. Hãy nhờ chủ tiệc cấp quyền chỉnh sửa chỗ ngồi trong phạm vi của bạn để
-                kéo khách vào bàn.
+                {t("seating.readOnly")}
               </span>
             )}
             {publicationError && (
@@ -572,13 +573,12 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               role="status"
               className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
             >
-              {seatsNeedingAttention.length} ghế đang gán cho người từ chối hoặc chờ duyệt. Kiểm tra
-              và sắp xếp lại nếu cần.
+              {t("seating.attention", { count: seatsNeedingAttention.length })}
             </p>
           )}
           {status !== "connected" && (
             <p role="status" className="text-sm text-amber-800">
-              Đang nối lại đồng bộ trực tiếp…
+              {t("seating.reconnecting")}
             </p>
           )}
           <div aria-live="polite" className="flex flex-wrap gap-2">
@@ -591,9 +591,9 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                 >
                   <DraggingLabel presence={lease} />
                   <span>
-                    {lease.placeIds.length} người
+                    {t("seating.people", { count: lease.placeIds.length })}
                     {lease.tableId
-                      ? ` → ${plan.tables.find((table) => table.id === lease.tableId)?.name ?? "Bàn"}`
+                      ? ` → ${plan.tables.find((table) => table.id === lease.tableId)?.name ?? t("seating.table")}`
                       : ""}
                   </span>
                 </span>
@@ -624,7 +624,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
               target={{ tableId: null }}
               disabled={!editable || saving}
               className="space-y-3 rounded-xl border bg-card p-4"
-              label="Nhóm khách để xếp chỗ"
+              label={t("seating.filterGroup")}
             >
               <SeatingQueue
                 plan={plan}
@@ -649,7 +649,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                   className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs"
                   role="status"
                 >
-                  <p>Đã chọn {selection.length} người · Bấm bàn để xếp</p>
+                  <p>{t("seating.selectionSummary", { count: selection.length })}</p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
@@ -657,73 +657,76 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                       disabled={saving || !editable}
                       onClick={() => move(selection, null)}
                     >
-                      Bỏ xếp
+                      {t("seating.unassign")}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setSelection([])}>
-                      Bỏ chọn
+                      {t("seating.clearSelection")}
                     </Button>
                   </div>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">
-                Thả chỗ vào vùng danh sách này để bỏ xếp.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("seating.unassignDrop")}</p>
             </DropTarget>
             <section
               data-seating-pointer-anchor="board"
               className="min-w-0 rounded-xl border bg-[#F8F5EF] p-4"
-              aria-label="Sơ đồ bàn đã lưu"
+              aria-label={t("seating.savedPlan")}
             >
               {!plan.tables.length && (
-                <p className="p-5 text-center text-sm">Thêm bàn đầu tiên để bắt đầu.</p>
+                <p className="p-5 text-center text-sm">{t("seating.addFirstTable")}</p>
               )}
               <div className="flex flex-wrap justify-center gap-5">
-                {plan.tables.map((t) => {
-                  const members = plan.assignments.filter((a) => a.tableId === t.id);
+                {plan.tables.map((table) => {
+                  const members = plan.assignments.filter((a) => a.tableId === table.id);
                   const remote = collaboration.leases.filter(
                     (lease) =>
-                      lease.connectionId !== collaboration.connectionId && lease.tableId === t.id,
+                      lease.connectionId !== collaboration.connectionId &&
+                      lease.tableId === table.id,
                   );
                   const ghostSeats = remote.flatMap((lease) => {
                     const feedback = seatingDropFeedback(plan, lease.placeIds, {
-                      tableId: t.id,
+                      tableId: table.id,
                       ...(lease.seatNumber ? { seatNumber: lease.seatNumber } : {}),
                     });
                     return feedback?.valid ? feedback.seats : [];
                   });
                   const moving = dragIds.length ? dragIds : selection;
                   const occupied = members.filter((a) => !moving.includes(a.placeId)).length;
-                  const shortage = Math.max(0, moving.length - (t.capacity - occupied));
+                  const shortage = Math.max(0, moving.length - (table.capacity - occupied));
                   return (
                     <DropTarget
-                      key={t.id}
-                      anchor={`table:${t.id}`}
-                      id={`table:${t.id}`}
-                      target={{ tableId: t.id }}
+                      key={table.id}
+                      anchor={`table:${table.id}`}
+                      id={`table:${table.id}`}
+                      target={{ tableId: table.id }}
                       disabled={!editable || saving}
-                      className={`relative w-[270px] max-w-full rounded-xl border bg-white/50 p-3 transition-colors ${members.length === t.capacity ? "opacity-60" : ""} ${moving.length ? (shortage ? "border-red-300" : "border-primary/60") : ""}`}
-                      highlighted={dragTarget?.tableId === t.id || remote.length > 0}
+                      className={`relative w-[270px] max-w-full rounded-xl border bg-white/50 p-3 transition-colors ${members.length === table.capacity ? "opacity-60" : ""} ${moving.length ? (shortage ? "border-red-300" : "border-primary/60") : ""}`}
+                      highlighted={dragTarget?.tableId === table.id || remote.length > 0}
                       invalid={
-                        dragTarget?.tableId === t.id ? dragFeedback?.valid === false : shortage > 0
+                        dragTarget?.tableId === table.id
+                          ? dragFeedback?.valid === false
+                          : shortage > 0
                       }
                       hint={
                         moving.length
-                          ? dragTarget?.tableId === t.id && dragFeedback
-                            ? dragFeedback.message
+                          ? dragTarget?.tableId === table.id && dragFeedback
+                            ? t(dragFeedback.messageKey, dragFeedback.messageValues)
                             : shortage
-                              ? `Thiếu ${shortage} chỗ`
-                              : `Đủ chỗ cho ${moving.length} người`
+                              ? t("seating.shortageCount", { count: shortage })
+                              : t("seating.enoughSpace", { count: moving.length })
                           : undefined
                       }
-                      label={`Vùng thả ${t.name}`}
+                      label={t("seating.dropZone", { table: table.name })}
                     >
                       {remote.length > 0 && (
                         <p className="mb-1 truncate text-center text-xs text-muted-foreground">
-                          {remote.map((lease) => lease.displayName).join(", ")} đang chọn bàn
+                          {t("seating.remoteSelecting", {
+                            names: remote.map((lease) => lease.displayName).join(", "),
+                          })}
                         </p>
                       )}
                       <div
-                        id={`seating-table-${t.id}`}
+                        id={`seating-table-${table.id}`}
                         className="relative aspect-square scroll-mt-6"
                       >
                         <Image
@@ -734,51 +737,54 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                           className="pointer-events-none absolute left-[16%] top-[16%] size-[68%]"
                         />
                         <button
-                          className={`absolute left-[25%] top-[25%] flex size-1/2 flex-col items-center justify-center rounded-full text-center text-sm ${tableId === t.id ? "ring-2 ring-primary" : ""}`}
-                          aria-pressed={tableId === t.id && seat === null}
-                          aria-label={`Xem danh sách ${t.name}`}
+                          className={`absolute left-[25%] top-[25%] flex size-1/2 flex-col items-center justify-center rounded-full text-center text-sm ${tableId === table.id ? "ring-2 ring-primary" : ""}`}
+                          aria-pressed={tableId === table.id && seat === null}
+                          aria-label={t("seating.viewTableGuests", { table: table.name })}
                           onClick={() => {
                             if (selection.length && editable) {
-                              move(selection, t.id);
+                              move(selection, table.id);
                               return;
                             }
-                            setTableId(t.id);
+                            setTableId(table.id);
                             setPlaceId(null);
                             setSeat(null);
                           }}
                         >
-                          <strong>{t.name}</strong>
-                          {t.groupId && (
+                          <strong>{table.name}</strong>
+                          {table.groupId && (
                             <span className="block max-w-24 truncate text-[10px] text-muted-foreground">
-                              {groupNames.get(t.groupId) ?? "Nhóm được phân quyền"}
+                              {groupNames.get(table.groupId) ?? t("seating.groupScope")}
                             </span>
                           )}
                           <span>
-                            {members.length}/{t.capacity} chỗ
+                            {t("seating.placesCount", {
+                              count: members.length,
+                              capacity: table.capacity,
+                            })}
                           </span>
                         </button>
-                        {Array.from({ length: t.capacity }, (_, i) => {
+                        {Array.from({ length: table.capacity }, (_, i) => {
                           const n = i + 1,
-                            angle = (i / t.capacity) * Math.PI * 2 - Math.PI / 2;
+                            angle = (i / table.capacity) * Math.PI * 2 - Math.PI / 2;
                           const a = members.find((x) => x.seatNumber === n),
                             p = plan.places.find((x) => x.id === a?.placeId);
                           const confirmed = p?.person?.attendanceStatus === "ATTENDING";
                           return (
                             <DropTarget
                               key={n}
-                              id={`seat:${t.id}:${n}`}
-                              target={{ tableId: t.id, seatNumber: n }}
+                              id={`seat:${table.id}:${n}`}
+                              target={{ tableId: table.id, seatNumber: n }}
                               disabled={!editable || saving}
                               invalid={
                                 moving.length > 0 &&
                                 (shortage > 0 || (!!a && !moving.includes(a.placeId)))
                               }
-                              className={`absolute h-10 w-9 rounded-lg ${ghostSeats.includes(n) ? "border-2 border-dashed border-primary bg-primary/10" : ""} ${dragTarget?.tableId === t.id && dragFeedback?.valid && dragFeedback.seats.includes(n) ? "bg-primary/20 ring-2 ring-primary" : ""}`}
+                              className={`absolute h-10 w-9 rounded-lg ${ghostSeats.includes(n) ? "border-2 border-dashed border-primary bg-primary/10" : ""} ${dragTarget?.tableId === table.id && dragFeedback?.valid && dragFeedback.seats.includes(n) ? "bg-primary/20 ring-2 ring-primary" : ""}`}
                               label={
-                                dragTarget?.tableId === t.id &&
+                                dragTarget?.tableId === table.id &&
                                 dragFeedback?.valid &&
                                 dragFeedback.seats.includes(n)
-                                  ? `Sẽ xếp vào ${t.name}, ghế ${n}`
+                                  ? t("seating.seatDestination", { table: table.name, seat: n })
                                   : undefined
                               }
                               style={{
@@ -787,16 +793,20 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                               }}
                             >
                               <DragSource
-                                id={`chair:${t.id}:${n}`}
+                                id={`chair:${table.id}:${n}`}
                                 ids={p ? [p.id] : []}
                                 disabled={!p || !editable || saving || status !== "connected"}
-                                label={`${t.name}, ghế ${n}: ${p ? placeName(p.id) : "Trống"}`}
+                                label={t("seating.seatLabel", {
+                                  table: table.name,
+                                  seat: n,
+                                  guest: p ? placeName(p.id) : t("seating.emptySeat"),
+                                })}
                                 onClick={() => {
                                   if (selection.length && editable) {
-                                    move(selection, t.id, n);
+                                    move(selection, table.id, n);
                                     return;
                                   }
-                                  setTableId(t.id);
+                                  setTableId(table.id);
                                   setSeat(n);
                                   setPlaceId(p?.id ?? null);
                                 }}
@@ -821,7 +831,10 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                           );
                         })}
                       </div>
-                      <div className="flex flex-wrap gap-1" aria-label={`Khách tại ${t.name}`}>
+                      <div
+                        className="flex flex-wrap gap-1"
+                        aria-label={t("seating.guestsAtTable", { table: table.name })}
+                      >
                         {members.slice(0, 4).map((a) => {
                           const person = plan.places.find((p) => p.id === a.placeId);
                           const guest = plan.guests.find((g) => g.id === person?.guestId);
@@ -829,13 +842,13 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                             person?.person?.fullName ||
                             (person?.position === 1
                               ? guest?.recipientName
-                              : `Đi kèm ${person?.position}`);
+                              : t("seating.companion", { position: person?.position }));
                           return (
                             <button
                               key={a.placeId}
                               className="max-w-full truncate rounded-full bg-primary/10 px-2 py-1 text-[10px] focus-visible:outline-2 focus-visible:outline-primary"
                               onClick={() => {
-                                setTableId(t.id);
+                                setTableId(table.id);
                                 setPlaceId(a.placeId);
                                 setSeat(a.seatNumber);
                               }}
@@ -888,11 +901,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                       closeDetails();
                       setFailure(false);
                       setMessage(
-                        "Chọn khách trong hàng chờ, rồi bấm ghế " +
-                          number +
-                          " của " +
-                          inspectedTable.name +
-                          " để xếp.",
+                        t("seating.waitingSeatHelp", { seat: number, table: inspectedTable.name }),
                       );
                     }
                   }}
@@ -917,38 +926,39 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                       tabIndex={-1}
                       className="text-lg font-semibold outline-none"
                     >
-                      {seat !== null || inspectedPlace ? "Thông tin người ngồi" : "Thông tin bàn"}
+                      {seat !== null || inspectedPlace
+                        ? t("seating.placeDetails")
+                        : t("seating.tableDetails")}
                     </h2>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="size-11 outline-none hover:bg-foreground/5 focus-visible:ring-1 focus-visible:ring-offset-0"
-                      aria-label="Đóng thông tin bàn ghế"
+                      aria-label={t("seating.closeDetails")}
                       onClick={closeDetails}
                     >
                       <X aria-hidden="true" />
                     </Button>
                   </div>
                   {!inspectedTable && !inspectedPlace && (
-                    <p className="text-sm text-muted-foreground">
-                      Bấm giữa bàn để xem danh sách; bấm ghế để xem người. Chọn khách trong hàng chờ
-                      rồi bấm bàn hoặc ghế để xếp.
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t("seating.interactionHelp")}</p>
                   )}
                   {inspectedTable && (
                     <>
                       <h3 className="text-lg">
                         {inspectedTable.name}
-                        {seat ? ` · Ghế ${seat}` : ""}
+                        {seat ? ` · ${t("seating.seat", { number: seat })}` : ""}
                       </h3>
-                      {seat && !inspectedPlace && <p className="text-sm">Ghế trống</p>}
+                      {seat && !inspectedPlace && (
+                        <p className="text-sm">{t("seating.emptySeatStatus")}</p>
+                      )}
                       {editable && seat && !inspectedPlace && selection.length > 0 && (
                         <Button
                           variant="outline"
                           disabled={saving || !selection.length}
                           onClick={() => move(selection, inspectedTable.id, seat)}
                         >
-                          Đặt lựa chọn vào ghế này
+                          {t("seating.moveSelection")}
                         </Button>
                       )}
                     </>
@@ -957,15 +967,31 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                     <div className="space-y-2 text-sm">
                       <p className="font-medium">{placeName(inspectedPlace.id)}</p>
                       <p>
-                        {statuses[inspectedPlace.person?.attendanceStatus ?? "PENDING"] ??
-                          "Chưa xác định"}
+                        {t(
+                          `seating.status.${inspectedPlace.person?.attendanceStatus ?? "PENDING"}`,
+                          { defaultValue: t("seating.unknownSide") },
+                        )}
                       </p>
-                      <p>Thuộc thiệp: {recipient(inspectedGuest)}</p>
                       <p>
-                        {sideLabels[inspectedGuest.side]} ·{" "}
-                        {inspectedGuest.group?.name ?? "Chưa phân nhóm"}
+                        {t("seating.invitation", {
+                          guest: recipient(
+                            inspectedGuest,
+                            t("seating.family"),
+                            t("seating.groupPrefix"),
+                          ),
+                        })}
                       </p>
-                      <p>Liên hệ đại diện: {inspectedGuest.phone ?? "Chưa có SĐT"}</p>
+                      <p>
+                        {t(`planning.sideValues.${inspectedGuest.side}`, {
+                          defaultValue: sideLabels[inspectedGuest.side],
+                        })}{" "}
+                        · {inspectedGuest.group?.name ?? t("seating.unassignedGroup")}
+                      </p>
+                      <p>
+                        {t("seating.contact", {
+                          phone: inspectedGuest.phone ?? t("seating.noPhone"),
+                        })}
+                      </p>
                       <p>{inspectedGuest.note}</p>
                       {editable && (
                         <Button
@@ -977,7 +1003,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
                             closeDetails();
                           }}
                         >
-                          Chọn chỗ này để chuyển
+                          {t("seating.selectToMove")}
                         </Button>
                       )}
                     </div>
@@ -995,7 +1021,7 @@ export function PlanningSeating({ weddingId }: { weddingId: string }) {
             <span>{message}</span>
             {!saving && (
               <button
-                aria-label="Ẩn thông báo"
+                aria-label={t("seating.hideNotice")}
                 onClick={() => setMessage("")}
                 className="rounded p-1 focus-visible:outline-2 focus-visible:outline-primary"
               >

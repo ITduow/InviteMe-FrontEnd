@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { PageHeader } from "@/shared/components/page-header";
@@ -10,8 +11,12 @@ import { LoadingState } from "@/shared/feedback/loading-state";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { adminApi } from "../api/admin.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
 export function AdminWeddings() {
+  const { t } = useTranslation("admin");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const [page, setPage] = useState(1);
   const [draft, setDraft] = useState("");
@@ -37,16 +42,16 @@ export function AdminWeddings() {
         className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_200px_auto_auto] sm:items-end"
       >
         <label className="grid gap-1 text-sm">
-          Search title, slug or owner email
+          {t("weddingSearchLabel")}
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={100}
-            placeholder="Search weddings"
+            placeholder={t("searchWeddingsPlaceholder")}
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Status
+          {t("status")}
           <select
             className="h-10 rounded-lg border bg-background px-3"
             value={status}
@@ -55,13 +60,13 @@ export function AdminWeddings() {
               setPage(1);
             }}
           >
-            <option value="">All statuses</option>
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="CLOSED">Closed</option>
+            <option value="">{t("allStatuses")}</option>
+            <option value="DRAFT">{t("draft")}</option>
+            <option value="PUBLISHED">{t("published")}</option>
+            <option value="CLOSED">{t("closed")}</option>
           </select>
         </label>
-        <Button type="submit">Search</Button>
+        <Button type="submit">{t("search")}</Button>
         <Button
           type="button"
           variant="outline"
@@ -72,30 +77,29 @@ export function AdminWeddings() {
             setPage(1);
           }}
         >
-          Reset
+          {t("reset")}
         </Button>
       </form>
-      {weddings.isPending && <LoadingState label="Loading weddings…" />}
+      {weddings.isPending && <LoadingState label={t("loadingWeddings")} />}
       {weddings.isError && (
         <ErrorState error={weddings.error} retry={() => void weddings.refetch()} />
       )}
       {weddings.data &&
         (weddings.data.items.length === 0 ? (
-          <EmptyState
-            title="No weddings found"
-            description="Try a different search or status filter."
-          />
+          <EmptyState title={t("noWeddings")} description={t("changeWeddingFilters")} />
         ) : (
           <>
             <div className="overflow-x-auto rounded-2xl border bg-card">
               <table className="w-full min-w-[800px] text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground">
                   <tr>
-                    {["Wedding", "Owner", "Status", "Capacity", "Created"].map((x) => (
-                      <th key={x} className="px-4 py-3 font-medium">
-                        {x}
-                      </th>
-                    ))}
+                    {[t("wedding"), t("owner"), t("status"), t("capacity"), t("created")].map(
+                      (x) => (
+                        <th key={x} className="px-4 py-3 font-medium">
+                          {x}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -108,14 +112,14 @@ export function AdminWeddings() {
                       <td className="px-4 py-4">{w.ownerEmail}</td>
                       <td className="px-4 py-4">
                         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                          {w.status}
+                          {t(`${w.status.toLowerCase()}Status`, { defaultValue: w.status })}
                         </span>
                       </td>
-                      <td className="px-4 py-4">{w.capacity ?? "Not set"}</td>
+                      <td className="px-4 py-4">
+                        {w.capacity === null ? t("notSet") : formatNumber(w.capacity, language)}
+                      </td>
                       <td className="px-4 py-4 text-muted-foreground">
-                        {new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
-                          new Date(w.createdAt),
-                        )}
+                        {formatDate(w.createdAt, language, { dateStyle: "medium" })}
                       </td>
                     </tr>
                   ))}
@@ -124,7 +128,10 @@ export function AdminWeddings() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                {weddings.data.totalCount} weddings · Page {weddings.data.page}/
+                {t("weddingCount", {
+                  count: formatNumber(weddings.data.totalCount, language),
+                  page: formatNumber(weddings.data.page, language),
+                })}
                 {Math.max(weddings.data.totalPages, 1)}
               </p>
               <div className="flex gap-2">
@@ -133,14 +140,14 @@ export function AdminWeddings() {
                   disabled={page <= 1 || weddings.isFetching}
                   onClick={() => setPage((x) => x - 1)}
                 >
-                  Previous
+                  {t("previous", { ns: "common" })}
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page >= weddings.data.totalPages || weddings.isFetching}
                   onClick={() => setPage((x) => x + 1)}
                 >
-                  Next
+                  {t("next", { ns: "common" })}
                 </Button>
               </div>
             </div>

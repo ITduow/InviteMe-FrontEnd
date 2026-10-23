@@ -48,9 +48,22 @@ export function seatingDropFeedback(
   if (target.tableId === null && !plan.assignments.some((a) => ids.includes(a.placeId)))
     return null;
   if (target.tableId === null)
-    return { valid: true, message: `Bỏ xếp ${ids.length} người`, seats: [] as number[] };
+    return {
+      valid: true,
+      message: `Bỏ xếp ${ids.length} người`,
+      messageKey: "seating.feedback.unassign",
+      messageValues: { count: ids.length },
+      seats: [] as number[],
+    };
   const table = plan.tables.find((t) => t.id === target.tableId);
-  if (!table) return { valid: false, message: "Bàn không còn khả dụng", seats: [] as number[] };
+  if (!table)
+    return {
+      valid: false,
+      message: "Bàn không còn khả dụng",
+      messageKey: "seating.feedback.tableUnavailable",
+      messageValues: {},
+      seats: [] as number[],
+    };
   const occupied = plan.assignments.filter(
     (a) => a.tableId === table.id && !ids.includes(a.placeId),
   ).length;
@@ -60,12 +73,16 @@ export function seatingDropFeedback(
     return {
       valid: false,
       message: shortage ? `Thiếu ${shortage} chỗ` : "Ghế đã có khách",
+      messageKey: shortage ? "seating.feedback.shortage" : "seating.feedback.occupied",
+      messageValues: shortage ? { count: shortage } : {},
       seats: [] as number[],
     };
   const afterCount = next.assignments.filter((a) => a.tableId === table.id).length;
   return {
     valid: true,
     message: `+${ids.length} · còn ${table.capacity - afterCount} chỗ sau khi xếp`,
+    messageKey: "seating.feedback.capacity",
+    messageValues: { count: ids.length, remaining: table.capacity - afterCount },
     seats: next.assignments
       .filter((a) => a.tableId === table.id && ids.includes(a.placeId))
       .map((a) => a.seatNumber),

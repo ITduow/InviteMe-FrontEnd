@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { authApi } from "../api/auth.api";
 import { ConfirmationNotice } from "./confirmation-notice";
 export function ConfirmEmailForm() {
+  const { t } = useTranslation("auth");
   const params = useSearchParams();
   const email = params.get("email") ?? "";
   const code = params.get("code") ?? "";
@@ -35,12 +37,12 @@ export function ConfirmEmailForm() {
     } catch (error) {
       setError(
         error instanceof ApiError && error.code === "network"
-          ? "Không thể kết nối. Vui lòng kiểm tra mạng và thử lại."
+          ? t("networkError")
           : error instanceof ApiError && error.status === 429
-            ? "Bạn thử quá nhiều lần. Vui lòng chờ một phút."
+            ? t("tooManyAttempts")
             : error instanceof ApiError && error.status >= 500
-              ? "Hệ thống đang gặp sự cố. Vui lòng thử lại sau."
-              : "Link xác nhận không hợp lệ hoặc đã hết hạn. Hãy dùng link mới nhất hoặc yêu cầu gửi lại.",
+              ? t("systemError")
+              : t("invalidVerificationLink"),
       );
     } finally {
       setPending(false);
@@ -49,37 +51,31 @@ export function ConfirmEmailForm() {
   if (done)
     return (
       <div className="space-y-5">
-        <h1 className="font-display text-3xl">Email đã được xác nhận</h1>
-        <p className="text-sm text-muted-foreground">
-          Tài khoản đã được kích hoạt. Bạn có thể tiếp tục đến trang đăng nhập.
-        </p>
+        <h1 className="font-display text-3xl">{t("emailConfirmed")}</h1>
+        <p className="text-sm text-muted-foreground">{t("accountActivated")}</p>
         <Button asChild className="w-full">
-          <Link href="/login">Đến trang đăng nhập</Link>
+          <Link href="/login">{t("goToLogin")}</Link>
         </Button>
       </div>
     );
   return (
     <div className="space-y-5">
-      <h1 className="font-display text-3xl">Xác nhận email</h1>
+      <h1 className="font-display text-3xl">{t("confirmEmail")}</h1>
       {valid ? (
         <>
           <p className="break-words text-sm text-muted-foreground">
-            Xác nhận địa chỉ <strong>{email}</strong> để kích hoạt tài khoản InviteMe.
+            {t("confirmAddress", { email })}
           </p>
           <Button className="w-full" onClick={confirm} disabled={pending || !env.apiUrl}>
-            {pending ? "Đang xác nhận…" : "Xác nhận email của tôi"}
+            {pending ? t("confirmingEmail") : t("confirmMyEmail")}
           </Button>
         </>
       ) : (
         <p role="alert" className="text-sm text-destructive">
-          Link xác nhận thiếu thông tin hoặc không hợp lệ. Hãy mở lại link đầy đủ trong email.
+          {t("invalidVerificationLink")}
         </p>
       )}
-      {!env.apiUrl && (
-        <p className="text-sm text-muted-foreground">
-          Chức năng xác nhận chưa sẵn sàng. Vui lòng thử lại sau.
-        </p>
-      )}
+      {!env.apiUrl && <p className="text-sm text-muted-foreground">{t("confirmationNotReady")}</p>}
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -87,7 +83,7 @@ export function ConfirmEmailForm() {
       )}
       {(error || !valid) && validEmail && <ConfirmationNotice email={email} />}
       <Link href="/register" className="block text-sm text-primary underline">
-        Về trang đăng ký
+        {t("backToRegister")}
       </Link>
     </div>
   );

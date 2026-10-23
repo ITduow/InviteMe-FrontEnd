@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/core/api/api-error";
 import { useRuntime } from "@/core/config/runtime";
@@ -18,10 +21,9 @@ import {
   resolveRsvpWaitlist,
 } from "../api/host-rsvp.api";
 
-const reasonLabel = { LOCKED: "Thiệp đã khóa", DEADLINE_PASSED: "Đã quá hạn" };
-const date = (value: string) => new Date(value).toLocaleString("vi-VN");
-
 export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("guests");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const cache = useQueryClient();
   const { can } = usePermission();
@@ -54,11 +56,9 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
       if (kind === "waitlist" && (decision === "promote" || decision === "decline"))
         await resolveRsvpWaitlist(api, weddingId, id, decision);
       await cache.invalidateQueries({ queryKey: hostRsvpKeys.all(weddingId) });
-      setNotice("Đã cập nhật hàng chờ.");
+      setNotice(t("queues.updated"));
     } catch (cause) {
-      setError(
-        cause instanceof ApiError ? cause.message : "Không xử lý được. Hãy tải lại và thử lại.",
-      );
+      setError(cause instanceof ApiError ? t("queues.errors.generic") : t("queues.errors.generic"));
     } finally {
       setBusyId("");
     }
@@ -66,10 +66,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Hàng chờ RSVP"
-        description="Duyệt yêu cầu đổi câu trả lời và người đi thêm."
-      />
+      <PageHeader title={t("queues.title")} description={t("queues.description")} />
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-900">
           {error}
@@ -81,13 +78,13 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
         </p>
       )}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Yêu cầu thay đổi</h2>
-        {requests.isPending && <LoadingState label="Đang tải yêu cầu…" />}
+        <h2 className="text-xl font-semibold">{t("queues.changeRequests")}</h2>
+        {requests.isPending && <LoadingState label={t("queues.loadingRequests")} />}
         {requests.isError && (
           <ErrorState error={requests.error} retry={() => void requests.refetch()} />
         )}
         {requests.data?.items.length === 0 && (
-          <p className="text-sm text-muted-foreground">Không có yêu cầu chờ duyệt.</p>
+          <p className="text-sm text-muted-foreground">{t("queues.noRequests")}</p>
         )}
         {requests.data?.items.map((item) => (
           <article key={item.id} className="space-y-3 rounded-xl border bg-card p-4">
@@ -95,24 +92,36 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
               <div>
                 <h3 className="font-semibold">{item.recipientName}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {reasonLabel[item.reason]} · {date(item.requestedAt)}
+                  {t(`queues.reasons.${item.reason}`, { defaultValue: item.reason })} ·{" "}
+                  {formatDate(item.requestedAt, language, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </p>
               </div>
               <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-900">
-                Chờ duyệt
+                {t("queues.awaitingReview")}
               </span>
             </div>
             <p className="text-sm">
-              Muốn {item.change.decision === "ATTENDING" ? "tham dự" : "không tham dự"} ·{" "}
-              {item.change.participantIds.length} người có sẵn
-              {item.change.plusOnes?.length ? ` · thêm ${item.change.plusOnes.join(", ")}` : ""}
+              {t(
+                item.change.decision === "ATTENDING" ? "queues.wantsAttend" : "queues.wantsDecline",
+              )}{" "}
+              · {t("queues.existingPeople", { count: item.change.participantIds.length })}
+              {item.change.plusOnes?.length
+                ? ` · ${t("queues.plusOnes", { names: item.change.plusOnes.join(", ") })}`
+                : ""}
             </p>
             <QueueGuestInfo
               weddingId={weddingId}
               guestId={item.guestId}
               participantIds={item.change.participantIds}
             />
-            {item.change.note && <p className="text-sm">Ghi chú: {item.change.note}</p>}
+            {item.change.note && (
+              <p className="text-sm">
+                {t("queues.note")}: {item.change.note}
+              </p>
+            )}
             {editable && (
               <div className="flex gap-2">
                 <Button
@@ -120,7 +129,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
                   disabled={!!busyId}
                   onClick={() => void decide("request", item.id, "approve")}
                 >
-                  {busyId === item.id ? "Đang xử lý…" : "Duyệt"}
+                  {busyId === item.id ? t("queues.processing") : t("queues.approve")}
                 </Button>
                 <Button
                   size="sm"
@@ -128,7 +137,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
                   disabled={!!busyId}
                   onClick={() => void decide("request", item.id, "reject")}
                 >
-                  Từ chối
+                  {t("queues.reject")}
                 </Button>
               </div>
             )}
@@ -144,13 +153,13 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
         )}
       </section>
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Người chờ chỗ</h2>
-        {waitlist.isPending && <LoadingState label="Đang tải danh sách chờ…" />}
+        <h2 className="text-xl font-semibold">{t("queues.waitlist")}</h2>
+        {waitlist.isPending && <LoadingState label={t("queues.loadingWaitlist")} />}
         {waitlist.isError && (
           <ErrorState error={waitlist.error} retry={() => void waitlist.refetch()} />
         )}
         {waitlist.data?.items.length === 0 && (
-          <p className="text-sm text-muted-foreground">Không có người chờ chỗ.</p>
+          <p className="text-sm text-muted-foreground">{t("queues.noWaitlist")}</p>
         )}
         {waitlist.data?.items.map((item) => (
           <article
@@ -160,8 +169,12 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
             <div>
               <QueueGuestInfo weddingId={weddingId} guestId={item.guestId} waitlisted />
               <p className="text-sm text-muted-foreground">
-                {item.kind === "FULL_PARTY" ? "Cả nhóm" : "Người đi thêm"} · {item.requestedSlots}{" "}
-                chỗ · {date(item.requestedAt)}
+                {t(item.kind === "FULL_PARTY" ? "queues.fullParty" : "queues.plusOneKind")} ·{" "}
+                {t("queues.places", { count: item.requestedSlots })} ·{" "}
+                {formatDate(item.requestedAt, language, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </p>
             </div>
             {editable && (
@@ -171,7 +184,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
                   disabled={!!busyId}
                   onClick={() => void decide("waitlist", item.id, "promote")}
                 >
-                  {busyId === item.id ? "Đang xử lý…" : "Nhận khách"}
+                  {busyId === item.id ? t("queues.processing") : t("queues.acceptGuest")}
                 </Button>
                 <Button
                   size="sm"
@@ -179,7 +192,7 @@ export function HostRsvpQueues({ weddingId }: { weddingId: string }) {
                   disabled={!!busyId}
                   onClick={() => void decide("waitlist", item.id, "decline")}
                 >
-                  Từ chối
+                  {t("queues.reject")}
                 </Button>
               </div>
             )}
@@ -209,15 +222,16 @@ function QueueGuestInfo({
   participantIds?: string[];
   waitlisted?: boolean;
 }) {
+  const { t } = useTranslation("guests");
   const { api } = useRuntime();
   const detail = useQuery({
     queryKey: hostRsvpKeys.detail(weddingId, guestId),
     queryFn: ({ signal }) => getHostRsvp(api, weddingId, guestId, signal),
   });
   if (detail.isError)
-    return <p className="text-sm text-muted-foreground">Không tải được tên khách ({guestId}).</p>;
+    return <p className="text-sm text-muted-foreground">{t("queues.guestNameFailed")}</p>;
   if (!detail.data)
-    return <p className="text-sm text-muted-foreground">Đang tải thông tin khách…</p>;
+    return <p className="text-sm text-muted-foreground">{t("queues.loadingGuest")}</p>;
   const people = participantIds
     ? detail.data.participants.filter((person) => participantIds.includes(person.id))
     : waitlisted
@@ -227,7 +241,9 @@ function QueueGuestInfo({
     <div className="text-sm">
       {waitlisted && <h3 className="font-semibold">{detail.data.recipientName}</h3>}
       {people.length > 0 && (
-        <p>Người liên quan: {people.map((person) => person.fullName).join(", ")}</p>
+        <p>
+          {t("queues.relatedPeople", { names: people.map((person) => person.fullName).join(", ") })}
+        </p>
       )}
     </div>
   );
@@ -244,23 +260,22 @@ function Pager({
   pageSize: number;
   onChange: (page: number) => void;
 }) {
+  const { t } = useTranslation("guests");
   const last = Math.max(1, Math.ceil(total / pageSize));
   if (last <= 1) return null;
   return (
     <div className="flex items-center gap-3 text-sm">
       <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => onChange(page - 1)}>
-        Trước
+        {t("queues.previous")}
       </Button>
-      <span>
-        Trang {page}/{last}
-      </span>
+      <span>{t("queues.page", { page, last })}</span>
       <Button
         size="sm"
         variant="outline"
         disabled={page >= last}
         onClick={() => onChange(page + 1)}
       >
-        Sau
+        {t("queues.next")}
       </Button>
     </div>
   );

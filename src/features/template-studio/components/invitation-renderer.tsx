@@ -1,6 +1,7 @@
 "use client";
 import { Editor, Frame } from "@craftjs/core";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { studioDocumentSchema } from "../schemas/document";
 import { StudioFrame, StudioText, StudioImage } from "./items";
@@ -21,6 +22,7 @@ export function InvitationRenderer({
   content: string;
   token: string;
 }) {
+  const { t } = useTranslation("public");
   const [opened, setOpened] = useState(false);
   const [width, setWidth] = useState(480);
   const host = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ export function InvitationRenderer({
     <div
       ref={host}
       className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto bg-background"
-      aria-label="Thiệp mời cá nhân"
+      aria-label={t("personalInvitation")}
     >
       <InvitationGuestContext value={token}>
         <WordingPreviewContext value={content}>

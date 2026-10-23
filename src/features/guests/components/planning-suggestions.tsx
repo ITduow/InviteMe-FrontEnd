@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/i18n/format";
+import { useLanguage } from "@/i18n/language-context";
 import { useRuntime } from "@/core/config/runtime";
 import { usePermission } from "@/shared/components/permission-guard";
 import { Button } from "@/shared/ui/button";
 import { Modal } from "@/shared/ui/modal";
 import { Plus, Sparkles } from "lucide-react";
-import { sideLabels } from "../api/planning.api";
 import {
   suggestSeatingPlan,
   type SeatingPlan,
@@ -16,25 +18,10 @@ import {
   type SeatingSuggestion,
 } from "../api/planning-seating.api";
 
-const strategies: { id: SeatingStrategy; title: string; description: string }[] = [
-  {
-    id: "AFFINITY",
-    title: "Theo nhóm quen biết",
-    description:
-      "Ưu tiên cùng phía và cùng nhóm khách như Họ ngoại, Bạn đại học. Mỗi nhóm đi cùng giữ chung bàn nếu vừa.",
-  },
-  {
-    id: "PARTY",
-    title: "Theo nhóm đi cùng",
-    description:
-      "Xếp từng người đại diện và các chỗ đi cùng vào một bàn. Không ưu tiên nhóm quan hệ; vẫn giữ riêng phía khách.",
-  },
-  {
-    id: "COMPACT",
-    title: "Ưu tiên đầy bàn",
-    description:
-      "Xếp nhóm đông trước, chọn bàn còn ít chỗ vừa đủ. Có thể ghép các nhóm quan hệ cùng phía; không bảo đảm số bàn ít nhất.",
-  },
+const strategies: { id: SeatingStrategy; titleKey: string; descriptionKey: string }[] = [
+  { id: "AFFINITY", titleKey: "strategyAffinity", descriptionKey: "strategyAffinityDescription" },
+  { id: "PARTY", titleKey: "strategyParty", descriptionKey: "strategyPartyDescription" },
+  { id: "COMPACT", titleKey: "strategyCompact", descriptionKey: "strategyCompactDescription" },
 ];
 
 export function PlanningSuggestions({
@@ -50,6 +37,8 @@ export function PlanningSuggestions({
   onChange: (input: SeatingChange) => Promise<void>;
   saveError?: string;
 }) {
+  const { t, i18n } = useTranslation("guestPlanning", { keyPrefix: "suggestions" });
+  const { language } = useLanguage();
   const { api } = useRuntime();
   const { access, isWeddingWide } = usePermission();
   const seatingScope = access?.scopes?.find((item) => item.permission === "SEATING_EDIT");
@@ -83,6 +72,12 @@ export function PlanningSuggestions({
   const [error, setError] = useState("");
   const [preview, setPreview] = useState<{ source: string; value: SeatingSuggestion } | null>(null);
   const request = useRef<AbortController | null>(null);
+  const displaySide = (side: string) => {
+    const key = (
+      { BRIDE: "BRIDE", GROOM: "GROOM", MUTUAL: "MUTUAL", UNSPECIFIED: "UNSPECIFIED" } as const
+    )[side as "BRIDE" | "GROOM" | "MUTUAL" | "UNSPECIFIED"];
+    return key ? i18n.t(`sideValues.${key}`, { ns: "guestPlanning", defaultValue: side }) : side;
+  };
   useEffect(() => () => request.current?.abort(), []);
   const source = JSON.stringify(plan);
   const eligiblePlaces = plan.places.filter(
@@ -135,8 +130,7 @@ export function PlanningSuggestions({
       );
       if (!controller.signal.aborted) setPreview({ source, value });
     } catch {
-      if (!controller.signal.aborted)
-        setError("Chưa lấy được gợi ý. Kiểm tra kết nối và quyền xem sơ đồ rồi thử lại.");
+      if (!controller.signal.aborted) setError(t("loadError"));
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -146,7 +140,7 @@ export function PlanningSuggestions({
       <div className="flex flex-wrap gap-2">
         {editable && (
           <Button type="button" disabled={saving} onClick={() => setDialog("tables")}>
-            <Plus className="size-4" /> Thêm bàn
+            <Plus className="size-4" /> {t("addTable")}
           </Button>
         )}
         {canSuggest && (
@@ -156,15 +150,15 @@ export function PlanningSuggestions({
             disabled={saving}
             onClick={() => setDialog("suggestions")}
           >
-            <Sparkles className="size-4" /> Gợi ý sắp xếp thông minh
+            <Sparkles className="size-4" /> {t("smartSuggestions")}
           </Button>
         )}
       </div>
       <Modal
         open={dialog === "tables"}
         onClose={() => setDialog(null)}
-        title="Thêm bàn"
-        description="Chọn số bàn và sức chứa, hoặc thêm một bàn với tên riêng."
+        title={t("addTable")}
+        description={t("tableDialogDescription")}
       >
         <div className="space-y-4">
           {saveError && (
@@ -180,8 +174,7 @@ export function PlanningSuggestions({
               role="alert"
               className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
             >
-              Không tìm thấy nhóm khách trong phạm vi xếp bàn được cấp. Hãy nhờ chủ đám cưới kiểm
-              tra quyền nhóm của bạn.
+              {t("missingGroupScope")}
             </p>
           )}
           {editable && (
@@ -201,20 +194,20 @@ export function PlanningSuggestions({
               }}
             >
               <h3 className="text-sm font-medium">
-                {plan.tables.length ? "Thêm nhiều bàn trống" : "Bắt đầu: mỗi bàn bao nhiêu chỗ?"}
+                {plan.tables.length ? t("addMultipleTables") : t("startCapacity")}
               </h3>
               <div className="flex flex-wrap items-end gap-3">
                 {groupOptions.length > 0 && (
                   <label className="text-sm">
-                    Nhóm khách của bàn
+                    {t("tableGroup")}
                     <select
-                      aria-label="Nhóm khách của bàn"
+                      aria-label={t("tableGroup")}
                       required={requiresGroup}
                       value={selectedGroupId}
                       onChange={(event) => setSelectedGroupId(event.target.value)}
                       className="mt-1 block min-w-44 rounded border bg-background p-2"
                     >
-                      {!requiresGroup && <option value="">Không gắn nhóm</option>}
+                      {!requiresGroup && <option value="">{t("noGroup")}</option>}
                       {groupOptions.map((group) => (
                         <option key={group.id} value={group.id}>
                           {group.name}
@@ -224,9 +217,9 @@ export function PlanningSuggestions({
                   </label>
                 )}
                 <label className="text-sm">
-                  Số ghế mỗi bàn
+                  {t("seatsPerTable")}
                   <input
-                    aria-label="Số ghế mỗi bàn để chuẩn bị"
+                    aria-label={t("seatsPerTable")}
                     type="number"
                     min={1}
                     max={20}
@@ -237,9 +230,9 @@ export function PlanningSuggestions({
                   />
                 </label>
                 <label className="text-sm">
-                  Số bàn cần thêm
+                  {t("tablesToAdd")}
                   <input
-                    aria-label="Số bàn trống cần tạo"
+                    aria-label={t("tablesToAdd")}
                     type="number"
                     min={1}
                     max={Math.max(0, 100 - plan.tables.length)}
@@ -250,7 +243,10 @@ export function PlanningSuggestions({
                   />
                 </label>
                 <Button disabled={saving || !validTables || (requiresGroup && !selectedGroupId)}>
-                  Tạo {tableCount} bàn trống · {capacity} ghế/bàn
+                  {t("createTables", {
+                    count: formatNumber(tableCount, language),
+                    capacity: formatNumber(capacity, language),
+                  })}
                 </Button>
                 <button
                   type="button"
@@ -258,25 +254,23 @@ export function PlanningSuggestions({
                   disabled={saving}
                   onClick={() => setCount(null)}
                 >
-                  Dùng số bàn ước tính
+                  {t("estimatedCount")}
                 </button>
               </div>
               <p className="text-xs leading-5 text-muted-foreground">
-                {eligible} chỗ dự kiến đủ điều kiện · hiện có {existingCapacity} ghế. Ước tính tối
-                thiểu: thêm {minimum} bàn ({capacity || "?"} ghế/bàn)
-                {plan.tables.length === 0
-                  ? ", đã tính riêng từng phía"
-                  : ", dựa trên tổng sức chứa"}
-                . Bàn đã xếp và việc giữ nguyên nhóm đi cùng có thể khiến cần thêm bàn dù tổng ghế
-                còn đủ. Số bàn được phép sửa; tối đa 100 bàn, mỗi bàn 1–20 ghế.
+                {t("capacityEstimate", {
+                  eligible: formatNumber(eligible, language),
+                  capacity: formatNumber(existingCapacity, language),
+                  minimum: formatNumber(minimum, language),
+                  perTable: capacity ? formatNumber(capacity, language) : "?",
+                  sideNote: plan.tables.length === 0 ? t("separateSides") : t("totalCapacity"),
+                })}
               </p>
             </form>
           )}
           {editable && (
             <details className="rounded-xl border p-4">
-              <summary className="cursor-pointer text-sm font-medium">
-                Thêm một bàn với tên riêng
-              </summary>
+              <summary className="cursor-pointer text-sm font-medium">{t("addNamedTable")}</summary>
               <form
                 className="mt-4 flex flex-wrap items-end gap-3"
                 onSubmit={(event) => {
@@ -293,15 +287,15 @@ export function PlanningSuggestions({
               >
                 {groupOptions.length > 0 && (
                   <label className="text-sm">
-                    Nhóm khách của bàn
+                    {t("tableGroup")}
                     <select
-                      aria-label="Nhóm khách của bàn có tên riêng"
+                      aria-label={t("tableGroup")}
                       required={requiresGroup}
                       value={selectedGroupId}
                       onChange={(event) => setSelectedGroupId(event.target.value)}
                       className="mt-1 block min-w-44 rounded border bg-background p-2"
                     >
-                      {!requiresGroup && <option value="">Không gắn nhóm</option>}
+                      {!requiresGroup && <option value="">{t("noGroup")}</option>}
                       {groupOptions.map((group) => (
                         <option key={group.id} value={group.id}>
                           {group.name}
@@ -311,21 +305,23 @@ export function PlanningSuggestions({
                   </label>
                 )}
                 <label className="text-sm">
-                  Tên bàn
+                  {t("newTableName")}
                   <input
                     name="name"
-                    aria-label="Tên bàn mới"
+                    aria-label={t("newTableNameAria")}
                     required
                     maxLength={100}
-                    placeholder={`Bàn ${plan.tables.length + 1}`}
+                    placeholder={t("newTablePlaceholder", {
+                      number: formatNumber(plan.tables.length + 1, language),
+                    })}
                     className="mt-1 block w-full rounded border bg-background p-2"
                   />
                 </label>
                 <label className="text-sm">
-                  Số ghế
+                  {t("seatCount")}
                   <input
                     name="capacity"
-                    aria-label="Số ghế bàn mới"
+                    aria-label={t("newTableSeatCount")}
                     type="number"
                     min={1}
                     max={20}
@@ -335,7 +331,7 @@ export function PlanningSuggestions({
                   />
                 </label>
                 <Button disabled={saving || (requiresGroup && !selectedGroupId)}>
-                  Thêm bàn có tên
+                  {t("addNamedTableButton")}
                 </Button>
               </form>
             </details>
@@ -345,8 +341,8 @@ export function PlanningSuggestions({
       <Modal
         open={dialog === "suggestions"}
         onClose={() => setDialog(null)}
-        title="Gợi ý sắp xếp thông minh"
-        description="Gợi ý dùng các bàn đã tạo. Bạn có thể xem trước rồi mới áp dụng vào sơ đồ."
+        title={t("smartSuggestions")}
+        description={t("suggestionDialogDescription")}
       >
         <div className="space-y-4">
           {saveError && (
@@ -357,7 +353,7 @@ export function PlanningSuggestions({
               {saveError}
             </p>
           )}
-          <div role="tablist" aria-label="Kiểu gợi ý xếp chỗ" className="flex flex-wrap gap-2">
+          <div role="tablist" aria-label={t("suggestionType")} className="flex flex-wrap gap-2">
             {strategies.map((s) => (
               <button
                 key={s.id}
@@ -393,7 +389,7 @@ export function PlanningSuggestions({
                   void load(s.id, mode);
                 }}
               >
-                {s.title}
+                {t(s.titleKey)}
               </button>
             ))}
           </div>
@@ -403,15 +399,12 @@ export function PlanningSuggestions({
             aria-labelledby={`strategy-${strategy}`}
             className="space-y-3"
           >
-            <p className="text-sm">{selected?.description}</p>
-            <p className="text-xs text-muted-foreground">
-              Dựa trên: phía khách, nhóm khách, chỗ đi cùng và số ghế thực tế từng bàn. Nhà gái /
-              Nhà trai / Chung / Chưa xác định được giữ riêng. Không tự hiểu ghi chú hoặc vai vế.
-            </p>
+            <p className="text-sm">{selected ? t(selected.descriptionKey) : null}</p>
+            <p className="text-xs text-muted-foreground">{t("basis")}</p>
             <label className="block text-sm">
-              Phạm vi gợi ý
+              {t("scope")}
               <select
-                aria-label="Phạm vi gợi ý"
+                aria-label={t("scope")}
                 value={mode}
                 onChange={(e) => {
                   const next = e.target.value as SuggestionMode;
@@ -421,8 +414,8 @@ export function PlanningSuggestions({
                 }}
                 className="mt-1 block max-w-full rounded border bg-background p-2"
               >
-                <option value="UNASSIGNED">Chỉ xếp chỗ còn trống — giữ nguyên phần đã xếp</option>
-                <option value="REPLACE_ALL">Xếp lại toàn bộ — thay thế cả phần đã kéo tay</option>
+                <option value="UNASSIGNED">{t("unassignedOnly")}</option>
+                <option value="REPLACE_ALL">{t("replaceAll")}</option>
               </select>
             </label>
             <Button
@@ -430,18 +423,10 @@ export function PlanningSuggestions({
               disabled={loading || saving || !plan.tables.length || !eligible}
               onClick={() => void load()}
             >
-              {loading ? "Đang tính…" : "Xem / tính lại gợi ý"}
+              {loading ? t("calculating") : t("recalculate")}
             </Button>
-            {!plan.tables.length && (
-              <p className="text-sm text-amber-900">
-                Chưa có bàn. Đóng cửa sổ này và chọn “Thêm bàn” trước khi tính gợi ý.
-              </p>
-            )}
-            {!eligible && (
-              <p className="text-sm text-muted-foreground">
-                Chưa có chỗ đủ điều kiện. Nhập danh sách hoặc kiểm tra trạng thái tham dự.
-              </p>
-            )}
+            {!plan.tables.length && <p className="text-sm text-amber-900">{t("noTables")}</p>}
+            {!eligible && <p className="text-sm text-muted-foreground">{t("noEligiblePlaces")}</p>}
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
@@ -449,38 +434,44 @@ export function PlanningSuggestions({
             )}
             {stale && (
               <p role="status" className="text-sm text-amber-900">
-                Sơ đồ, danh sách hoặc kiểu gợi ý đã đổi. Tính lại trước khi áp dụng.
+                {t("stale")}
               </p>
             )}
             {proposal && (
               <>
                 <div className="space-y-2 rounded-lg border bg-background p-3">
-                  <h3 className="font-medium">Xem trước · {selected?.title}</h3>
+                  <h3 className="font-medium">
+                    {t("preview", { strategy: selected ? t(selected.titleKey) : "" })}
+                  </h3>
                   <p className="text-sm">
-                    {proposal.assignments.length} chỗ được bố trí · {proposal.preservedCount} giữ
-                    nguyên vị trí · {proposal.changedPlaceCount} thay đổi ·{" "}
-                    {proposal.unassigned.reduce((n, g) => n + g.placeIds.length, 0)} chưa xếp.
+                    {t("previewSummary", {
+                      assigned: formatNumber(proposal.assignments.length, language),
+                      preserved: formatNumber(proposal.preservedCount, language),
+                      changed: formatNumber(proposal.changedPlaceCount, language),
+                      unassigned: formatNumber(
+                        proposal.unassigned.reduce((n, g) => n + g.placeIds.length, 0),
+                        language,
+                      ),
+                    })}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Chưa lưu phương án này. Sơ đồ hiện tại vẫn giữ nguyên.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("notSaved")}</p>
                 </div>
                 <div className="grid max-h-80 gap-2 overflow-auto sm:grid-cols-2">
-                  {plan.tables.map((t) => {
-                    const reason = proposal.reasons.find((r) => r.tableId === t.id);
+                  {plan.tables.map((table) => {
+                    const reason = proposal.reasons.find((r) => r.tableId === table.id);
                     const members = proposal.assignments
-                      .filter((a) => a.tableId === t.id)
+                      .filter((a) => a.tableId === table.id)
                       .sort((a, b) => a.seatNumber - b.seatNumber);
                     return (
-                      <article key={t.id} className="space-y-1 rounded-lg border p-3 text-xs">
+                      <article key={table.id} className="space-y-1 rounded-lg border p-3 text-xs">
                         <h4 className="font-medium">
-                          {t.name} · {members.length}/{t.capacity} chỗ
+                          {table.name} ·{" "}
+                          {t("tableOccupancy", {
+                            occupied: formatNumber(members.length, language),
+                            capacity: formatNumber(table.capacity, language),
+                          })}
                         </h4>
-                        <p>
-                          {reason?.sides
-                            .map((s) => sideLabels[s as keyof typeof sideLabels] ?? s)
-                            .join(" · ") || "Bàn trống"}
-                        </p>
+                        <p>{reason?.sides.map(displaySide).join(" · ") || t("emptyTable")}</p>
                         <p>{reason?.groups.join(" · ")}</p>
                         <p className="text-muted-foreground">{reason?.message}</p>
                         <ul className="space-y-1">
@@ -489,8 +480,9 @@ export function PlanningSuggestions({
                               g = plan.guests.find((g) => g.id === p?.guestId);
                             return (
                               <li key={a.placeId}>
-                                Ghế {a.seatNumber}:{" "}
-                                {p?.person?.fullName ?? `Chỗ ${p?.position} · ${g?.recipientName}`}
+                                {t("seat", { number: formatNumber(a.seatNumber, language) })}:{" "}
+                                {p?.person?.fullName ??
+                                  `${t("seat", { number: formatNumber(p?.position ?? 0, language) })} · ${g?.recipientName}`}
                               </li>
                             );
                           })}
@@ -501,12 +493,13 @@ export function PlanningSuggestions({
                 </div>
                 {proposal.unassigned.length > 0 && (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs">
-                    <p className="font-medium">Các nhóm chưa xếp được</p>
+                    <p className="font-medium">{t("unassignedGroups")}</p>
                     <ul className="mt-2 space-y-2">
                       {proposal.unassigned.map((g) => (
                         <li key={g.guestId}>
                           {plan.guests.find((x) => x.id === g.guestId)?.recipientName} ·{" "}
-                          {g.placeIds.length} chỗ: {g.message}
+                          {t("seatCount", { count: formatNumber(g.placeIds.length, language) })}:{" "}
+                          {g.message}
                         </li>
                       ))}
                     </ul>
@@ -525,8 +518,7 @@ export function PlanningSuggestions({
                       onChange={(e) => setConfirmed(e.target.checked)}
                       className="mt-1"
                     />
-                    Tôi đồng ý thay thế các vị trí đã xếp, kể cả phần kéo tay. Chỗ từ chối/đang chờ
-                    sẽ không được xếp lại.
+                    {t("replaceConfirmation")}
                   </label>
                 )}
                 <Button
@@ -550,13 +542,11 @@ export function PlanningSuggestions({
                     setConfirmed(false);
                   }}
                 >
-                  {saving ? "Đang áp dụng…" : "Áp dụng gợi ý này"}
+                  {saving ? t("applying") : t("apply")}
                 </Button>
                 {!proposal.changedPlaceCount && (
                   <p className="text-xs text-muted-foreground">
-                    Phương án không thay đổi vị trí nào nên không cần lưu.
-                    {proposal.unassigned.length > 0 &&
-                      " Kiểm tra lý do chưa xếp ở trên để điều chỉnh bàn hoặc tự xếp."}
+                    {t("noChanges")} {proposal.unassigned.length > 0 && t("reviewUnassigned")}
                   </p>
                 )}
               </>

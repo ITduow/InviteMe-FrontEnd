@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -10,15 +11,34 @@ import { env } from "@/core/config/env";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
-import { registerSchema, type RegisterInput } from "../schemas/register.schema";
+import { createRegisterSchema, type RegisterInput } from "../schemas/register.schema";
 import { authApi } from "../api/auth.api";
 import { ConfirmationNotice } from "./confirmation-notice";
 export function RegisterForm() {
+  const { t } = useTranslation("auth");
   const { api } = useRuntime();
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const validationSchema = useMemo(
+    () =>
+      createRegisterSchema({
+        nameRequired: t("validation.nameRequired"),
+        nameMax: t("validation.nameMax"),
+        emailMax: t("validation.emailMax"),
+        emailInvalid: t("validation.emailInvalid"),
+        passwordMin: t("validation.passwordMin"),
+        passwordMax: t("validation.passwordMax"),
+        lowercase: t("validation.lowercase"),
+        uppercase: t("validation.uppercase"),
+        digit: t("validation.digit"),
+        special: t("validation.special"),
+        confirmRequired: t("validation.confirmRequired"),
+        mismatch: t("validation.mismatch"),
+      }),
+    [t],
+  );
   const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: { displayName: "", email: "", password: "", confirmPassword: "" },
   });
   async function submit(values: RegisterInput) {
@@ -30,21 +50,17 @@ export function RegisterForm() {
       setRegisteredEmail(account.email);
     } catch (error) {
       if (error instanceof ApiError && error.backendCode === "DUPLICATE_ACCOUNT") {
-        form.setError(
-          "email",
-          { message: "Email này đã có tài khoản. Hãy đăng nhập hoặc dùng email khác." },
-          { shouldFocus: true },
-        );
+        form.setError("email", { message: t("duplicateEmail") }, { shouldFocus: true });
         return;
       }
       const message =
         error instanceof ApiError && error.status === 429
-          ? "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau một phút."
+          ? t("rateLimited")
           : error instanceof ApiError && error.code === "network"
-            ? "Không thể kết nối. Hãy kiểm tra mạng trước khi thử lại."
+            ? t("registerNetworkError")
             : error instanceof ApiError && error.code === "validation"
-              ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra các trường bên dưới."
-              : "Chưa thể hoàn tất đăng ký. Nếu đã nhận email xác nhận, hãy dùng link trong email; nếu chưa, vui lòng thử lại sau.";
+              ? t("registerFieldValidation")
+              : t("registerFailed");
       form.setError("root.server", { message });
       if (error instanceof ApiError) {
         const fields: Record<string, "email" | "password" | "displayName"> = {
@@ -57,7 +73,7 @@ export function RegisterForm() {
         };
         for (const key of Object.keys(error.fieldErrors)) {
           const field = fields[key];
-          if (field) form.setError(field, { message: "Vui lòng kiểm tra lại thông tin này." });
+          if (field) form.setError(field, { message: t("registerValidationFieldError") });
         }
       }
     }
@@ -66,10 +82,8 @@ export function RegisterForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl">Bắt đầu ngày vui của bạn</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Tạo tài khoản InviteMe để cùng chuẩn bị ngày cưới.
-        </p>
+        <h1 className="font-display text-3xl">{t("registerHeading")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("registerDescription")}</p>
       </div>
       <form
         onSubmit={form.handleSubmit(submit)}
@@ -78,7 +92,7 @@ export function RegisterForm() {
         aria-busy={form.formState.isSubmitting}
       >
         <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
-          <FormField control={form.control} name="displayName" label="Họ và tên">
+          <FormField control={form.control} name="displayName" label={t("displayName")}>
             {(field) => (
               <Input
                 {...field}
@@ -89,7 +103,7 @@ export function RegisterForm() {
               />
             )}
           </FormField>
-          <FormField control={form.control} name="email" label="Địa chỉ email">
+          <FormField control={form.control} name="email" label={t("email")}>
             {(field) => (
               <Input
                 {...field}
@@ -101,7 +115,7 @@ export function RegisterForm() {
               />
             )}
           </FormField>
-          <FormField control={form.control} name="password" label="Mật khẩu">
+          <FormField control={form.control} name="password" label={t("password")}>
             {(field) => (
               <div className="relative">
                 <Input
@@ -121,7 +135,7 @@ export function RegisterForm() {
                   size="icon"
                   className="absolute right-0 top-0"
                   onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                   aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff /> : <Eye />}
@@ -130,9 +144,9 @@ export function RegisterForm() {
             )}
           </FormField>
           <p id="register-password-help" className="text-xs leading-5 text-muted-foreground">
-            12–128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
+            {t("passwordHelp")}
           </p>
-          <FormField control={form.control} name="confirmPassword" label="Nhập lại mật khẩu">
+          <FormField control={form.control} name="confirmPassword" label={t("confirmPassword")}>
             {(field) => (
               <Input
                 {...field}
@@ -151,7 +165,7 @@ export function RegisterForm() {
         )}
         {!env.apiUrl && (
           <p role="status" className="text-sm text-muted-foreground">
-            Chức năng đăng ký chưa sẵn sàng. Vui lòng thử lại sau.
+            {t("registrationNotReady")}
           </p>
         )}
         <Button
@@ -159,13 +173,13 @@ export function RegisterForm() {
           className="w-full"
           disabled={form.formState.isSubmitting || !env.apiUrl}
         >
-          {form.formState.isSubmitting ? "Đang tạo tài khoản…" : "Tạo tài khoản"}
+          {form.formState.isSubmitting ? t("creatingAccount") : t("register")}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">
-        Đã có tài khoản?{" "}
+        {t("alreadyHaveAccount")}{" "}
         <Link href="/login" className="font-medium text-primary underline underline-offset-4">
-          Đăng nhập
+          {t("login")}
         </Link>
       </p>
     </div>

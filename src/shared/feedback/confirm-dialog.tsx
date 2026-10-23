@@ -2,13 +2,14 @@
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import type { ReactNode } from "react";
 import { buttonVariants } from "@/shared/ui/button";
+import { useTranslation } from "react-i18next";
 export function ConfirmDialog({
   trigger,
   title,
   description,
   onConfirm,
-  cancelLabel = "Cancel",
-  confirmLabel = "Confirm",
+  cancelLabel,
+  confirmLabel,
 }: {
   trigger: ReactNode;
   title: string;
@@ -17,6 +18,7 @@ export function ConfirmDialog({
   cancelLabel?: string;
   confirmLabel?: string;
 }) {
+  const { t } = useTranslation("common");
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>
@@ -29,10 +31,10 @@ export function ConfirmDialog({
           </AlertDialog.Description>
           <div className="mt-6 flex justify-end gap-3">
             <AlertDialog.Cancel className={buttonVariants({ variant: "outline" })}>
-              {cancelLabel}
+              {cancelLabel ?? t("cancelAction")}
             </AlertDialog.Cancel>
             <AlertDialog.Action className={buttonVariants()} onClick={onConfirm}>
-              {confirmLabel}
+              {confirmLabel ?? t("confirmAction")}
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>

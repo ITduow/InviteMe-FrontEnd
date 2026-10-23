@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
-import { format, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
+import { parseISO } from "date-fns";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -19,18 +19,20 @@ import { Button } from "@/shared/ui/button";
 import { resolveWeddingMediaUrl } from "./wedding-cover-uploader";
 import { useWeddings } from "../hooks/use-weddings";
 import type { WeddingListSort } from "../api/wedding.api";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate, formatNumber } from "@/i18n/format";
 
 const WEDDING_PAGE_SIZE = 20;
-const SORT_OPTIONS: { value: WeddingListSort; label: string }[] = [
-  { value: "weddingDate", label: "Ngày tổ chức" },
-  { value: "createdAt", label: "Mới tạo gần đây" },
-  { value: "title", label: "Tên lễ cưới" },
+const SORT_OPTIONS: { value: WeddingListSort; key: string }[] = [
+  { value: "weddingDate", key: "sortDate" },
+  { value: "createdAt", key: "sortRecent" },
+  { value: "title", key: "sortName" },
 ];
 
-function WeddingListSkeleton() {
+function WeddingListSkeleton({ label }: { label: string }) {
   return (
-    <div role="status" aria-label="Đang tải danh sách lễ cưới">
-      <span className="sr-only">Đang tải danh sách lễ cưới…</span>
+    <div role="status" aria-label={label}>
+      <span className="sr-only">{label}</span>
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }, (_, index) => (
           <div
@@ -55,10 +57,12 @@ function WeddingCover({
   imageUrl,
   weddingName,
   dateLabel,
+  t,
 }: {
   imageUrl: string | null;
   weddingName: string;
   dateLabel: string;
+  t: (key: string, options?: { name: string }) => string;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const resolvedUrl = resolveWeddingMediaUrl(imageUrl);
@@ -69,7 +73,7 @@ function WeddingCover({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={resolvedUrl}
-          alt={`Ảnh bìa của ${weddingName}`}
+          alt={t("coverAlt", { name: weddingName })}
           className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
           loading="lazy"
           onError={() => setImageFailed(true)}
@@ -92,7 +96,7 @@ function WeddingCover({
             )}
           </div>
           <span className="relative mt-2 text-xs font-medium text-[#75535e]">
-            {imageFailed ? "Không tải được ảnh bìa" : "Chưa có ảnh bìa"}
+            {imageFailed ? t("coverFailed") : t("noCover")}
           </span>
         </div>
       )}
@@ -112,6 +116,8 @@ function WeddingCover({
 }
 
 export function WeddingList() {
+  const { t } = useTranslation("weddings");
+  const { language } = useLocale();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<WeddingListSort>("weddingDate");
@@ -128,19 +134,19 @@ export function WeddingList() {
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-hover">
-              Không gian cưới của bạn
+              {t("yourWorkspace")}
             </p>
             <h1 className="font-display text-3xl tracking-tight text-foreground sm:text-4xl">
-              Những ngày vui đáng nhớ
+              {t("memorableDays")}
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Quản lý các lễ cưới và tiếp tục chuẩn bị cho từng khoảnh khắc đặc biệt.
+              {t("manageDescription")}
             </p>
           </div>
           <Button asChild className="min-h-11 w-full rounded-xl px-5 shadow-sm sm:w-auto">
             <Link href="/weddings/new">
               <Plus aria-hidden="true" />
-              Tạo lễ cưới
+              {t("createWedding")}
             </Link>
           </Button>
         </div>
@@ -150,33 +156,33 @@ export function WeddingList() {
               <Flower2 className="size-4" aria-hidden="true" />
             </span>
             <span>
-              <strong className="font-semibold text-foreground">{weddings.data.totalCount}</strong>{" "}
-              lễ cưới
+              <strong className="font-semibold text-foreground">
+                {formatNumber(weddings.data.totalCount, language)}
+              </strong>{" "}
+              {t("weddingsCount")}
             </span>
           </div>
         )}
       </div>
 
       <section
-        aria-label="Tìm và sắp xếp lễ cưới"
+        aria-label={t("findAndSort")}
         className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
       >
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="w-full md:max-w-lg">
             <SearchInput
-              label="Tìm lễ cưới"
+              label={t("searchWedding")}
               value={search}
               onChange={(value) => {
                 setSearch(value);
                 setPage(1);
               }}
             />
-            <p className="mt-1.5 pl-1 text-xs text-muted-foreground">
-              Tìm theo tên hoặc đường dẫn của lễ cưới.
-            </p>
+            <p className="mt-1.5 pl-1 text-xs text-muted-foreground">{t("searchHint")}</p>
           </div>
           <label className="flex w-full flex-col gap-1.5 text-sm font-medium text-foreground md:w-56">
-            Sắp xếp theo
+            {t("sortBy")}
             <select
               value={sort}
               onChange={(event) => {
@@ -187,7 +193,7 @@ export function WeddingList() {
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.key)}
                 </option>
               ))}
             </select>
@@ -198,7 +204,7 @@ export function WeddingList() {
       {weddings.isError ? (
         <ErrorState error={weddings.error} retry={() => void weddings.refetch()} />
       ) : !weddings.data ? (
-        <WeddingListSkeleton />
+        <WeddingListSkeleton label={t("loadingListDetails")} />
       ) : weddings.data.items.length === 0 ? (
         <section className="rounded-[1.6rem] border border-border bg-card px-6 py-12 text-center shadow-sm sm:px-10 sm:py-16">
           <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-petal text-primary-hover">
@@ -209,21 +215,19 @@ export function WeddingList() {
             )}
           </div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-hover">
-            {hasSearch ? "Chưa tìm thấy" : "Mở đầu hành trình"}
+            {hasSearch ? t("notFound") : t("journeyStart")}
           </p>
           <h2 className="font-display text-2xl tracking-tight sm:text-3xl">
-            {hasSearch ? "Không có lễ cưới phù hợp" : "Ngày vui bắt đầu từ đây"}
+            {hasSearch ? t("noMatches") : t("startHere")}
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            {hasSearch
-              ? "Thử tên khác hoặc kiểm tra lại đường dẫn bạn đang tìm."
-              : "Tạo không gian đầu tiên để lưu thông tin và chuẩn bị cho ngày trọng đại. Lễ cưới bạn được mời quản lý cũng sẽ xuất hiện tại đây."}
+            {hasSearch ? t("tryAnotherSearch") : t("firstWeddingPrompt")}
           </p>
           {!hasSearch && (
             <Button asChild className="mt-6 min-h-11 rounded-xl px-5">
               <Link href="/weddings/new">
                 <Plus aria-hidden="true" />
-                Tạo lễ cưới
+                {t("createWedding")}
               </Link>
             </Button>
           )}
@@ -232,12 +236,13 @@ export function WeddingList() {
         <>
           <div className="mb-4 flex items-center justify-between gap-3 px-1 text-sm text-muted-foreground">
             <p>
-              Hiển thị{" "}
+              {t("showing")}{" "}
               <span className="font-semibold text-foreground">{weddings.data.items.length}</span>{" "}
-              trên <span className="font-semibold text-foreground">{weddings.data.totalCount}</span>{" "}
-              lễ cưới
+              {t("of")}{" "}
+              <span className="font-semibold text-foreground">{weddings.data.totalCount}</span>{" "}
+              {t("weddingsCount")}
             </p>
-            {weddings.isFetching && <span className="text-xs">Đang cập nhật…</span>}
+            {weddings.isFetching && <span className="text-xs">{t("updating")}</span>}
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
             {weddings.data.items.map((wedding) => {
@@ -254,9 +259,14 @@ export function WeddingList() {
                     weddingName={wedding.title}
                     dateLabel={
                       wedding.weddingDate
-                        ? format(parseISO(wedding.weddingDate), "d MMMM yyyy", { locale: vi })
-                        : "Chưa thiết lập ngày"
+                        ? formatDate(parseISO(wedding.weddingDate), language, {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : t("dateNotSet")
                     }
+                    t={t}
                   />
                   <div className="p-5 sm:p-5">
                     <div className="flex min-w-0 items-start justify-between gap-3">
@@ -277,28 +287,33 @@ export function WeddingList() {
                       />
                       <span className="truncate">
                         {wedding.weddingDate
-                          ? format(parseISO(wedding.weddingDate), "EEEE, d MMMM yyyy", {
-                              locale: vi,
+                          ? formatDate(parseISO(wedding.weddingDate), language, {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
                             })
-                          : "Chưa thiết lập ngày tổ chức"}
+                          : t("eventDateNotSet")}
                       </span>
                     </div>
                     <div className="mt-4 rounded-xl bg-background px-3.5 py-3">
                       <div className="flex items-center justify-between gap-3 text-xs">
                         <span className="flex items-center gap-1.5 font-medium text-muted-foreground">
                           <Users className="size-3.5 text-primary-hover" aria-hidden="true" />
-                          Khách xác nhận
+                          {t("confirmedGuests")}
                         </span>
                         <span className="font-semibold text-foreground">
-                          {wedding.participantCount}
-                          {capacity > 0 ? ` / ${capacity}` : " người"}
+                          {formatNumber(wedding.participantCount, language)}
+                          {capacity > 0
+                            ? ` / ${formatNumber(capacity, language)}`
+                            : ` ${t("people")}`}
                         </span>
                       </div>
                       {capacity > 0 ? (
                         <div
                           className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-soft/60"
                           role="progressbar"
-                          aria-label="Số khách đã xác nhận so với sức chứa"
+                          aria-label={t("confirmedGuests")}
                           aria-valuemin={0}
                           aria-valuemax={capacity}
                           aria-valuenow={Math.min(wedding.participantCount, capacity)}
@@ -310,7 +325,7 @@ export function WeddingList() {
                         </div>
                       ) : (
                         <p className="mt-1 text-[11px] text-muted-foreground">
-                          Chưa thiết lập sức chứa
+                          {t("capacityNotSet")}
                         </p>
                       )}
                     </div>
@@ -318,7 +333,7 @@ export function WeddingList() {
                       href={`/weddings/${encodeURIComponent(wedding.id)}/overview`}
                       className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-primary hover:bg-petal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                      Mở không gian cưới
+                      {t("openWorkspace")}
                       <ArrowUpRight className="size-4" aria-hidden="true" />
                     </Link>
                   </div>

@@ -16,12 +16,30 @@ export const RESERVED_WEDDING_SLUGS = new Set([
   "www",
 ]);
 
-export const weddingSlugSchema = z
-  .string()
-  .min(3, "Đường dẫn cần có ít nhất 3 ký tự.")
-  .max(80, "Đường dẫn không được dài quá 80 ký tự.")
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Chỉ dùng chữ thường không dấu, số và dấu gạch ngang đơn.")
-  .refine((value) => !RESERVED_WEDDING_SLUGS.has(value), "Đường dẫn này không thể sử dụng.");
+export type WeddingSlugMessages = {
+  min: string;
+  max: string;
+  pattern: string;
+  reserved: string;
+};
+
+const vietnameseSlugMessages: WeddingSlugMessages = {
+  min: "Đường dẫn cần có ít nhất 3 ký tự.",
+  max: "Đường dẫn không được dài quá 80 ký tự.",
+  pattern: "Chỉ dùng chữ thường không dấu, số và dấu gạch ngang đơn.",
+  reserved: "Đường dẫn này không thể sử dụng.",
+};
+
+export function createWeddingSlugSchema(messages: WeddingSlugMessages = vietnameseSlugMessages) {
+  return z
+    .string()
+    .min(3, messages.min)
+    .max(80, messages.max)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, messages.pattern)
+    .refine((value) => !RESERVED_WEDDING_SLUGS.has(value), messages.reserved);
+}
+
+export const weddingSlugSchema = createWeddingSlugSchema();
 
 export const weddingSetupSchema = z.object({
   id: z.string().uuid(),

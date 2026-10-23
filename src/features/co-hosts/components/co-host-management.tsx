@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { MailPlus, RefreshCw, UsersRound } from "lucide-react";
 import { z } from "zod";
 import { useRuntime } from "@/core/config/runtime";
@@ -32,42 +31,59 @@ import {
   type CoHost,
   type PermissionScope,
 } from "../api/co-host.api";
-import { PERMISSION_LABELS } from "../utils/scopes";
 import { ScopeEditor } from "./scope-editor";
+import { PERMISSION_LABELS } from "../utils/scopes";
+import { useLocale } from "@/i18n/language-context";
+import { formatDate } from "@/i18n/format";
 
-const inviteSchema = z.object({
-  email: z.string().trim().pipe(z.email("Email không hợp lệ.").max(256)),
-});
-type InviteInput = z.infer<typeof inviteSchema>;
+type InviteInput = { email: string };
 
-function friendlyError(error: unknown, action: string) {
-  if (!(error instanceof ApiError)) return `Chưa thể ${action}. Vui lòng thử lại.`;
-  if (error.code === "network")
-    return "Không thể kết nối đến máy chủ. Hãy kiểm tra mạng và thử lại.";
-  if (error.status === 403) return "Chỉ chủ tiệc mới có thể quản lý co-host.";
-  if (error.status === 409) return "Thông tin đã thay đổi. Tải lại danh sách rồi thử lại.";
-  if (error.status === 422 || error.status === 400)
-    return "Một hoặc nhiều quyền/phạm vi chưa hợp lệ.";
-  if (error.status === 404) return "Không tìm thấy co-host hoặc nhóm khách đã chọn.";
-  return `Chưa thể ${action}. Vui lòng thử lại sau.`;
+function friendlyError(
+  error: unknown,
+  action: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  if (!(error instanceof ApiError)) return t("errors.actionFailed", { action });
+  if (error.code === "network") return t("errors.network");
+  if (error.status === 403) return t("errors.ownerOnly");
+  if (error.status === 409) return t("errors.conflict");
+  if (error.status === 422 || error.status === 400) return t("errors.invalidScopes");
+  if (error.status === 404) return t("errors.notFound");
+  return t("errors.actionFailedLater", { action });
 }
 
-function scopeDescription(grant: PermissionScope, names: Map<string, string>) {
+function scopeDescription(
+  grant: PermissionScope,
+  names: Map<string, string>,
+  t: (key: string) => string,
+) {
   if (grant.permission === "CHECKIN_MANAGE" && !grant.weddingWide) {
-    return "Phạm vi nhóm cũ — BE không chấp nhận";
+    return t("legacyScope");
   }
   return grant.weddingWide
-    ? "Toàn bộ đám cưới"
-    : grant.groupIds.map((id) => names.get(id) ?? "Nhóm đã xóa").join(", ");
+    ? t("wholeWedding")
+    : grant.groupIds.map((id) => names.get(id) ?? t("deletedGroup")).join(", ");
 }
 
 export function CoHostManagement({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("cohost");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const { isOwner } = usePermission();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
+  const inviteSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .pipe(z.email(t("validation.emailInvalid")).max(256, t("validation.emailMax"))),
+      }),
+    [t],
+  );
   const form = useForm<InviteInput>({
     resolver: zodResolver(inviteSchema),
     defaultValues: { email: "" },
@@ -103,50 +119,45 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
       form.reset();
       setNotice(
         result.status === "SENT"
-          ? `Đã gửi lời mời đến ${result.email}. Link có hiệu lực 72 giờ.`
-          : `Đã tạo lời mời cho ${result.email}, nhưng email chưa gửi được. Hãy kiểm tra dịch vụ email với BE.`,
+          ? t("inviteSent", { email: result.email })
+          : t("inviteQueuedButEmailFailed", { email: result.email }),
       );
       setActionError("");
       await queryClient.invalidateQueries({ queryKey: coHostKeys.invitations(weddingId) });
     },
-    onError: (error) => setActionError(friendlyError(error, "gửi lời mời")),
+    onError: (error) => setActionError(friendlyError(error, t("actions.sendInvite"), t)),
   });
   const revokeInvitation = useMutation({
     mutationFn: (id: string) => revokeCoHostInvitation(api, weddingId, id),
     onSuccess: refresh,
-    onError: (error) => setActionError(friendlyError(error, "thu hồi lời mời")),
+    onError: (error) => setActionError(friendlyError(error, t("actions.revokeInvite"), t)),
   });
   const saveScopes = useMutation({
     mutationFn: ({ userId, grants }: { userId: string; grants: PermissionScope[] }) =>
       updateCoHostScopes(api, weddingId, userId, grants),
     onSuccess: async () => {
       setEditing(null);
-      setNotice("Đã cập nhật quyền và phạm vi cho co-host.");
+      setNotice(t("scopesUpdated"));
       setActionError("");
       await queryClient.invalidateQueries({ queryKey: coHostKeys.members(weddingId) });
     },
-    onError: (error) => setActionError(friendlyError(error, "cập nhật quyền")),
+    onError: (error) => setActionError(friendlyError(error, t("actions.updatePermissions"), t)),
   });
   const revokeMember = useMutation({
     mutationFn: (userId: string) => revokeCoHost(api, weddingId, userId),
     onSuccess: async () => {
       setEditing(null);
-      setNotice("Đã thu hồi quyền truy cập của co-host.");
+      setNotice(t("accessRevoked"));
       setActionError("");
       await refresh();
     },
-    onError: (error) => setActionError(friendlyError(error, "thu hồi co-host")),
+    onError: (error) => setActionError(friendlyError(error, t("actions.revokeCoHost"), t)),
   });
 
   if (!isOwner)
-    return (
-      <EmptyState
-        title="Chỉ chủ tiệc có thể quản lý co-host"
-        description="Bạn không có quyền gửi lời mời hoặc thay đổi phạm vi truy cập của thành viên."
-      />
-    );
+    return <EmptyState title={t("ownerOnlyTitle")} description={t("ownerOnlyDescription")} />;
   if (members.isPending || invitations.isPending || groups.isPending)
-    return <LoadingState label="Đang tải thành viên và quyền truy cập…" />;
+    return <LoadingState label={t("loadingMembers")} />;
   if (members.isError)
     return <ErrorState error={members.error} retry={() => void members.refetch()} />;
   if (invitations.isError)
@@ -162,10 +173,7 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Co-host và quyền truy cập"
-        description="Mời người đáng tin cậy và giới hạn quyền của họ theo toàn bộ đám cưới hoặc từng nhóm khách."
-      />
+      <PageHeader title={t("title")} description={t("description")} />
       {notice && (
         <p
           role="status"
@@ -189,14 +197,12 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
             <MailPlus aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-xl font-semibold">Gửi lời mời co-host</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Lời mời được gửi qua email, có hiệu lực 72 giờ.
-            </p>
+            <h2 className="text-xl font-semibold">{t("sendInvite")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("inviteDescription")}</p>
           </div>
         </div>
         <div className="space-y-4">
-          <FormField control={form.control} name="email" label="Email của co-host">
+          <FormField control={form.control} name="email" label={t("coHostEmail")}>
             {(field) => (
               <Input
                 {...field}
@@ -209,7 +215,7 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
           </FormField>
           <ScopeEditor
             groups={groups.data}
-            submitLabel="Gửi lời mời"
+            submitLabel={t("sendInvite")}
             busy={invite.isPending}
             onSubmit={(grants) =>
               void form.handleSubmit((values) => invite.mutate({ email: values.email, grants }))()
@@ -218,7 +224,7 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
         </div>
         {invite.isPending && (
           <p role="status" className="text-sm text-muted-foreground">
-            Đang tạo và gửi lời mời…
+            {t("sendingInvite")}
           </p>
         )}
       </section>
@@ -226,11 +232,11 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
       <section className="space-y-4">
         <div className="flex items-center gap-3">
           <UsersRound className="size-5 text-primary" aria-hidden="true" />
-          <h2 className="text-xl font-semibold">Thành viên đang hoạt động</h2>
+          <h2 className="text-xl font-semibold">{t("activeMembers")}</h2>
           <Chip>{activeMembers.length}</Chip>
         </div>
         {activeMembers.length === 0 ? (
-          <EmptyState title="Chưa có co-host" description="Gửi lời mời để cùng quản lý đám cưới." />
+          <EmptyState title={t("noCoHosts")} description={t("noCoHostsDescription")} />
         ) : (
           <div className="space-y-4">
             {activeMembers.map((member) => (
@@ -251,20 +257,20 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Lời mời đang chờ</h2>
+          <h2 className="text-xl font-semibold">{t("pendingInvites")}</h2>
           <Button
             variant="outline"
             size="sm"
             disabled={invitations.isFetching}
             onClick={() => void invitations.refetch()}
           >
-            <RefreshCw aria-hidden="true" /> Làm mới
+            <RefreshCw aria-hidden="true" /> {t("refresh")}
           </Button>
         </div>
         {!openInvitations.length ? (
           <EmptyState
-            title="Không có lời mời đang chờ"
-            description="Lời mời mới sẽ xuất hiện ở đây."
+            title={t("noPendingInvites")}
+            description={t("noPendingInvitesDescription")}
           />
         ) : (
           <div className="space-y-3">
@@ -277,25 +283,31 @@ export function CoHostManagement({ weddingId }: { weddingId: string }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-medium">{invitation.email}</h3>
                     <Chip tone={invitation.status === "SENT" ? "success" : "neutral"}>
-                      {invitation.status === "SENT" ? "Đã gửi email" : "Chờ gửi email"}
+                      {invitation.status === "SENT" ? t("emailSent") : t("emailPending")}
                     </Chip>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Hết hạn{" "}
-                    {format(new Date(invitation.expiresAt), "dd/MM/yyyy HH:mm", { locale: vi })}
+                    {t("expiresAt")}{" "}
+                    {formatDate(invitation.expiresAt, language, {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                   <GrantList grants={invitation.grants} groupNames={groupNames} />
                 </div>
                 <ConfirmDialog
                   trigger={
                     <Button type="button" variant="outline" className="shrink-0">
-                      Thu hồi lời mời
+                      {t("revokeInvite")}
                     </Button>
                   }
-                  title="Thu hồi lời mời này?"
-                  description={`Link gửi đến ${invitation.email} sẽ không còn dùng được.`}
-                  cancelLabel="Giữ lời mời"
-                  confirmLabel={revokeInvitation.isPending ? "Đang thu hồi…" : "Thu hồi"}
+                  title={t("revokeInviteConfirmTitle")}
+                  description={t("revokeInviteConfirmDescription", { email: invitation.email })}
+                  cancelLabel={t("keepInvite")}
+                  confirmLabel={revokeInvitation.isPending ? t("revoking") : t("revoke")}
                   onConfirm={() => revokeInvitation.mutate(invitation.id)}
                 />
               </article>
@@ -324,6 +336,7 @@ function CoHostCard({
   onSave: (grants: PermissionScope[]) => void;
   onRevoke: () => void;
 }) {
+  const { t } = useTranslation("cohost");
   const groupNames = new Map(groups.map((group) => [group.id, group.name]));
   return (
     <article className="space-y-4 rounded-xl border bg-card p-4 md:p-5">
@@ -334,18 +347,18 @@ function CoHostCard({
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={onEdit}>
-            {editing ? "Đóng chỉnh sửa" : "Sửa phạm vi"}
+            {editing ? t("closeEditor") : t("editScope")}
           </Button>
           <ConfirmDialog
             trigger={
               <Button type="button" variant="destructive">
-                Thu hồi quyền
+                {t("revokeAccess")}
               </Button>
             }
-            title="Thu hồi quyền truy cập?"
-            description={`${member.fullName} sẽ mất toàn bộ quyền tại đám cưới này.`}
-            cancelLabel="Hủy"
-            confirmLabel="Thu hồi quyền"
+            title={t("revokeAccessConfirmTitle")}
+            description={t("revokeAccessConfirmDescription", { name: member.fullName })}
+            cancelLabel={t("cancel")}
+            confirmLabel={t("revokeAccess")}
             onConfirm={onRevoke}
           />
         </div>
@@ -366,7 +379,7 @@ function CoHostCard({
               ];
             })
           }
-          submitLabel="Lưu phạm vi mới"
+          submitLabel={t("saveScope")}
           busy={busy}
           onSubmit={onSave}
         />
@@ -384,13 +397,14 @@ function GrantList({
   grants: PermissionScope[];
   groupNames: Map<string, string>;
 }) {
-  if (!grants.length) return <p className="text-sm text-muted-foreground">Chưa cấp quyền.</p>;
+  const { t } = useTranslation("cohost");
+  if (!grants.length) return <p className="text-sm text-muted-foreground">{t("noPermissions")}</p>;
   return (
     <ul className="flex flex-wrap gap-2">
       {grants.map((grant) => (
         <li key={grant.permission}>
-          <Chip title={scopeDescription(grant, groupNames)}>
-            {PERMISSION_LABELS[grant.permission]} · {scopeDescription(grant, groupNames)}
+          <Chip title={scopeDescription(grant, groupNames, t)}>
+            {t(`permissions.${grant.permission}`)} · {scopeDescription(grant, groupNames, t)}
           </Chip>
         </li>
       ))}

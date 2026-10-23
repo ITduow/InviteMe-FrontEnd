@@ -1,22 +1,17 @@
 "use client";
 
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  planningGuestUpdateSchema,
+  createPlanningGuestUpdateSchema,
   type PlanningDetail,
   type PlanningGuestUpdate,
 } from "../api/planning.api";
 import { FormField } from "@/shared/forms/form-field";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-
-const sideOptions = [
-  ["BRIDE", "Nhà gái"],
-  ["GROOM", "Nhà trai"],
-  ["MUTUAL", "Chung"],
-  ["UNSPECIFIED", "Chưa xác định"],
-] as const;
 
 export function PlanningGuestEditForm({
   guest,
@@ -31,8 +26,25 @@ export function PlanningGuestEditForm({
   onCancel: () => void;
   onSave: (input: PlanningGuestUpdate) => void;
 }) {
+  const { t } = useTranslation("guests");
+  const schema = useMemo(
+    () =>
+      createPlanningGuestUpdateSchema({
+        nameRequired: t("planning.validation.nameRequired"),
+        nameMax: t("planning.validation.nameMax"),
+        honorificMax: t("planning.validation.honorificMax"),
+        phoneMax: t("planning.validation.phoneMax"),
+        phoneInvalid: t("planning.validation.phoneInvalid"),
+        noteMax: t("planning.validation.noteMax"),
+        emailInvalid: t("planning.validation.emailInvalid"),
+        versionInvalid: t("planning.validation.versionInvalid"),
+        expectedPeopleMin: t("planning.validation.expectedPeopleMin"),
+        expectedPeopleMax: t("planning.validation.expectedPeopleMax"),
+      }),
+    [t],
+  );
   const form = useForm<PlanningGuestUpdate>({
-    resolver: zodResolver(planningGuestUpdateSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       expectedVersion: guest.version,
       recipientName: guest.recipientName,
@@ -51,47 +63,47 @@ export function PlanningGuestEditForm({
       onSubmit={form.handleSubmit(onSave)}
       aria-busy={busy}
     >
-      <h3 className="font-semibold">Chỉnh sửa thông tin khách</h3>
+      <h3 className="font-semibold">{t("planning.editTitle")}</h3>
       <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
-        <FormField control={form.control} name="recipientName" label="Tên người nhận">
+        <FormField control={form.control} name="recipientName" label={t("planning.recipientName")}>
           {(field) => <Input {...field} value={String(field.value ?? "")} maxLength={150} />}
         </FormField>
-        <FormField control={form.control} name="honorific" label="Xưng hô">
+        <FormField control={form.control} name="honorific" label={t("planning.honorific")}>
           {(field) => (
             <Input
               {...field}
               value={String(field.value ?? "")}
               maxLength={50}
-              placeholder="Anh, Chị, Bác…"
+              placeholder={t("planning.honorificPlaceholder")}
             />
           )}
         </FormField>
-        <FormField control={form.control} name="email" label="Email">
+        <FormField control={form.control} name="email" label={t("planning.email")}>
           {(field) => (
             <Input {...field} value={String(field.value ?? "")} type="email" maxLength={254} />
           )}
         </FormField>
-        <FormField control={form.control} name="phone" label="Số điện thoại">
+        <FormField control={form.control} name="phone" label={t("planning.phone")}>
           {(field) => (
             <Input {...field} value={String(field.value ?? "")} type="tel" maxLength={30} />
           )}
         </FormField>
-        <FormField control={form.control} name="side" label="Phía khách mời">
+        <FormField control={form.control} name="side" label={t("planning.side")}>
           {(field) => (
             <select
               {...field}
               value={String(field.value)}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              {sideOptions.map(([value, label]) => (
+              {(["BRIDE", "GROOM", "MUTUAL", "UNSPECIFIED"] as const).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(`planning.sideValues.${value}`)}
                 </option>
               ))}
             </select>
           )}
         </FormField>
-        <FormField control={form.control} name="groupId" label="Nhóm khách">
+        <FormField control={form.control} name="groupId" label={t("planning.group")}>
           {(field) => (
             <select
               {...field}
@@ -99,7 +111,7 @@ export function PlanningGuestEditForm({
               onChange={(event) => field.onChange(event.currentTarget.value || null)}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
             >
-              <option value="">Chưa phân nhóm</option>
+              <option value="">{t("planning.noGroup")}</option>
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -109,7 +121,7 @@ export function PlanningGuestEditForm({
           )}
         </FormField>
         <div className="sm:col-span-2">
-          <FormField control={form.control} name="note" label="Ghi chú">
+          <FormField control={form.control} name="note" label={t("planning.note")}>
             {(field) => (
               <textarea
                 {...field}
@@ -124,10 +136,10 @@ export function PlanningGuestEditForm({
       </fieldset>
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={busy}>
-          {busy ? "Đang lưu…" : "Lưu thay đổi"}
+          {busy ? t("planning.saving") : t("planning.save")}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-          Hủy
+          {t("planning.cancel")}
         </Button>
       </div>
     </form>

@@ -1,7 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import type { SeatingParty, SeatingPlan } from "../utils/seating-demo";
 import { placeKey, tablePlaces, type SeatPeople } from "../utils/seating-attendance";
 import { RsvpBadge } from "./seating-person-details";
+import { formatNumber } from "@/i18n/format";
+import type { Language } from "@/i18n/config";
+import { formatRecipientLabel } from "../utils/seating-demo-i18n";
 
 export function SeatingTableDetails({
   table,
@@ -18,6 +22,8 @@ export function SeatingTableDetails({
   people: SeatPeople;
   onSelect: (partyId: string, place: number) => void;
 }) {
+  const { t, i18n } = useTranslation("guestPlanning", { keyPrefix: "seatingDemo" });
+  const language = (i18n.resolvedLanguage === "en" ? "en" : "vi") as Language;
   const places = tablePlaces(parties, plan, table);
   const confirmed = places.filter(
     ({ party, place }) => people[placeKey(party.id, place)]?.attendanceStatus === "ATTENDING",
@@ -25,14 +31,20 @@ export function SeatingTableDetails({
   const unnamed = places.filter(({ party, place }) => !people[placeKey(party.id, place)]).length;
   return (
     <div className="mt-4 space-y-4">
-      <h2 className="font-serif text-2xl">Danh sách Bàn {table + 1}</h2>
+      <h2 className="font-serif text-2xl">
+        {t("guestsAt", { table: t("tableName", { number: table + 1 }) })}
+      </h2>
       <p className="text-xs leading-5 text-muted-foreground">
-        {places.length}/{capacity} chỗ đã giữ · {confirmed} xác nhận tham dự · {unnamed} chỗ chưa có
-        tên.
+        {t("seatsHeld", {
+          occupied: formatNumber(places.length, language),
+          capacity: formatNumber(capacity, language),
+        })}{" "}
+        · {formatNumber(confirmed, language)} {t("confirmed")} · {formatNumber(unnamed, language)}{" "}
+        {t("unnamedCount").toLocaleLowerCase(language)}.
       </p>
       {!places.length && (
         <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-          Bàn chưa có khách. Kéo nhóm vào bàn hoặc áp dụng một gợi ý.
+          {t("noGuestAtTable")}
         </p>
       )}
       <ol className="space-y-2">
@@ -45,13 +57,15 @@ export function SeatingTableDetails({
                 className="h-auto w-full justify-start whitespace-normal rounded-xl border px-3 py-3 text-left"
                 onClick={() => onSelect(party.id, place)}
               >
-                <span className="shrink-0 text-xs text-muted-foreground">Ghế {index + 1}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {t("seatNumber", { number: formatNumber(index + 1, language) })}
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block break-words text-sm">
-                    {person?.fullName || "Chỗ dự kiến chưa có tên"}
+                    {person?.fullName || t("notNamed")}
                   </span>
                   <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
-                    Nhóm {party.name}
+                    {formatRecipientLabel(party, t, language)}
                   </span>
                   <span className="mt-2 block">
                     <RsvpBadge person={person} />
@@ -62,9 +76,7 @@ export function SeatingTableDetails({
           );
         })}
       </ol>
-      <p className="text-xs leading-5 text-muted-foreground">
-        Bấm một dòng để xem thông tin hoặc chuyển chỗ của người đó.
-      </p>
+      <p className="text-xs leading-5 text-muted-foreground">{t("clickRowHelp")}</p>
     </div>
   );
 }

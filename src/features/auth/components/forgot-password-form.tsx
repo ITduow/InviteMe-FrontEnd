@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiError } from "@/core/api/api-error";
@@ -12,15 +13,24 @@ import { Input } from "@/shared/ui/input";
 import { FormField } from "@/shared/forms/form-field";
 import { authApi } from "../api/auth.api";
 import {
-  forgotPasswordSchema,
+  createForgotPasswordSchema,
   type ForgotPasswordInput,
 } from "../schemas/account-management.schema";
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation("auth");
   const { api } = useRuntime();
   const [sent, setSent] = useState(false);
+  const validationSchema = useMemo(
+    () =>
+      createForgotPasswordSchema({
+        emailMax: t("validation.emailMax"),
+        emailInvalid: t("validation.emailInvalid"),
+      }),
+    [t],
+  );
   const form = useForm<ForgotPasswordInput>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: { email: "" },
   });
 
@@ -33,10 +43,10 @@ export function ForgotPasswordForm() {
     } catch (error) {
       const message =
         error instanceof ApiError && error.status === 429
-          ? "Bạn gửi yêu cầu quá nhanh. Vui lòng chờ một phút rồi thử lại."
+          ? t("rateLimited")
           : error instanceof ApiError && error.code === "network"
-            ? "Không thể kết nối đến máy chủ. Kiểm tra mạng và thử lại."
-            : "Chưa thể gửi yêu cầu lúc này. Vui lòng thử lại sau.";
+            ? t("networkError")
+            : t("resetRequestFailed");
       form.setError("root.server", { message });
     }
   }
@@ -45,19 +55,18 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-5">
         <div className="space-y-2">
-          <h1 className="font-display text-3xl">Kiểm tra email của bạn</h1>
+          <h1 className="font-display text-3xl">{t("checkYourEmail")}</h1>
           <p role="status" className="text-sm leading-6 text-muted-foreground">
-            Nếu email{" "}
-            <strong className="break-all text-foreground">{form.getValues("email")}</strong> có tài
-            khoản InviteMe, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu. Link có hiệu lực trong 15
-            phút.
+            {t("ifEmailExists")}{" "}
+            <strong className="break-all text-foreground">{form.getValues("email")}</strong>{" "}
+            {t("emailResetSentSuffix")}
           </p>
         </div>
         <Button type="button" variant="outline" className="w-full" onClick={() => setSent(false)}>
-          Thử với email khác
+          {t("useAnotherEmail")}
         </Button>
         <Link href="/login" className="block text-center text-sm text-primary underline">
-          Quay lại đăng nhập
+          {t("backToLogin")}
         </Link>
       </div>
     );
@@ -66,12 +75,10 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={form.handleSubmit(submit)} className="space-y-5" noValidate>
       <div className="space-y-2">
-        <h1 className="font-display text-3xl">Quên mật khẩu?</h1>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Nhập email tài khoản. Nếu tài khoản tồn tại, chúng tôi sẽ gửi link đặt lại mật khẩu.
-        </p>
+        <h1 className="font-display text-3xl">{t("forgotTitle")}</h1>
+        <p className="text-sm leading-6 text-muted-foreground">{t("forgotDescriptionDetailed")}</p>
       </div>
-      <FormField control={form.control} name="email" label="Địa chỉ email">
+      <FormField control={form.control} name="email" label={t("email")}>
         {(field) => (
           <Input
             {...field}
@@ -92,7 +99,7 @@ export function ForgotPasswordForm() {
       )}
       {!env.apiUrl && (
         <p role="alert" className="text-sm text-destructive">
-          Kết nối máy chủ chưa được cấu hình.
+          {t("serverNotConfigured")}
         </p>
       )}
       <Button
@@ -100,10 +107,10 @@ export function ForgotPasswordForm() {
         className="w-full"
         disabled={form.formState.isSubmitting || !env.apiUrl}
       >
-        {form.formState.isSubmitting ? "Đang gửi…" : "Gửi hướng dẫn đặt lại"}
+        {form.formState.isSubmitting ? t("sending") : t("sendResetInstructions")}
       </Button>
       <Link href="/login" className="block text-center text-sm text-primary underline">
-        Quay lại đăng nhập
+        {t("backToLogin")}
       </Link>
     </form>
   );

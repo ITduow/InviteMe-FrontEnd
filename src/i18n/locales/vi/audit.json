@@ -1,0 +1,21 @@
+{
+  "ownerOnlyTitle": "Chỉ chủ tiệc có thể xem lịch sử hoạt động",
+  "ownerOnlyDescription": "Nhật ký chỉ hiển thị các thay đổi thuộc đám cưới này.",
+  "endDateBeforeStart": "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu.",
+  "title": "Lịch sử hoạt động",
+  "description": "Theo dõi ai đã thực hiện hành động nào trong đám cưới này.",
+  "action": "Hành động",
+  "actionPlaceholder": "Ví dụ: GUEST_UPDATED",
+  "entityType": "Loại dữ liệu",
+  "entityPlaceholder": "Ví dụ: Guest",
+  "fromDate": "Từ ngày",
+  "toDate": "Đến ngày",
+  "filter": "Lọc",
+  "clearFilters": "Xóa bộ lọc",
+  "loading": "Đang tải lịch sử hoạt động…",
+  "noMatches": "Chưa có hoạt động phù hợp",
+  "noMatchesHint": "Thử bỏ bớt điều kiện lọc hoặc chọn khoảng ngày khác.",
+  "entityId": "Mã đối tượng: {{id}}",
+  "activityCount": "{{count}} hoạt động",
+  "page": "Trang {{current}}/"
+}

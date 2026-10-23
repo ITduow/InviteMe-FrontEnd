@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BellRing, CalendarClock, Mail, RefreshCw, Send } from "lucide-react";
 import { ApiError } from "@/core/api/api-error";
@@ -12,6 +13,7 @@ import { ErrorState } from "@/shared/feedback/error-state";
 import { LoadingState } from "@/shared/feedback/loading-state";
 import { PageHeader } from "@/shared/components/page-header";
 import { Button } from "@/shared/ui/button";
+import { useLocale } from "@/i18n/language-context";
 import {
   getRsvpReminderSummary,
   listRsvpReminders,
@@ -25,53 +27,30 @@ import {
 } from "../api/rsvp-reminders.api";
 
 const fieldClass = "h-10 rounded-lg border bg-background px-3 text-sm";
-const statusLabels: Record<RsvpReminderStatus, string> = {
-  PENDING: "Đang chờ gửi",
-  SENDING: "Đang gửi",
-  SENT: "Đã gửi",
-  FAILED: "Gửi lỗi",
-  CANCELLED: "Đã hủy",
-};
-const kindLabels: Record<RsvpReminderKind, string> = {
-  AUTO_3D: "Tự động · trước 3 ngày",
-  AUTO_1D: "Tự động · trước 1 ngày",
-  MANUAL: "Gửi thủ công",
-};
-const skipLabels: Record<string, string> = {
-  DEADLINE_PASSED: "Đã qua hạn RSVP",
-  ALREADY_RESPONDED: "Khách đã trả lời RSVP",
-  LOCKED: "RSVP của khách đã khóa",
-  NO_EMAIL: "Khách chưa có email hợp lệ",
-  INVITATION_NOT_SENT: "Chưa gửi thiệp qua email",
-  MANUAL_ALREADY_USED: "Đã dùng lượt nhắc thủ công",
-  ALREADY_SCHEDULED: "Lượt nhắc này đã được lên lịch",
-  RECENTLY_REMINDED: "Vừa được nhắc trong vòng 24 giờ",
-  GUEST_NOT_FOUND: "Không tìm thấy khách trong wedding này",
-};
-
-function formatDate(value: string | null, timezone: string) {
-  if (!value) return "Chưa thiết lập";
+function formatDate(value: string | null, timezone: string, language: "vi" | "en", notSet: string) {
+  if (!value) return notSet;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Chưa thiết lập";
-  return new Intl.DateTimeFormat("vi-VN", {
+  if (Number.isNaN(date.getTime())) return notSet;
+  return new Intl.DateTimeFormat(language === "en" ? "en-US" : "vi-VN", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: timezone,
   }).format(date);
 }
 
-function errorMessage(error: unknown) {
-  if (!(error instanceof ApiError)) return "Không hoàn tất được thao tác. Vui lòng thử lại.";
-  if (error.backendCode === "EMAIL_NOT_CONFIGURED")
-    return "BE chưa cấu hình SMTP nên chưa thể gửi email nhắc RSVP.";
+function errorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof ApiError)) return t("reminder.errors.generic");
+  if (error.backendCode === "EMAIL_NOT_CONFIGURED") return t("reminder.errors.emailUnavailable");
   if (error.backendCode === "WEDDING_SCOPE_REQUIRED")
-    return "Tính năng nhắc RSVP cần quyền trên toàn wedding.";
-  if (error.status === 403) return "Bạn không có quyền quản lý nhắc RSVP trong wedding này.";
-  if (error.status === 422) return "Wedding đã đóng hoặc yêu cầu không còn hợp lệ.";
-  return error.message;
+    return t("reminder.errors.weddingWideRequired");
+  if (error.status === 403) return t("reminder.errors.forbidden");
+  if (error.status === 422) return t("reminder.errors.invalidRequest");
+  return t("reminder.errors.generic");
 }
 
 export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
+  const { t } = useTranslation("guests");
+  const { language } = useLocale();
   const { api } = useRuntime();
   const cache = useQueryClient();
   const { can, isWeddingWide } = usePermission();
@@ -112,8 +91,8 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
   if (!hasWeddingWideRsvp)
     return (
       <EmptyState
-        title="Cần quyền RSVP toàn wedding"
-        description="Lịch nhắc được tính cho toàn bộ khách mời, nên Co-host chỉ có quyền RSVP theo nhóm không thể xem hoặc quản lý mục này."
+        title={t("reminder.weddingWideTitle")}
+        description={t("reminder.weddingWideDescription")}
       />
     );
 
@@ -132,12 +111,10 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
     try {
       const updated = await saveRsvpReminderSettings(api, weddingId, !summary.autoEnabled);
       cache.setQueryData(rsvpReminderKeys.summary(weddingId), updated);
-      setNotice(
-        updated.autoEnabled ? "Đã bật lịch nhắc RSVP tự động." : "Đã tắt lịch nhắc RSVP tự động.",
-      );
+      setNotice(updated.autoEnabled ? t("reminder.enabledNotice") : t("reminder.disabledNotice"));
       await refreshAfterChange();
     } catch (error) {
-      setActionError(errorMessage(error));
+      setActionError(errorMessage(error, t));
     } finally {
       setBusy(null);
     }
@@ -153,7 +130,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
       setPreview(result);
       setSelectedIds(result.eligible.map((guest) => guest.guestId));
     } catch (error) {
-      setActionError(errorMessage(error));
+      setActionError(errorMessage(error, t));
     } finally {
       setBusy(null);
     }
@@ -168,14 +145,22 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
       const result = await sendRsvpReminders(api, weddingId, selectedIds);
       setNotice(
         result.queued
-          ? `Đã đưa ${result.queued} email vào hàng đợi. Dự kiến gửi lúc ${formatDate(result.sendAt, summary?.timezone ?? "Asia/Ho_Chi_Minh")}.`
-          : "Không có email nào được đưa vào hàng đợi. Hãy xem lý do bị bỏ qua bên dưới.",
+          ? t("reminder.queuedNotice", {
+              count: result.queued,
+              date: formatDate(
+                result.sendAt,
+                summary?.timezone ?? "Asia/Ho_Chi_Minh",
+                language,
+                t("reminder.notSet"),
+              ),
+            })
+          : t("reminder.noneQueuedNotice"),
       );
       setPreview({ sendAt: result.sendAt, eligible: [], skipped: result.skipped });
       setSelectedIds([]);
       await refreshAfterChange();
     } catch (error) {
-      setActionError(errorMessage(error));
+      setActionError(errorMessage(error, t));
     } finally {
       setBusy(null);
     }
@@ -200,13 +185,13 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Nhắc RSVP"
-        description="Theo dõi lịch tự động, nhắc khách chưa phản hồi và xem trạng thái gửi email."
+        title={t("reminder.title")}
+        description={t("reminder.description")}
         action={
           canManage ? (
             <Button variant="outline" onClick={() => void loadPreview()} disabled={busy !== null}>
               <RefreshCw aria-hidden="true" />
-              {busy === "preview" ? "Đang kiểm tra…" : "Xem trước lượt nhắc"}
+              {busy === "preview" ? t("reminder.checking") : t("reminder.previewButton")}
             </Button>
           ) : undefined
         }
@@ -226,7 +211,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
           {notice}
         </p>
       )}
-      {summaryQuery.isPending && <LoadingState label="Đang tải cấu hình nhắc RSVP…" />}
+      {summaryQuery.isPending && <LoadingState label={t("reminder.loadingSettings")} />}
       {summaryQuery.isError && (
         <ErrorState error={summaryQuery.error} retry={() => void summaryQuery.refetch()} />
       )}
@@ -239,10 +224,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
               className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
             >
               <Mail className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              <p>
-                BE chưa cấu hình email gửi đi. Bạn vẫn xem được lịch và lịch sử, nhưng gửi nhắc thủ
-                công sẽ bị từ chối cho đến khi SMTP được cấu hình.
-              </p>
+              <p>{t("reminder.emailNotConfigured")}</p>
             </div>
           )}
 
@@ -253,11 +235,10 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 id="reminder-settings-heading" className="text-lg font-semibold">
-                  Lịch nhắc tự động
+                  {t("reminder.automaticTitle")}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Nhắc trước hạn RSVP 3 ngày và 1 ngày; chỉ gửi khách chưa phản hồi, đã nhận thiệp
-                  email và chưa bị khóa RSVP.
+                  {t("reminder.automaticDescription")}
                 </p>
               </div>
               {canManage ? (
@@ -268,54 +249,73 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                 >
                   <BellRing aria-hidden="true" />
                   {busy === "settings"
-                    ? "Đang lưu…"
+                    ? t("reminder.saving")
                     : summary.autoEnabled
-                      ? "Tắt tự động"
-                      : "Bật tự động"}
+                      ? t("reminder.disable")
+                      : t("reminder.enable")}
                 </Button>
               ) : (
-                <span className="rounded-full bg-muted px-3 py-1 text-sm">Chỉ xem</span>
+                <span className="rounded-full bg-muted px-3 py-1 text-sm">
+                  {t("reminder.readOnly")}
+                </span>
               )}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              <Metric label="Chưa trả lời" value={summary.notResponded} />
-              <Metric label="Có thể nhắc ngay" value={summary.canRemindNow} />
-              <Metric label="Đang chờ / gửi" value={summary.counts.pending} />
-              <Metric label="Đã gửi thành công" value={summary.counts.sent} />
-              <Metric label="Gửi lỗi" value={summary.counts.failed} />
-              <Metric label="Đã hủy" value={summary.counts.cancelled} />
+              <Metric label={t("reminder.notResponded")} value={summary.notResponded} />
+              <Metric label={t("reminder.canRemindNow")} value={summary.canRemindNow} />
+              <Metric label={t("reminder.pendingSending")} value={summary.counts.pending} />
+              <Metric label={t("reminder.sentSuccessfully")} value={summary.counts.sent} />
+              <Metric label={t("reminder.sendFailed")} value={summary.counts.failed} />
+              <Metric label={t("reminder.cancelled")} value={summary.counts.cancelled} />
             </div>
 
             <div className="grid gap-4 border-t pt-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="space-y-2">
-                <h3 className="font-medium">Các lượt nhắc</h3>
+                <h3 className="font-medium">{t("reminder.rounds")}</h3>
                 {summary.autoRounds.map((round) => (
                   <div
                     key={round.kind}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm"
                   >
-                    <span>{kindLabels[round.kind]}</span>
+                    <span>{t(`reminder.kind.${round.kind}`)}</span>
                     <span className="text-muted-foreground">
                       {round.state === "OFF"
-                        ? "Chưa có hạn RSVP hoặc đang tắt"
-                        : `${round.state === "STARTED" ? "Đã đến lịch" : "Dự kiến"}: ${formatDate(round.at, summary.timezone)}`}
+                        ? t("reminder.noSchedule")
+                        : t(
+                            round.state === "STARTED"
+                              ? "reminder.startedAt"
+                              : "reminder.scheduledAt",
+                            {
+                              date: formatDate(
+                                round.at,
+                                summary.timezone,
+                                language,
+                                t("reminder.notSet"),
+                              ),
+                            },
+                          )}
                     </span>
                   </div>
                 ))}
               </div>
               <div className="space-y-2 text-sm">
-                <h3 className="font-medium">Quy tắc gửi</h3>
+                <h3 className="font-medium">{t("reminder.sendingRules")}</h3>
                 <p>
-                  Hạn RSVP: <strong>{formatDate(summary.rsvpDeadline, summary.timezone)}</strong>
+                  {t("reminder.rsvpDeadline")}:{" "}
+                  <strong>
+                    {formatDate(
+                      summary.rsvpDeadline,
+                      summary.timezone,
+                      language,
+                      t("reminder.notSet"),
+                    )}
+                  </strong>
                 </p>
                 <p>
-                  Giờ gửi theo múi giờ wedding: <strong>{summary.sendingHours}</strong>
+                  {t("reminder.sendingHours")}: <strong>{summary.sendingHours}</strong>
                 </p>
-                <p>
-                  Tối đa <strong>{summary.maxRemindersPerGuest}</strong> email nhắc mỗi khách; các
-                  lượt cách nhau ít nhất 24 giờ.
-                </p>
+                <p>{t("reminder.maxReminders", { count: summary.maxRemindersPerGuest })}</p>
               </div>
             </div>
           </section>
@@ -327,10 +327,10 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
             >
               <div>
                 <h2 id="manual-reminder-heading" className="text-lg font-semibold">
-                  Nhắc khách thủ công
+                  {t("reminder.manualTitle")}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Xem trước người đủ điều kiện và các trường hợp bị bỏ qua trước khi xác nhận gửi.
+                  {t("reminder.manualDescription")}
                 </p>
               </div>
               {!preview ? (
@@ -340,21 +340,28 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                   disabled={busy !== null}
                 >
                   <CalendarClock aria-hidden="true" />
-                  {busy === "preview" ? "Đang kiểm tra…" : "Kiểm tra khách có thể nhắc"}
+                  {busy === "preview" ? t("reminder.checking") : t("reminder.checkEligible")}
                 </Button>
               ) : (
                 <>
                   <p className="rounded-lg bg-muted p-3 text-sm">
-                    Lượt email sẽ được gửi lúc{" "}
-                    <strong>{formatDate(preview.sendAt, summary.timezone)}</strong>. Giờ gửi tuân
-                    theo múi giờ wedding.
+                    {t("reminder.previewSendTime", {
+                      date: formatDate(
+                        preview.sendAt,
+                        summary.timezone,
+                        language,
+                        t("reminder.notSet"),
+                      ),
+                    })}
                   </p>
                   {preview.eligible.length > 0 ? (
                     <>
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm">
-                          Đủ điều kiện: <strong>{preview.eligible.length}</strong> · Đã chọn:{" "}
-                          <strong>{selectedCount}</strong>
+                          {t("reminder.eligibleSummary", {
+                            eligible: preview.eligible.length,
+                            selected: selectedCount,
+                          })}
                         </p>
                         <div className="flex gap-2">
                           <Button
@@ -365,7 +372,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                               setSelectedIds(preview.eligible.map((guest) => guest.guestId))
                             }
                           >
-                            Chọn tất cả
+                            {t("reminder.selectAll")}
                           </Button>
                           <Button
                             type="button"
@@ -373,7 +380,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                             size="sm"
                             onClick={() => setSelectedIds([])}
                           >
-                            Bỏ chọn
+                            {t("reminder.clearSelection")}
                           </Button>
                         </div>
                       </div>
@@ -385,7 +392,9 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                               className="size-5 accent-primary"
                               checked={selectedIds.includes(guest.guestId)}
                               onChange={(event) => toggleGuest(guest.guestId, event.target.checked)}
-                              aria-label={`Chọn nhắc ${guest.recipientName}`}
+                              aria-label={t("reminder.selectReminder", {
+                                name: guest.recipientName,
+                              })}
                             />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate font-medium">
@@ -396,7 +405,10 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                               </span>
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              Đã gửi {guest.remindersSent}/{summary.maxRemindersPerGuest}
+                              {t("reminder.remindersSent", {
+                                sent: guest.remindersSent,
+                                max: summary.maxRemindersPerGuest,
+                              })}
                             </span>
                           </li>
                         ))}
@@ -404,14 +416,14 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                     </>
                   ) : (
                     <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                      Hiện không có khách nào đủ điều kiện nhận nhắc RSVP thủ công.
+                      {t("reminder.noEligibleGuests")}
                     </p>
                   )}
 
                   {preview.skipped.length > 0 && (
                     <details className="rounded-lg border p-3">
                       <summary className="cursor-pointer text-sm font-medium">
-                        Bỏ qua {preview.skipped.length} khách
+                        {t("reminder.skippedCount", { count: preview.skipped.length })}
                       </summary>
                       <ul className="mt-3 space-y-2 text-sm">
                         {preview.skipped.map((guest, index) => (
@@ -419,9 +431,11 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                             key={`${guest.guestId}-${guest.reason}-${index}`}
                             className="flex flex-wrap justify-between gap-2 border-t pt-2"
                           >
-                            <span>{guest.recipientName || "Khách không tồn tại"}</span>
+                            <span>{guest.recipientName || t("reminder.guestNotFound")}</span>
                             <span className="text-muted-foreground">
-                              {skipLabels[guest.reason] ?? guest.reason}
+                              {t(`reminder.skipReasons.${guest.reason}`, {
+                                defaultValue: guest.reason,
+                              })}
                             </span>
                           </li>
                         ))}
@@ -435,7 +449,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                       onClick={() => void loadPreview()}
                       disabled={busy !== null}
                     >
-                      Làm mới xem trước
+                      {t("reminder.refreshPreview")}
                     </Button>
                     <ConfirmDialog
                       trigger={
@@ -446,14 +460,14 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                         >
                           <Send aria-hidden="true" />
                           {busy === "send"
-                            ? "Đang đưa vào hàng đợi…"
-                            : `Gửi nhắc cho ${selectedCount} khách`}
+                            ? t("reminder.queueing")
+                            : t("reminder.sendSelected", { count: selectedCount })}
                         </Button>
                       }
-                      title="Xác nhận gửi email nhắc RSVP?"
-                      description={`BE sẽ kiểm tra lại điều kiện và đưa email của ${selectedCount} khách đã chọn vào hàng đợi. Gửi thủ công chỉ được thực hiện một lần cho mỗi khách.`}
-                      cancelLabel="Quay lại"
-                      confirmLabel="Đưa vào hàng đợi"
+                      title={t("reminder.confirmTitle")}
+                      description={t("reminder.confirmDescription", { count: selectedCount })}
+                      cancelLabel={t("reminder.goBack")}
+                      confirmLabel={t("reminder.addToQueue")}
                       onConfirm={() => void sendSelected()}
                     />
                   </div>
@@ -471,15 +485,13 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="reminder-history-heading" className="text-lg font-semibold">
-              Lịch sử email nhắc
+              {t("reminder.historyTitle")}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Trạng thái được cập nhật sau khi background worker xử lý email.
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("reminder.historyDescription")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <label className="sr-only" htmlFor="reminder-status-filter">
-              Lọc trạng thái
+              {t("reminder.filterStatus")}
             </label>
             <select
               id="reminder-status-filter"
@@ -487,15 +499,17 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
               value={status}
               onChange={changeStatus}
             >
-              <option value="">Mọi trạng thái</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              <option value="">{t("reminder.allStatuses")}</option>
+              {(["PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"] as RsvpReminderStatus[]).map(
+                (value) => (
+                  <option key={value} value={value}>
+                    {t(`reminder.status.${value}`)}
+                  </option>
+                ),
+              )}
             </select>
             <label className="sr-only" htmlFor="reminder-kind-filter">
-              Lọc loại
+              {t("reminder.filterKind")}
             </label>
             <select
               id="reminder-kind-filter"
@@ -503,23 +517,23 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
               value={kind}
               onChange={changeKind}
             >
-              <option value="">Mọi lượt nhắc</option>
-              {Object.entries(kindLabels).map(([value, label]) => (
+              <option value="">{t("reminder.allKinds")}</option>
+              {(["AUTO_3D", "AUTO_1D", "MANUAL"] as RsvpReminderKind[]).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(`reminder.kind.${value}`)}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {historyQuery.isPending && <LoadingState label="Đang tải lịch sử nhắc RSVP…" />}
+        {historyQuery.isPending && <LoadingState label={t("reminder.loadingHistory")} />}
         {historyQuery.isError && (
           <ErrorState error={historyQuery.error} retry={() => void historyQuery.refetch()} />
         )}
         {history && history.items.length === 0 && (
           <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
-            Chưa có email nhắc phù hợp bộ lọc.
+            {t("reminder.emptyHistory")}
           </p>
         )}
         {history && history.items.length > 0 && (
@@ -528,11 +542,11 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="bg-muted/60 text-muted-foreground">
                   <tr>
-                    <th className="p-3 font-medium">Khách</th>
-                    <th className="p-3 font-medium">Lượt</th>
-                    <th className="p-3 font-medium">Trạng thái</th>
-                    <th className="p-3 font-medium">Thời điểm</th>
-                    <th className="p-3 font-medium">Kết quả</th>
+                    <th className="p-3 font-medium">{t("reminder.guest")}</th>
+                    <th className="p-3 font-medium">{t("reminder.kindLabel")}</th>
+                    <th className="p-3 font-medium">{t("reminder.statusLabel")}</th>
+                    <th className="p-3 font-medium">{t("reminder.time")}</th>
+                    <th className="p-3 font-medium">{t("reminder.result")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -541,28 +555,30 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                       <td className="p-3">
                         <span className="block font-medium">{item.recipientName}</span>
                         <span className="text-xs text-muted-foreground">
-                          {item.recipient ?? "Email ẩn theo quyền tài khoản"}
+                          {item.recipient ?? t("reminder.emailHidden")}
                         </span>
                       </td>
-                      <td className="p-3">{kindLabels[item.kind]}</td>
+                      <td className="p-3">{t(`reminder.kind.${item.kind}`)}</td>
                       <td className="p-3">
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === "SENT" ? "bg-green-100 text-green-900" : item.status === "FAILED" ? "bg-red-100 text-red-900" : item.status === "CANCELLED" ? "bg-muted text-muted-foreground" : "bg-amber-100 text-amber-950"}`}
                         >
-                          {statusLabels[item.status]}
+                          {t(`reminder.status.${item.status}`)}
                         </span>
                       </td>
                       <td className="p-3">
                         {formatDate(
                           item.sentAt ?? item.nextAttemptAt,
                           summary?.timezone ?? "Asia/Ho_Chi_Minh",
+                          language,
+                          t("reminder.notSet"),
                         )}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {item.lastErrorCode ??
                           (item.sentAt
-                            ? `Đã gửi · ${item.attemptCount} lần thử`
-                            : "Đang chờ worker")}
+                            ? t("reminder.sentAttempts", { count: item.attemptCount })
+                            : t("reminder.waitingWorker"))}
                       </td>
                     </tr>
                   ))}
@@ -571,7 +587,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
             </div>
             <div className="flex items-center justify-between gap-3 text-sm">
               <span>
-                Trang {history.page} · {history.totalCount} lượt nhắc
+                {t("reminder.pageSummary", { page: history.page, count: history.totalCount })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -580,7 +596,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                   onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
                   disabled={history.page <= 1}
                 >
-                  Trước
+                  {t("reminder.previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -588,7 +604,7 @@ export function RsvpReminderCenter({ weddingId }: { weddingId: string }) {
                   onClick={() => setPageNumber((current) => current + 1)}
                   disabled={history.page * history.pageSize >= history.totalCount}
                 >
-                  Sau
+                  {t("reminder.next")}
                 </Button>
               </div>
             </div>

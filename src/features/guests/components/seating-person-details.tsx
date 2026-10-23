@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import type { SeatingParty } from "../utils/seating-demo";
-import { recipientLabel } from "../utils/seating-demo";
-import {
-  attendanceLabels,
-  personRoleLabels,
-  type AttendanceStatus,
-  type SeatPerson,
-} from "../utils/seating-attendance";
+import { formatGuestSide, formatRecipientLabel } from "../utils/seating-demo-i18n";
+import { type AttendanceStatus, type SeatPerson } from "../utils/seating-attendance";
+import type { Language } from "@/i18n/config";
 
 export function RsvpBadge({ person }: { person?: SeatPerson }) {
+  const { t } = useTranslation("guestPlanning", { keyPrefix: "seatingDemo" });
   const tone =
     person?.attendanceStatus === "ATTENDING"
       ? "bg-emerald-100 text-emerald-900"
@@ -22,7 +20,7 @@ export function RsvpBadge({ person }: { person?: SeatPerson }) {
           : "bg-slate-100 text-slate-700";
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] ${tone}`}>
-      {person ? attendanceLabels[person.attendanceStatus] : "Chưa có tên"}
+      {person ? t(`status.${person.attendanceStatus}`) : t("noNameYet")}
     </span>
   );
 }
@@ -40,6 +38,8 @@ export function SeatingPersonDetails({
   seat: number | undefined;
   onSave: (input: Omit<SeatPerson, "id">) => string | null;
 }) {
+  const { t, i18n } = useTranslation("guestPlanning", { keyPrefix: "seatingDemo" });
+  const language = (i18n.resolvedLanguage === "en" ? "en" : "vi") as Language;
   const [name, setName] = useState(person?.fullName ?? "");
   const [type, setType] = useState<SeatPerson["type"]>(person?.type ?? "OTHER");
   const [attendance, setAttendance] = useState<AttendanceStatus>(
@@ -52,52 +52,49 @@ export function SeatingPersonDetails({
       <div>
         <p className="text-xs text-muted-foreground">
           {table === null || table === undefined
-            ? "Chưa xếp bàn"
-            : `Bàn ${table + 1}${seat !== undefined ? ` · Ghế ${seat}` : ""}`}
+            ? t("notSeated")
+            : `${t("tableName", { number: table + 1 })}${seat !== undefined ? ` · ${t("seatNumber", { number: seat })}` : ""}`}
         </p>
-        <h2 className="mt-2 break-words font-serif text-xl">
-          {person?.fullName || "Chỗ dự kiến chưa có tên"}
-        </h2>
+        <h2 className="mt-2 break-words font-serif text-xl">{person?.fullName || t("notNamed")}</h2>
         <div className="mt-2">
           <RsvpBadge person={person} />
         </div>
       </div>
       <dl className="space-y-3 text-xs">
         <div>
-          <dt className="text-muted-foreground">Thuộc nhóm nhận thiệp</dt>
-          <dd className="mt-1">{recipientLabel(party)}</dd>
+          <dt className="text-muted-foreground">{t("details.groupRecipient")}</dt>
+          <dd className="mt-1">{formatRecipientLabel(party, t, language)}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Nhóm khách</dt>
+          <dt className="text-muted-foreground">{t("details.guestGroup")}</dt>
           <dd className="mt-1">{party.group}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Phía khách mời</dt>
-          <dd className="mt-1">{party.side || "Chưa xác định"}</dd>
+          <dt className="text-muted-foreground">{t("details.guestSide")}</dt>
+          <dd className="mt-1">{formatGuestSide(party.side, t)}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Vai trò</dt>
-          <dd className="mt-1">{person ? personRoleLabels[person.type] : "Chưa khai báo"}</dd>
+          <dt className="text-muted-foreground">{t("details.role")}</dt>
+          <dd className="mt-1">{person ? t(`role.${person.type}`) : t("notDeclared")}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Liên hệ người đại diện</dt>
-          <dd className="mt-1">{party.phone || "Chưa có SĐT"}</dd>
+          <dt className="text-muted-foreground">{t("details.contact")}</dt>
+          <dd className="mt-1">{party.phone || t("noPhone")}</dd>
         </div>
       </dl>
       {!person && (
         <p className="rounded-lg border border-dashed p-3 text-xs leading-5 text-muted-foreground">
-          Chỗ được giữ cho nhóm, chưa có hồ sơ người ngồi. Bổ sung tên rồi mới cập nhật RSVP; xác
-          nhận của đại diện không xác nhận thay chỗ này.
+          {t("details.unnamedHelp")}
         </p>
       )}
       {person?.attendanceStatus === "DECLINED" && (
         <p className="rounded-lg bg-rose-50 p-3 text-xs text-rose-900">
-          Người này đã từ chối nhưng vẫn đang giữ chỗ. Bạn có thể chuyển về danh sách chưa xếp.
+          {t("details.declinedHelp")}
         </p>
       )}
       <details className="border-t pt-4" open={!person}>
         <summary className="cursor-pointer text-sm font-medium">
-          {person ? "Thử sửa thông tin / RSVP" : "Bổ sung người cho chỗ này"}
+          {person ? t("details.editRsvp") : t("details.addGuest")}
         </summary>
         <form
           className="mt-4 space-y-3"
@@ -108,11 +105,9 @@ export function SeatingPersonDetails({
             setSaved(!message);
           }}
         >
-          <p className="text-xs leading-5 text-muted-foreground">
-            Chỉ cập nhật bản thử trên thiết bị. Không gửi phản hồi RSVP thật.
-          </p>
+          <p className="text-xs leading-5 text-muted-foreground">{t("details.previewOnlyHelp")}</p>
           <label className="block space-y-1 text-xs">
-            <span>Họ tên người ngồi</span>
+            <span>{t("details.fullName")}</span>
             <input
               required
               maxLength={150}
@@ -125,7 +120,7 @@ export function SeatingPersonDetails({
             />
           </label>
           <label className="block space-y-1 text-xs">
-            <span>Vai trò thành viên</span>
+            <span>{t("details.memberRole")}</span>
             <select
               className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
               value={type}
@@ -135,17 +130,17 @@ export function SeatingPersonDetails({
                 setSaved(false);
               }}
             >
-              {Object.entries(personRoleLabels)
-                .filter(([key]) => key !== "PRIMARY" || person?.type === "PRIMARY")
-                .map(([key, label]) => (
+              {(["PRIMARY", "SPOUSE", "CHILD", "OTHER"] as const)
+                .filter((key) => key !== "PRIMARY" || person?.type === "PRIMARY")
+                .map((key) => (
                   <option key={key} value={key}>
-                    {label}
+                    {t(`role.${key}`)}
                   </option>
                 ))}
             </select>
           </label>
           <label className="block space-y-1 text-xs">
-            <span>Trạng thái RSVP (thử)</span>
+            <span>{t("details.rsvpStatus")}</span>
             <select
               className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
               value={attendance}
@@ -154,9 +149,9 @@ export function SeatingPersonDetails({
                 setSaved(false);
               }}
             >
-              {Object.entries(attendanceLabels).map(([key, label]) => (
+              {(["PENDING", "ATTENDING", "DECLINED", "WAITLISTED"] as const).map((key) => (
                 <option key={key} value={key}>
-                  {label}
+                  {t(`status.${key}`)}
                 </option>
               ))}
             </select>
@@ -168,11 +163,11 @@ export function SeatingPersonDetails({
           )}
           {saved && (
             <p role="status" className="text-xs text-emerald-800">
-              Đã cập nhật trong bản thử.
+              {t("details.updated")}
             </p>
           )}
           <Button type="submit" className="w-full">
-            Cập nhật bản thử
+            {t("details.updatePreview")}
           </Button>
         </form>
       </details>
