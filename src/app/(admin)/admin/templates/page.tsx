@@ -1,4 +1,4 @@
-import { FeaturePlaceholder } from "@/shared/feedback/feature-placeholder";
+import { AdminTemplates } from "@/features/admin";
 export default function Page() {
-  return <FeaturePlaceholder title="Templates" description="Manage the InviteMe platform." />;
+  return <AdminTemplates />;
 }

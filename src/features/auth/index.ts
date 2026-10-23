@@ -5,6 +5,8 @@ export { ForgotPasswordForm } from "./components/forgot-password-form";
 export { ResetPasswordForm } from "./components/reset-password-form";
 export { AccountSettingsForm } from "./components/account-settings-form";
 export { LoginForm } from "./components/login-form";
+export { AdminAuthGuard } from "./components/admin-auth-guard";
+export { AdminLoginForm } from "./components/admin-login-form";
 export { UserMenu } from "./components/user-menu";
 export { useCurrentUser, currentUserKeys } from "./hooks/use-current-user";
 export { useLogout } from "./hooks/use-logout";

@@ -1,24 +1,26 @@
 import type { ReactNode } from "react";
-import { AuthGuard, UserMenu } from "@/features/auth";
+import { AdminAuthGuard, UserMenu } from "@/features/auth";
 import { DashboardShell } from "@/shared/layout/dashboard-shell";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <AuthGuard role="ADMIN">
+    <AdminAuthGuard>
       <DashboardShell
         title="Administration"
-        homeHref="/admin/dashboard"
+        homeHref="/admin"
         account={<UserMenu />}
         navigation={[
-          { href: "/admin/dashboard", label: "Dashboard" },
+          { href: "/admin", label: "Dashboard" },
           { href: "/admin/users", label: "Users" },
+          { href: "/admin/weddings", label: "Weddings" },
           { href: "/admin/templates", label: "Templates" },
+          { href: "/admin/access-control", label: "Roles & permissions" },
           { href: "/admin/plans", label: "Plans" },
           { href: "/admin/audit-logs", label: "Audit logs" },
         ]}
       >
         {children}
       </DashboardShell>
-    </AuthGuard>
+    </AdminAuthGuard>
   );
 }
