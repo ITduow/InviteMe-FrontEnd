@@ -15,6 +15,7 @@
  */
 
 import type { ApiSession } from "@/core/api/api-session";
+import { apiBaseUrl } from "@/core/config/api-url";
 
 const REFRESH_ENABLED = process.env.NEXT_PUBLIC_AUTH_REFRESH_ENABLED !== "false";
 
@@ -147,7 +148,7 @@ export class SessionManager implements ApiSession {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) return null;
     try {
-      const res = await fetch(`${apiUrl.replace(/\/$/, "")}/auth/refresh`, {
+      const res = await fetch(`${apiBaseUrl(apiUrl)}/auth/refresh`, {
         method: "POST",
         credentials: "include",
         cache: "no-store",

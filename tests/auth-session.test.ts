@@ -4,6 +4,7 @@ import { z } from "zod";
 import { SessionManager } from "../src/core/auth/session-manager";
 import { createApiClient } from "../src/core/api/api-client";
 import { safeReturnTo } from "../src/core/auth/safe-return-to";
+import { apiBaseUrl } from "../src/core/config/api-url";
 import { getWeddingAccess } from "../src/features/weddings/api/wedding.api";
 
 const originalFetch = globalThis.fetch;
@@ -14,11 +15,15 @@ afterEach(() => {
   else process.env.NEXT_PUBLIC_API_URL = originalUrl;
 });
 function session(expiresIn = 900) {
-  process.env.NEXT_PUBLIC_API_URL = "https://api.test/api";
+  process.env.NEXT_PUBLIC_API_URL = "https://api.test";
   const value = new SessionManager();
   value.setToken({ accessToken: "old", expiresIn });
   return value;
 }
+test("backend origin and legacy API base resolve to one API URL", () => {
+  assert.equal(apiBaseUrl("https://api.test"), "https://api.test/api");
+  assert.equal(apiBaseUrl("https://api.test/api/"), "https://api.test/api");
+});
 function deferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((done) => {
@@ -34,6 +39,7 @@ for (const expiresIn of [30, 0, 900]) {
     let calls = 0;
     globalThis.fetch = async (url, init) => {
       if (String(url).endsWith("/auth/refresh")) {
+        assert.equal(String(url), "https://api.test/api/auth/refresh");
         refreshes++;
         return Response.json({ accessToken: "new", expiresIn: 900 });
       }

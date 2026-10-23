@@ -32,7 +32,7 @@ The public pages can render without backend configuration. Missing API configura
 
 | Variable                  | Purpose                                                                           |
 | ------------------------- | --------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`     | ASP.NET API base including `/api`; local API example `https://localhost:7043/api` |
+| `NEXT_PUBLIC_API_URL`     | ASP.NET backend origin; local example `https://localhost:7043`. Existing values ending in `/api` also work. |
 | `NEXT_PUBLIC_SIGNALR_URL` | Full hub endpoint; local API example `https://localhost:7043/hubs/weddings`       |
 | `NEXT_PUBLIC_APP_URL`     | Frontend origin reserved for future absolute invitation links                     |
 
@@ -86,7 +86,7 @@ Route group names never appear in URLs. Guest pages have separate mobile-first s
 
 The existing `/weddings` page remains the single paginated wedding list and links into setup. `GET /weddings` returns `{ items, page, pageSize, totalCount, totalPages }`; list rows contain `id`, `title`, `weddingDate`, `participantCount`, `maxCapacity` and `version`. The backend currently serializes a database `NULL` capacity as `maxCapacity: 0`; the UI displays that as `Chưa thiết lập`, and does not infer a default capacity. List search is case-insensitive over title/slug; supported sorts are `weddingDate`, `title` and `createdAt` (the current screen uses `weddingDate`). The create and edit form uses the `weddings` feature API, TanStack Query cache keys and Zod/RHF validation. Its fields are wedding name, unique slug, event date/time, RSVP deadline, venue, capacity and cover image. Dates are sent with the wedding's IANA timezone (default `Asia/Ho_Chi_Minh`) as an explicit offset.
 
-Configure `NEXT_PUBLIC_API_URL` to the backend origin ending in `/api`. Wedding setup calls `POST /weddings`, `GET/PUT /weddings/{id}` and `GET /weddings/check-slug`. Slug checks are debounced by 500 ms and use a cancellable query; the backend still enforces uniqueness when the wedding is saved. The URL shown in the form is a preview only; it does not mean the public wedding site has been published.
+Configure `NEXT_PUBLIC_API_URL` to the backend origin. The frontend adds `/api`. Wedding setup calls `POST /weddings`, `GET/PUT /weddings/{id}` and `GET /weddings/check-slug`. Slug checks are debounced by 500 ms and use a cancellable query; the backend still enforces uniqueness when the wedding is saved. The URL shown in the form is a preview only; it does not mean the public wedding site has been published.
 
 Cover images are selected from the device and sent as `multipart/form-data` to `/weddings/{id}/cover-image` (JPEG, PNG or WebP, maximum 5 MiB). On create, the FE first creates the wedding, then uploads with the returned version. If upload fails, it retains the new wedding ID and lets the user retry without creating another wedding. Replacing/removing cover media and setup edits use the latest backend `version`; a `409` shows a reload action instead of retrying a stale write. The Wedding Access response has no `isOwner` flag. The FE uses `WEDDING_EDIT` only to shape the UI; owner-only writes may still be rejected with `403`, and the API remains authoritative for authorization and concurrency.
 
@@ -130,6 +130,6 @@ Complete the published wedding website and invitation review/send lifecycle, the
 
 ## Registration integration
 
-Set `NEXT_PUBLIC_API_URL` to the BE base URL including `/api`. Backend `Frontend__Url` must match the browser origin for CORS and email links. SMTP must be configured on BE for delivery; a successful register response does not guarantee mail delivery.
+Set `NEXT_PUBLIC_API_URL` to the BE origin; the frontend adds `/api`. Backend `Frontend__Url` must match the browser origin for CORS and email links. SMTP must be configured on BE for delivery; a successful register response does not guarantee mail delivery.
 
 `/register` posts only displayName/email/password and shows an email-confirmation notice; it does not sign in. `/confirm-email?email=...&code=...` asks the user to confirm before posting the token (avoids triggering confirmation on link preview). A successful confirmation clears query parameters. Resending has a 60-second UI cooldown, and only the newest email link remains valid. No password/token is persisted by this flow. Email/Google login, session refresh and wedding-access checks use the existing backend contract; backend authorization remains authoritative.

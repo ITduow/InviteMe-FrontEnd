@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiBaseUrl } from "./api-url";
 
 const optionalUrl = z.preprocess(
   (value) => (value === "" ? undefined : value),
@@ -10,7 +11,7 @@ const optionalUrl = z.preprocess(
 
 export const env = z
   .object({
-    apiUrl: optionalUrl,
+    apiUrl: optionalUrl.transform((value) => value && apiBaseUrl(value)),
     signalrUrl: optionalUrl,
     appUrl: optionalUrl,
     // Public Google OAuth client ID — required for Google login button.
