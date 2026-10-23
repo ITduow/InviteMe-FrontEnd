@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Flower2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/shared/ui/button";
+import { BrandLogo } from "@/shared/components/brand-logo";
 import { useUiStore } from "@/shared/stores/ui.store";
 import { cn } from "@/shared/lib/utils";
 export type NavigationItem = { href: string; label: string };
@@ -32,9 +33,7 @@ export function DashboardShell({
       )}
     >
       <header className="flex items-center justify-between border-b bg-card p-4 md:hidden">
-        <Link href={homeHref} className="font-display text-xl">
-          InviteMe
-        </Link>
+        <BrandLogo href={homeHref} size="sm" />
         <Button
           variant="ghost"
           size="icon"
@@ -55,10 +54,7 @@ export function DashboardShell({
         )}
       >
         <div className="mb-12 hidden items-center justify-between gap-2 md:flex">
-          <Link href={homeHref} className="flex items-center gap-2 font-display text-2xl">
-            <Flower2 className="size-6 text-primary" aria-hidden="true" />
-            InviteMe
-          </Link>
+          <BrandLogo href={homeHref} size="md" />
           <Button
             variant="ghost"
             size="icon"

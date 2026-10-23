@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { Flower2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/shared/components/brand-logo";
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div className="public-shell">
       <header className="public-nav">
         <div className="public-nav__inner">
-          <Link href="/" className="public-nav__brand" aria-label="InviteMe — Trang chủ">
-            <Flower2 className="size-6" aria-hidden="true" />
-            InviteMe
-          </Link>
+          <BrandLogo
+            href="/"
+            size="lg"
+            className="public-nav__brand"
+            ariaLabel="InviteMe — Trang chủ"
+          />
           <nav aria-label="Điều hướng chính" className="public-nav__links">
             <Link href="/templates">Mẫu thiết kế</Link>
             <Link href="/#features">Tính năng</Link>
@@ -27,9 +29,12 @@ export function PublicShell({ children }: { children: ReactNode }) {
       </main>
       <footer className="public-footer">
         <div className="public-footer__top">
-          <Link href="/" className="public-footer__brand">
-            InviteMe
-          </Link>
+          <BrandLogo
+            href="/"
+            size="sm"
+            className="public-footer__brand"
+            ariaLabel="InviteMe — Trang chủ"
+          />
           <nav aria-label="Điều hướng chân trang" className="public-footer__links">
             <Link href="/templates">Mẫu thiết kế</Link>
             <Link href="/#guide">Hướng dẫn</Link>
