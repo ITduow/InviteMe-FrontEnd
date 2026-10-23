@@ -1,21 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  CalendarHeart,
-  ExternalLink,
-  HeartHandshake,
-  PanelsTopLeft,
-  SlidersHorizontal,
-  UsersRound,
-  UtensilsCrossed,
-  type LucideIcon,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { CalendarHeart, ExternalLink, HeartHandshake, PanelsTopLeft } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "@/shared/components/permission-guard";
-import { useWorkspaceContext } from "@/shared/layout/workspace-context";
+import {
+  useWorkspaceContext,
+  type WorkspaceNavigationIcon,
+} from "@/shared/layout/workspace-context";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import type { WeddingPermission } from "@/core/auth/auth.types";
@@ -29,77 +22,128 @@ type WeddingSection = {
   label: string;
   permission: WeddingPermission;
   group: string;
+  icon: WorkspaceNavigationIcon;
   ownerOnly?: boolean;
   wideOnly?: boolean;
 };
 
-const navigationGroups: { label: string; shortLabel: string; icon: LucideIcon }[] = [
-  { label: "Workspace", shortLabel: "Workspace", icon: CalendarHeart },
-  { label: "Guests & invitations", shortLabel: "Guests & RSVP", icon: UsersRound },
-  { label: "Reception", shortLabel: "Reception", icon: UtensilsCrossed },
-  { label: "Manage", shortLabel: "Manage", icon: SlidersHorizontal },
+const navigationGroups: { label: string }[] = [
+  { label: "Không gian cưới" },
+  { label: "Khách mời & RSVP" },
+  { label: "Tiệc cưới" },
+  { label: "Quản lý" },
 ];
 
 const sections: WeddingSection[] = [
-  { slug: "overview", label: "Overview", permission: "WEDDING_VIEW", group: "Workspace" },
+  {
+    slug: "overview",
+    label: "Tổng quan",
+    permission: "WEDDING_VIEW",
+    group: "Không gian cưới",
+    icon: "overview",
+  },
   {
     slug: "website",
-    label: "Website",
+    label: "Website đám cưới",
     permission: "WEDDING_EDIT",
-    group: "Workspace",
+    group: "Không gian cưới",
+    icon: "website",
     ownerOnly: true,
   },
-  { slug: "guests", label: "Guests", permission: "GUEST_VIEW", group: "Guests & invitations" },
+  {
+    slug: "guests",
+    label: "Khách mời",
+    permission: "GUEST_VIEW",
+    group: "Khách mời & RSVP",
+    icon: "users",
+  },
   {
     slug: "invitations",
-    label: "Invitations",
+    label: "Thiệp mời",
     permission: "INVITATION_SEND",
-    group: "Guests & invitations",
+    group: "Khách mời & RSVP",
+    icon: "invitations",
   },
-  { slug: "rsvp", label: "RSVP", permission: "RSVP_VIEW", group: "Guests & invitations" },
+  {
+    slug: "rsvp",
+    label: "RSVP",
+    permission: "RSVP_VIEW",
+    group: "Khách mời & RSVP",
+    icon: "rsvp",
+  },
   {
     slug: "rsvp/reminders",
-    label: "RSVP reminders",
+    label: "Nhắc RSVP",
     permission: "RSVP_VIEW",
-    group: "Guests & invitations",
+    group: "Khách mời & RSVP",
+    icon: "reminders",
     wideOnly: true,
   },
-  { slug: "waitlist", label: "Waitlist", permission: "RSVP_VIEW", group: "Guests & invitations" },
-  { slug: "seating", label: "Seating", permission: "SEATING_VIEW", group: "Reception" },
-  { slug: "check-in", label: "Check-in", permission: "CHECKIN_MANAGE", group: "Reception" },
-  { slug: "gifts", label: "Gifts & wishes", permission: "GIFT_VIEW", group: "Reception" },
+  {
+    slug: "waitlist",
+    label: "Danh sách chờ",
+    permission: "RSVP_VIEW",
+    group: "Khách mời & RSVP",
+    icon: "waitlist",
+  },
+  {
+    slug: "seating",
+    label: "Sơ đồ bàn",
+    permission: "SEATING_VIEW",
+    group: "Tiệc cưới",
+    icon: "seating",
+  },
+  {
+    slug: "check-in",
+    label: "Check-in",
+    permission: "CHECKIN_MANAGE",
+    group: "Tiệc cưới",
+    icon: "checkin",
+  },
+  {
+    slug: "gifts",
+    label: "Quà mừng & lời chúc",
+    permission: "GIFT_VIEW",
+    group: "Tiệc cưới",
+    icon: "gifts",
+  },
   {
     slug: "thank-you",
-    label: "Thank-you letters",
+    label: "Thư cảm ơn",
     permission: "GUEST_VIEW",
-    group: "Manage",
+    group: "Quản lý",
+    icon: "thank-you",
     ownerOnly: true,
   },
   {
     slug: "analytics",
-    label: "Check-in overview",
+    label: "Tổng quan check-in",
     permission: "RSVP_VIEW",
-    group: "Reception",
+    group: "Tiệc cưới",
+    icon: "analytics",
   },
   {
     slug: "audit-logs",
-    label: "Activity history",
+    label: "Nhật ký hoạt động",
     permission: "WEDDING_VIEW",
-    group: "Manage",
+    group: "Quản lý",
+    icon: "audit",
     ownerOnly: true,
   },
   {
     slug: "settings",
-    label: "Settings",
+    label: "Cài đặt đám cưới",
     permission: "WEDDING_EDIT",
-    group: "Manage",
+    group: "Quản lý",
+    icon: "settings",
     ownerOnly: true,
   },
   {
     slug: "co-hosts",
-    label: "Co-hosts",
+    label: "Co-host",
     permission: "WEDDING_EDIT",
-    group: "Manage",
+    group: "Quản lý",
+    icon: "co-hosts",
     ownerOnly: true,
   },
 ];
@@ -127,11 +171,30 @@ function formatEventDate(value: string | null, timeZone: string) {
   );
 }
 
+function haveSameSidebarGroups(
+  left: { label: string; items: { href: string; label: string; icon: string }[] }[],
+  right: { label: string; items: { href: string; label: string; icon: string }[] }[],
+) {
+  return (
+    left.length === right.length &&
+    left.every(
+      (group, groupIndex) =>
+        group.label === right[groupIndex]?.label &&
+        group.items.length === right[groupIndex]?.items.length &&
+        group.items.every(
+          (item, itemIndex) =>
+            item.href === right[groupIndex]?.items[itemIndex]?.href &&
+            item.label === right[groupIndex]?.items[itemIndex]?.label &&
+            item.icon === right[groupIndex]?.items[itemIndex]?.icon,
+        ),
+    )
+  );
+}
+
 export function WeddingNavigation({ weddingId }: { weddingId: string }) {
   const { api } = useRuntime();
   const { can, isOwner, isWeddingWide } = usePermission();
-  const { setWedding } = useWorkspaceContext();
-  const pathname = usePathname();
+  const { setWedding, setWeddingNavigation } = useWorkspaceContext();
   const weddingPath = `/weddings/${encodeURIComponent(weddingId)}`;
   const wedding = useQuery({
     queryKey: weddingKeys.detail(weddingId),
@@ -152,29 +215,48 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
       ),
     [can, isOwner, isWeddingWide],
   );
-  const currentSection = useMemo(
+  const sidebarGroups = useMemo(
     () =>
-      [...available]
-        .sort((left, right) => right.slug.length - left.slug.length)
-        .find((section) => {
-          const href = `${weddingPath}/${section.slug}`;
-          return pathname === href || pathname.startsWith(`${href}/`);
-        }),
-    [available, pathname, weddingPath],
+      navigationGroups
+        .map((group) => ({
+          label: group.label,
+          items: available
+            .filter((section) => section.group === group.label)
+            .map((section) => ({
+              href: `${weddingPath}/${section.slug}`,
+              label: section.label,
+              icon: section.icon,
+            })),
+        }))
+        .filter((group) => group.items.length > 0),
+    [available, weddingPath],
   );
-  const [manualGroupOverride, setManualGroupOverride] = useState<{
-    pathname: string;
-    group: string;
-  } | null>(null);
-  const selectedGroup =
-    manualGroupOverride?.pathname === pathname
-      ? manualGroupOverride.group
-      : (currentSection?.group ?? "Workspace");
-  const activeGroup = navigationGroups.find((group) => group.label === selectedGroup);
-  const selectedSections = available.filter((section) => section.group === selectedGroup);
   const status = wedding.data
     ? statusPresentation(website.data?.status ?? wedding.data.status, website.data !== undefined)
     : null;
+
+  useEffect(() => {
+    if (!wedding.data) {
+      setWeddingNavigation((current) => (current?.weddingId === weddingId ? null : current));
+      return;
+    }
+    setWeddingNavigation((current) => {
+      if (
+        current?.weddingId === weddingId &&
+        haveSameSidebarGroups(current.groups, sidebarGroups)
+      ) {
+        return current;
+      }
+      return { weddingId, groups: sidebarGroups };
+    });
+  }, [setWeddingNavigation, sidebarGroups, wedding.data, weddingId]);
+
+  useEffect(
+    () => () => {
+      setWeddingNavigation((current) => (current?.weddingId === weddingId ? null : current));
+    },
+    [setWeddingNavigation, weddingId],
+  );
 
   useEffect(() => {
     if (wedding.data) {
@@ -203,7 +285,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
   }, [available, setWedding, wedding.data, weddingId, weddingPath]);
 
   return (
-    <section aria-label="Wedding workspace" className="mb-7">
+    <section aria-label="Thông tin đám cưới" className="mb-6">
       <header className="flex flex-col gap-4 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-petal text-primary-hover">
@@ -211,10 +293,10 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
           </span>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Wedding workspace
+              Quản lý đám cưới
             </p>
             <h1 className="mt-1 truncate font-display text-xl tracking-tight text-foreground sm:text-2xl">
-              {wedding.data?.name ?? (wedding.isError ? "Wedding workspace" : "Đang tải wedding…")}
+              {wedding.data?.name ?? (wedding.isError ? "Đám cưới" : "Đang tải đám cưới…")}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {status && (
@@ -245,7 +327,7 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
             >
               <Link href={`${weddingPath}/website`}>
                 <PanelsTopLeft aria-hidden="true" />
-                Chỉnh sửa website
+                Chỉnh sửa trang cưới
               </Link>
             </Button>
             {website.data?.status === "PUBLISHED" && wedding.data?.slug && (
@@ -263,67 +345,6 @@ export function WeddingNavigation({ weddingId }: { weddingId: string }) {
           </div>
         )}
       </header>
-
-      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div
-          aria-label="Wedding feature groups"
-          className="flex min-w-max gap-1 border-b border-border/70"
-        >
-          {navigationGroups.map(({ label, shortLabel, icon: Icon }) => {
-            const count = available.filter((section) => section.group === label).length;
-            if (count === 0) return null;
-            const active = selectedGroup === label;
-            return (
-              <button
-                key={label}
-                type="button"
-                aria-label={`${shortLabel}, ${count} mục`}
-                aria-pressed={active}
-                onClick={() => setManualGroupOverride({ pathname, group: label })}
-                className={cn(
-                  "inline-flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                  active
-                    ? "border-primary-hover font-semibold text-primary-hover"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden="true" />
-                <span>{shortLabel}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {activeGroup && (
-        <nav
-          aria-label={`${activeGroup.label} features`}
-          className="border-b border-border/70 py-2"
-        >
-          <ul className="flex flex-wrap gap-1">
-            {selectedSections.map((section) => {
-              const href = `${weddingPath}/${section.slug}`;
-              const active = pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <li key={section.slug}>
-                  <Link
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "inline-flex min-h-10 items-center rounded-lg px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      active
-                        ? "bg-petal font-semibold text-primary-hover"
-                        : "text-foreground hover:bg-petal/70",
-                    )}
-                  >
-                    {section.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      )}
     </section>
   );
 }

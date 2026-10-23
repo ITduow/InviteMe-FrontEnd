@@ -6,14 +6,15 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard>
       <DashboardShell
+        title="Không gian làm việc"
         navigation={[
           {
-            label: "Workspace",
-            items: [{ href: "/dashboard", label: "Dashboard", icon: "dashboard" }],
+            label: "Không gian làm việc",
+            items: [{ href: "/dashboard", label: "Tổng quan", icon: "dashboard" }],
           },
           {
-            label: "Wedding management",
-            items: [{ href: "/weddings", label: "Weddings", icon: "calendar" }],
+            label: "Lễ cưới",
+            items: [{ href: "/weddings", label: "Tất cả lễ cưới", icon: "calendar" }],
           },
         ]}
         account={<UserMenu />}

@@ -3,15 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Armchair,
   BadgeDollarSign,
+  Bell,
+  CalendarDays,
   CalendarHeart,
   ChevronRight,
+  ClipboardCheck,
   Files,
+  Gift,
+  HeartHandshake,
   LayoutDashboard,
+  Mail,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  PanelsTopLeft,
+  ScanLine,
   ScrollText,
+  Settings,
   ShieldCheck,
   Users,
   UsersRound,
@@ -23,44 +33,62 @@ import { Button } from "@/shared/ui/button";
 import { BrandLogo } from "@/shared/components/brand-logo";
 import { useUiStore } from "@/shared/stores/ui.store";
 import { cn } from "@/shared/lib/utils";
-import { WorkspaceContextProvider, useWorkspaceContext } from "./workspace-context";
+import {
+  WorkspaceContextProvider,
+  useWorkspaceContext,
+  type WorkspaceNavigationIcon,
+} from "./workspace-context";
 
-export type NavigationIcon =
-  "dashboard" | "calendar" | "users" | "weddings" | "templates" | "permissions" | "audit" | "plans";
+export type NavigationIcon = WorkspaceNavigationIcon;
 export type NavigationItem = { href: string; label: string; icon: NavigationIcon };
 export type NavigationGroup = { label: string; items: NavigationItem[] };
 
 const navigationIcons: Record<NavigationIcon, LucideIcon> = {
   dashboard: LayoutDashboard,
   calendar: CalendarHeart,
+  overview: LayoutDashboard,
+  website: PanelsTopLeft,
   users: Users,
   weddings: UsersRound,
   templates: Files,
   permissions: ShieldCheck,
   audit: ScrollText,
   plans: BadgeDollarSign,
+  invitations: Mail,
+  rsvp: ClipboardCheck,
+  reminders: Bell,
+  waitlist: Users,
+  seating: Armchair,
+  checkin: ScanLine,
+  gifts: Gift,
+  "thank-you": HeartHandshake,
+  analytics: CalendarDays,
+  "co-hosts": UsersRound,
+  settings: Settings,
+  account: Settings,
 };
 
 const weddingRouteLabels: Record<string, string> = {
-  overview: "Overview",
-  website: "Website",
-  guests: "Guests",
-  invitations: "Invitations",
+  overview: "Tổng quan",
+  website: "Website đám cưới",
+  guests: "Khách mời",
+  invitations: "Thiệp mời",
   rsvp: "RSVP",
-  "rsvp/reminders": "RSVP reminders",
-  waitlist: "Waitlist",
-  seating: "Seating",
+  "rsvp/reminders": "Nhắc RSVP",
+  waitlist: "Danh sách chờ",
+  seating: "Sơ đồ bàn",
   "check-in": "Check-in",
-  gifts: "Gifts & wishes",
-  "thank-you": "Thank-you letters",
-  analytics: "Check-in overview",
-  "audit-logs": "Activity history",
-  settings: "Settings",
-  "co-hosts": "Co-hosts",
+  gifts: "Quà mừng & lời chúc",
+  "thank-you": "Thư cảm ơn",
+  analytics: "Tổng quan check-in",
+  "audit-logs": "Nhật ký hoạt động",
+  settings: "Cài đặt đám cưới",
+  "co-hosts": "Co-host",
 };
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/admin") return pathname === "/admin" || pathname === "/admin/dashboard";
+  if (href === "/weddings") return pathname === "/weddings" || pathname === "/weddings/new";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -79,7 +107,7 @@ function createBreadcrumbs(
     const weddingId = decodeURIComponent(rawWeddingId);
     const weddingPath = `/weddings/${encodeURIComponent(weddingId)}`;
     const crumbs = [
-      { label: "Weddings", href: "/weddings" },
+      { label: "Lễ cưới", href: "/weddings" },
       {
         label: wedding?.id === weddingId ? wedding.name : "Wedding workspace",
         href: wedding?.id === weddingId ? wedding.href : undefined,
@@ -97,13 +125,13 @@ function createBreadcrumbs(
         href: "",
       });
     } else {
-      crumbs.push({ label: "Overview", href: "" });
+      crumbs.push({ label: "Tổng quan", href: "" });
     }
     return crumbs;
   }
 
   if (pathname === "/account" || pathname.startsWith("/account/")) {
-    return [{ label: "Account settings", href: "" }];
+    return [{ label: "Cài đặt tài khoản", href: "" }];
   }
 
   const items = navigation.flatMap((group) => group.items);
@@ -192,12 +220,28 @@ function DashboardShellFrame({
   homeHref: string;
 }) {
   const pathname = usePathname();
+  const { wedding, weddingNavigation } = useWorkspaceContext();
   const open = useUiStore((state) => state.sidebarOpen);
   const setOpen = useUiStore((state) => state.setSidebarOpen);
   const [collapsed, setCollapsed] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const weddingRoute = /^\/weddings\/([^/]+)(?:\/|$)/.exec(pathname);
+  const routeWeddingId =
+    weddingRoute?.[1] && weddingRoute[1] !== "new" ? decodeURIComponent(weddingRoute[1]) : null;
+  const contextualNavigation =
+    routeWeddingId && weddingNavigation?.weddingId === routeWeddingId ? weddingNavigation : null;
+  const contextualItems = contextualNavigation?.groups.flatMap((group) => group.items) ?? [];
+  const contextualPathname =
+    routeWeddingId && pathname === `/weddings/${encodeURIComponent(routeWeddingId)}`
+      ? `/weddings/${encodeURIComponent(routeWeddingId)}/overview`
+      : pathname;
+  const activeContextHref = contextualItems
+    .filter(
+      (item) => contextualPathname === item.href || contextualPathname.startsWith(`${item.href}/`),
+    )
+    .sort((left, right) => right.href.length - left.href.length)[0]?.href;
 
   useEffect(() => {
     if (!open) return;
@@ -245,7 +289,7 @@ function DashboardShellFrame({
     <div
       className={cn(
         "min-h-screen md:grid",
-        collapsed ? "md:grid-cols-[4.5rem_minmax(0,1fr)]" : "md:grid-cols-[15rem_minmax(0,1fr)]",
+        collapsed ? "md:grid-cols-[4.5rem_minmax(0,1fr)]" : "md:grid-cols-[17rem_minmax(0,1fr)]",
       )}
     >
       {open && (
@@ -319,7 +363,10 @@ function DashboardShellFrame({
         >
           {title}
         </p>
-        <nav aria-label={title} className="min-h-0 flex-1 space-y-6 overflow-y-auto pb-3">
+        <nav
+          aria-label="Điều hướng chính"
+          className="min-h-0 flex-1 space-y-6 overflow-y-auto pb-3"
+        >
           {navigation.map((group) => (
             <section key={group.label} aria-label={group.label}>
               <h2
@@ -342,11 +389,11 @@ function DashboardShellFrame({
                       title={collapsed ? item.label : undefined}
                       onClick={() => setOpen(false)}
                       className={cn(
-                        "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                        "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         "md:justify-start",
-                        collapsed && "md:justify-center md:px-0",
+                        collapsed && "md:justify-center md:border-l-0 md:px-0",
                         active
-                          ? "bg-primary font-semibold text-primary-foreground shadow-sm"
+                          ? "border-primary-hover bg-petal font-semibold text-primary-hover"
                           : "text-foreground hover:bg-petal/80 hover:text-primary-hover",
                       )}
                     >
@@ -358,10 +405,107 @@ function DashboardShellFrame({
               </div>
             </section>
           ))}
+          {routeWeddingId && (
+            <section aria-label="Các mục trong đám cưới">
+              <h2
+                className={cn(
+                  "mb-2 px-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground",
+                  collapsed && "md:sr-only",
+                )}
+              >
+                Quản lý đám cưới
+              </h2>
+              <div className="mb-2 rounded-xl bg-background px-3 py-2.5">
+                <p
+                  className={cn(
+                    "truncate text-sm font-semibold text-foreground",
+                    collapsed && "md:sr-only",
+                  )}
+                >
+                  {wedding?.id === routeWeddingId ? wedding.name : "Đang tải đám cưới…"}
+                </p>
+                <Link
+                  href="/weddings"
+                  title={collapsed ? "Tất cả lễ cưới" : undefined}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "mt-1 inline-flex min-h-8 items-center text-xs font-medium text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    collapsed && "md:sr-only",
+                  )}
+                >
+                  ← Tất cả lễ cưới
+                </Link>
+              </div>
+              {contextualNavigation ? (
+                <div className="space-y-5">
+                  {contextualNavigation.groups.map((group) => (
+                    <section key={group.label} aria-label={group.label}>
+                      <h3
+                        className={cn(
+                          "mb-2 px-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground",
+                          collapsed && "md:sr-only",
+                        )}
+                      >
+                        {group.label}
+                      </h3>
+                      <div className="space-y-1">
+                        {group.items.map((item) => {
+                          const Icon = navigationIcons[item.icon];
+                          const active = activeContextHref === item.href;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              aria-current={active ? "page" : undefined}
+                              title={collapsed ? item.label : undefined}
+                              onClick={() => setOpen(false)}
+                              className={cn(
+                                "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                collapsed && "md:justify-center md:border-l-0 md:px-0",
+                                active
+                                  ? "border-primary-hover bg-petal font-semibold text-primary-hover"
+                                  : "text-foreground hover:bg-petal/80 hover:text-primary-hover",
+                              )}
+                            >
+                              <Icon className="size-[1.125rem] shrink-0" aria-hidden="true" />
+                              <span className={cn("truncate", collapsed && "md:sr-only")}>
+                                {item.label}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <div role="status" className="space-y-2 px-2 py-1">
+                  <span className="sr-only">Đang tải quyền và menu của đám cưới</span>
+                  <div className="h-10 animate-pulse rounded-xl bg-petal motion-reduce:animate-none" />
+                  <div className="h-10 w-4/5 animate-pulse rounded-xl bg-petal motion-reduce:animate-none" />
+                </div>
+              )}
+            </section>
+          )}
         </nav>
-        <p className={cn("mt-3 px-2 text-xs text-muted-foreground", collapsed && "md:sr-only")}>
-          Dành cho những ngày vui đáng nhớ.
-        </p>
+        <div className="mt-3 border-t border-border/80 pt-3">
+          <Link
+            href="/account"
+            aria-current={isActiveRoute(pathname, "/account") ? "page" : undefined}
+            title={collapsed ? "Cài đặt tài khoản" : undefined}
+            onClick={() => setOpen(false)}
+            className={cn(
+              "flex min-h-11 items-center gap-3 rounded-xl border-l-2 border-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              collapsed && "md:justify-center md:border-l-0 md:px-0",
+              isActiveRoute(pathname, "/account")
+                ? "border-primary-hover bg-petal font-semibold text-primary-hover"
+                : "text-foreground hover:bg-petal/80 hover:text-primary-hover",
+            )}
+          >
+            <Settings className="size-[1.125rem] shrink-0" aria-hidden="true" />
+            <span className={cn(collapsed && "md:sr-only")}>Cài đặt tài khoản</span>
+          </Link>
+        </div>
       </aside>
 
       <div className="min-w-0">
