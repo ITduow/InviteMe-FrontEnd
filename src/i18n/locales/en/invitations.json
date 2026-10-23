@@ -19,7 +19,11 @@
     "emptyDescription": "Choose a template in Studio, make your edits, then select “Save & apply” to use it for guest invitation links.",
     "chooseTemplate": "Choose a template"
   },
-  "tones": { "formal": "Formal", "warm": "Warm", "humorous": "Lighthearted" },
+  "tones": {
+    "formal": "Formal",
+    "warm": "Warm",
+    "humorous": "Lighthearted"
+  },
   "status": {
     "pending": "Pending",
     "sending": "Sending",
@@ -141,5 +145,17 @@
   "retryFailed": "Retry failed items",
   "retriedJobs": "{{count}} items queued again.",
   "attempt": "Attempt {{count}}",
-  "deliveryDisclaimer": "“Sent” means the provider accepted the request; it doesn't confirm that an email reached an inbox or an SMS reached a phone."
+  "deliveryDisclaimer": "“Sent” means the provider accepted the request; it doesn't confirm that an email reached an inbox or an SMS reached a phone.",
+  "picker": {
+    "back": "Back to invitations",
+    "backToTemplates": "Back to templates",
+    "description": "Explore a template demo, or edit and apply it to your wedding.",
+    "filters": "Filter styles",
+    "all": "All",
+    "minimalism": "Minimalism",
+    "song-hy": "Double happiness",
+    "demo": "View demo",
+    "editApply": "Edit & apply",
+    "changeTemplate": "Change template"
+  }
 }

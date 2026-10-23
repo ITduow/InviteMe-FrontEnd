@@ -116,6 +116,13 @@ export function SavedInvitation({ weddingId }: { weddingId: string }) {
                 </Link>
               </Button>
             )}
+            {can("WEDDING_EDIT") && (
+              <Button asChild variant="outline">
+                <Link href={`/weddings/${encodeURIComponent(weddingId)}/invitation-templates`}>
+                  {t("picker.changeTemplate")}
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       ) : (
@@ -124,7 +131,7 @@ export function SavedInvitation({ weddingId }: { weddingId: string }) {
           <p className="text-sm text-muted-foreground">{t("saved.emptyDescription")}</p>
           {can("WEDDING_EDIT") && (
             <Button asChild>
-              <Link href={`/weddings/${encodeURIComponent(weddingId)}/studio`}>
+              <Link href={`/weddings/${encodeURIComponent(weddingId)}/invitation-templates`}>
                 {t("saved.chooseTemplate")}
               </Link>
             </Button>

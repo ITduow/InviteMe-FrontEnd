@@ -551,7 +551,7 @@ function Workspace({
         {!preview && (
           <>
             <header className={styles.header}>
-              <h1>Template Studio</h1>
+              <h1>{t("header.title")}</h1>
               <p className={styles.status} role="status">
                 {message}
               </p>
@@ -562,7 +562,11 @@ function Workspace({
                   </Link>
                 )}
                 {onSave && (
-                  <button disabled={saving} onClick={() => void saveDesign()}>
+                  <button
+                    className={styles.saveButton}
+                    disabled={saving}
+                    onClick={() => void saveDesign()}
+                  >
                     {saving ? t("header.saving") : t("header.saveDraft")}
                   </button>
                 )}
@@ -753,23 +757,6 @@ function Workspace({
                         <img src={image.src} alt={image.name} />
                       </button>
                     ))}
-                  </div>
-                  <h3>{t("library.availableImages")}</h3>
-                  <div className={styles.uploadGrid}>
-                    {Array.from({ length: 8 }, (_, index) => {
-                      const src = `/images/template-studio/collection/${index % 2 ? "photo-traditional" : "photo-garden"}.webp`;
-                      return (
-                        <button key={src} onClick={() => chooseImage(src)}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={src}
-                            alt={t("library.sampleImageAlt", {
-                              number: formatNumber(index + 1, language),
-                            })}
-                          />
-                        </button>
-                      );
-                    })}
                   </div>
                   <button
                     className={styles.addCard}
@@ -1907,33 +1894,36 @@ function Workspace({
                 ))}
               </fieldset>
             )}
-            <h2>{t("properties.documentJson")}</h2>
-            <button onClick={exportJson}>{t("properties.exportJson")}</button>
-            <textarea
-              aria-label={t("properties.documentJson")}
-              className={styles.json}
-              value={json}
-              onChange={(event) => setJson(event.target.value)}
-              placeholder={t("properties.jsonPlaceholder")}
-            />
-            <button disabled={preview || !json} onClick={() => importJson(json)}>
-              {t("properties.openJson")}
-            </button>
-            <label className={styles.file}>
-              {t("properties.openJsonFile")}
-              <input
-                type="file"
-                accept=".json,application/json"
-                disabled={preview}
-                onChange={async (event) => {
-                  const input = event.currentTarget;
-                  const file = event.target.files?.[0];
-                  if (file && file.size <= 500000) importJson(await file.text());
-                  else if (file) setMessage(t("properties.jsonTooLarge"));
-                  input.value = "";
-                }}
+            <details className={styles.advanced}>
+              <summary>{t("properties.advanced")}</summary>
+              <h2>{t("properties.documentJson")}</h2>
+              <button onClick={exportJson}>{t("properties.exportJson")}</button>
+              <textarea
+                aria-label={t("properties.documentJson")}
+                className={styles.json}
+                value={json}
+                onChange={(event) => setJson(event.target.value)}
+                placeholder={t("properties.jsonPlaceholder")}
               />
-            </label>
+              <button disabled={preview || !json} onClick={() => importJson(json)}>
+                {t("properties.openJson")}
+              </button>
+              <label className={styles.file}>
+                {t("properties.openJsonFile")}
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  disabled={preview}
+                  onChange={async (event) => {
+                    const input = event.currentTarget;
+                    const file = event.target.files?.[0];
+                    if (file && file.size <= 500000) importJson(await file.text());
+                    else if (file) setMessage(t("properties.jsonTooLarge"));
+                    input.value = "";
+                  }}
+                />
+              </label>
+            </details>
           </aside>
         </div>
         {!preview && !editingCover && (

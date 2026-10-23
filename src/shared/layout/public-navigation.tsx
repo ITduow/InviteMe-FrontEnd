@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/shared/components/brand-logo";
 import { LanguageSwitcher } from "@/shared/components/language-switcher";
 import { useTranslation } from "react-i18next";
@@ -12,11 +12,9 @@ const links = [
   { href: "/templates", namespace: "public", key: "templates" },
   { href: "/#features", namespace: "public", key: "features" },
   { href: "/#guide", namespace: "public", key: "guide" },
-  { href: "/login", namespace: "auth", key: "login" },
-  { href: "/register", namespace: "auth", key: "register" },
 ] as const;
 
-export function PublicNavigation() {
+export function PublicNavigation({ account }: { account?: ReactNode }) {
   const { t } = useTranslation(["public", "auth"]);
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -82,13 +80,13 @@ export function PublicNavigation() {
               key={href}
               href={href}
               aria-current={href === pathname ? "page" : undefined}
-              className={href === "/register" ? "public-nav__cta" : undefined}
               onClick={() => setOpen(false)}
             >
               {t(key, { ns: namespace })}
             </Link>
           ))}
           <LanguageSwitcher className="public-nav__language" />
+          {account}
         </nav>
       </div>
     </header>

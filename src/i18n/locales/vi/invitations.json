@@ -19,7 +19,11 @@
     "emptyDescription": "Chọn mẫu trong Studio, chỉnh sửa rồi bấm “Lưu & áp dụng” để dùng cho các link thiệp cá nhân.",
     "chooseTemplate": "Chọn mẫu thiệp"
   },
-  "tones": { "formal": "Trang trọng", "warm": "Ấm áp", "humorous": "Vui vẻ" },
+  "tones": {
+    "formal": "Trang trọng",
+    "warm": "Ấm áp",
+    "humorous": "Vui vẻ"
+  },
   "status": {
     "pending": "Đang chờ",
     "sending": "Đang gửi",
@@ -141,5 +145,17 @@
   "retryFailed": "Thử lại các mục thất bại",
   "retriedJobs": "Đã xếp lại {{count}} mục.",
   "attempt": "Lần thử {{count}}",
-  "deliveryDisclaimer": "“Đã gửi” nghĩa là nhà cung cấp đã nhận yêu cầu; hiện chưa có xác nhận email vào hộp thư hay SMS đến điện thoại."
+  "deliveryDisclaimer": "“Đã gửi” nghĩa là nhà cung cấp đã nhận yêu cầu; hiện chưa có xác nhận email vào hộp thư hay SMS đến điện thoại.",
+  "picker": {
+    "back": "Về Thiệp mời",
+    "backToTemplates": "Về danh sách mẫu",
+    "description": "Xem demo để khám phá mẫu thiệp, hoặc chỉnh sửa và áp dụng cho đám cưới của bạn.",
+    "filters": "Lọc phong cách",
+    "all": "Tất cả",
+    "minimalism": "Minimalism",
+    "song-hy": "Song hỷ",
+    "demo": "Xem demo",
+    "editApply": "Chỉnh sửa & áp dụng",
+    "changeTemplate": "Đổi mẫu"
+  }
 }

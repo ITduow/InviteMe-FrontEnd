@@ -4,9 +4,9 @@
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  background: #f2f3f0;
-  color: #273c32;
-  font-family: Arial, sans-serif;
+  background: #fffaf7;
+  color: #422e35;
+  font-family: inherit;
   padding-bottom: var(--photo-dock-height, 112px);
 }
 .header {
@@ -17,7 +17,7 @@
   min-height: 52px;
   padding: 8px 18px;
   background: white;
-  border-bottom: 1px solid #dce2db;
+  border-bottom: 1px solid #eedfe3;
   gap: 18px;
 }
 .header h1 {
@@ -55,7 +55,7 @@
 }
 .studio button {
   padding: 9px 13px;
-  border: 1px solid #cdd7ce;
+  border: 1px solid #e7d5dc;
   border-radius: 7px;
   background: white;
   cursor: pointer;
@@ -66,12 +66,12 @@
   cursor: default;
 }
 .studio button:hover:not(:disabled) {
-  background: #e7efe7;
+  background: #faedf1;
 }
 .status {
   min-width: 0;
   margin: 0;
-  color: #718277;
+  color: #927780;
   font-size: 11px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,11 +99,11 @@
 .panel {
   background: white;
   padding: 20px;
-  border-right: 1px solid #dce2db;
+  border-right: 1px solid #eedfe3;
 }
 .templateCard {
-  background: #faf4ec;
-  border: 1px solid #e5d9cc;
+  background: #fffaf7;
+  border: 1px solid #eedfe3;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
@@ -130,10 +130,10 @@
 .templateCard h3 {
   font-family: "EB Garamond", Georgia, serif;
   font-size: 24px;
-  color: #7c6a60;
+  color: #785660;
 }
 .typography {
-  border: 1px solid #e0e4e8;
+  border: 1px solid #eedfe3;
   border-radius: 7px;
   padding: 14px;
   margin: 14px 0;
@@ -156,7 +156,7 @@
   font-family: Georgia, serif;
 }
 .studio .textTools button[aria-pressed="true"] {
-  background: #368cff;
+  background: #cf7892;
   color: white;
 }
 .textRow {
@@ -184,7 +184,7 @@
 .panel p {
   font-size: 12px;
   line-height: 1.7;
-  color: #728074;
+  color: #927780;
 }
 .panel label {
   display: flex;
@@ -196,12 +196,12 @@
 .panel input,
 .panel select,
 .panel textarea {
-  border: 1px solid #dce2db;
+  border: 1px solid #eedfe3;
   border-radius: 5px;
   padding: 7px;
   width: 100%;
   background: white;
-  color: #273c32;
+  color: #422e35;
 }
 .panel input[type="color"] {
   height: 38px;
@@ -217,8 +217,8 @@
   text-align: left;
 }
 .layer[aria-pressed="true"] {
-  background: #e4ece4;
-  border-color: #477565;
+  background: #faedf1;
+  border-color: #be627f;
 }
 .workspace {
   position: relative;
@@ -229,7 +229,7 @@
   padding: 36px 20px;
   height: 100%;
   min-height: 0;
-  background: #e6e6e6;
+  background: #f1ebe7;
 }
 .json {
   height: 160px;
@@ -254,7 +254,7 @@
   display: block;
   font-size: 11px;
   margin-bottom: 9px;
-  color: #728074;
+  color: #927780;
 }
 .colorControl {
   font-size: 12px;
@@ -296,13 +296,13 @@
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   background: white;
-  border-right: 1px solid #e3e6eb;
+  border-right: 1px solid #eedfe3;
   height: 100%;
   min-height: 0;
 }
 .rail {
   overflow-y: auto;
-  border-right: 1px solid #e3e6eb;
+  border-right: 1px solid #eedfe3;
   padding: 8px 0;
 }
 .studio .rail button {
@@ -315,11 +315,11 @@
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  color: #525960;
+  color: #785660;
 }
 .studio .rail button[aria-pressed="true"] {
-  color: #368cff;
-  background: #f1f7ff;
+  color: #cf7892;
+  background: #fbeaf0;
 }
 .libraryContent {
   padding: 18px 12px;
@@ -332,7 +332,7 @@
 }
 .libraryContent p {
   font-size: 12px;
-  color: #87919b;
+  color: #927780;
   line-height: 1.6;
   margin-bottom: 18px;
 }
@@ -350,12 +350,12 @@
   gap: 7px;
   padding: 12px 6px;
   font-size: 11px;
-  border-color: #dfe5ed;
-  color: #233d63;
+  border-color: #eedfe3;
+  color: #62434e;
   background: #fff;
 }
 .utilityGrid svg {
-  color: #ee7196;
+  color: #cf7892;
   stroke-width: 1.7;
 }
 .studio .utilityGrid button:disabled {
@@ -363,7 +363,7 @@
 }
 .utilityGrid small {
   font-size: 9px;
-  color: #8a939c;
+  color: #927780;
 }
 .studio .addCard {
   width: 100%;
@@ -376,7 +376,7 @@
 }
 .libraryContent .colorControl input {
   width: 100%;
-  border: 1px solid #dfe5ed;
+  border: 1px solid #eedfe3;
   padding: 7px;
   border-radius: 5px;
 }
@@ -396,7 +396,7 @@
   right: 290px;
   z-index: 40;
   background: white;
-  border-top: 1px solid #dfe5ed;
+  border-top: 1px solid #eedfe3;
 }
 .studio .dockToggle {
   border: 0;
@@ -406,7 +406,7 @@
   height: 36px;
 }
 .dockToggle small {
-  color: #85909a;
+  color: #927780;
 }
 .photoStrip {
   display: flex;
@@ -444,7 +444,7 @@
 }
 .studio .photoStrip button[aria-pressed="true"],
 .studio .albumSlots button[aria-pressed="true"] {
-  border-color: #368cff;
+  border-color: #cf7892;
 }
 .albumSlots {
   display: flex;
@@ -481,7 +481,7 @@
 }
 
 .uploadBox {
-  border: 1px dashed #bcc9d7;
+  border: 1px dashed #dfb7c5;
   border-radius: 12px;
   padding: 24px 12px;
   display: flex;
@@ -489,7 +489,7 @@
   align-items: center;
   text-align: center;
   gap: 12px;
-  color: #287bea;
+  color: #be627f;
   cursor: pointer;
 }
 .uploadBox input {
@@ -504,7 +504,7 @@
 }
 .uploadGrid button {
   padding: 3px;
-  border: 1px solid #dce3eb;
+  border: 1px solid #eedfe3;
   border-radius: 8px;
 }
 .uploadGrid img {
@@ -522,9 +522,9 @@
   border-radius: 8px;
 }
 .uploadGrid button[aria-pressed="true"] {
-  border: 2px solid #287bea;
-  background: #edf5ff;
-  color: #1769c5;
+  border: 2px solid #be627f;
+  background: #fbeaf0;
+  color: #a94e6b;
 }
 .demoEdit {
   position: fixed;
@@ -535,10 +535,10 @@
   align-items: center;
   gap: 7px;
   padding: 9px 14px;
-  border: 1px solid #dce2db;
+  border: 1px solid #eedfe3;
   border-radius: 999px;
   background: #fffffff2;
-  color: #273c32;
+  color: #422e35;
   box-shadow: 0 3px 14px #00000012;
   cursor: pointer;
   font:
@@ -546,7 +546,7 @@
     sans-serif;
 }
 .demoEdit:focus-visible {
-  outline: 2px solid #477565;
+  outline: 2px solid #be627f;
   outline-offset: 3px;
 }
 .studio[data-preview="true"] .workspace {
@@ -572,11 +572,11 @@
 .coverControls select,
 .coverControls textarea {
   width: 100%;
-  border: 1px solid #dce2db;
+  border: 1px solid #eedfe3;
   border-radius: 6px;
   padding: 8px;
   background: white;
-  color: #273c32;
+  color: #422e35;
   font-size: 13px;
   box-sizing: border-box;
 }
@@ -587,4 +587,166 @@
 .coverControls textarea {
   min-height: 85px;
   resize: vertical;
+}
+
+/* InviteMe editor surfaces and controls. Canvas artwork keeps its own styling. */
+.studio {
+  --studio-accent: #cf7892;
+  --studio-border: #eedfe3;
+}
+.header {
+  min-height: 68px;
+  background: #fffdfb;
+  padding: 12px 24px;
+}
+.header h1 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+.status {
+  font-size: 12px;
+}
+.backLink {
+  text-decoration: none;
+  color: #927780;
+  padding: 8px;
+}
+.backLink:hover {
+  color: #a94e6b;
+}
+.studio button {
+  min-height: 38px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition:
+    background 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.studio button:focus-visible,
+.studio input:focus-visible,
+.studio select:focus-visible,
+.studio textarea:focus-visible {
+  outline: 2px solid #cf7892;
+  outline-offset: 3px;
+}
+.studio .saveButton {
+  background: #cf7892;
+  border-color: #cf7892;
+  color: white;
+  padding-inline: 20px;
+  box-shadow: 0 3px 8px #cf78921a;
+}
+.studio .saveButton:hover:not(:disabled) {
+  background: #ba637e;
+  border-color: #ba637e;
+}
+.studio .historyButton {
+  width: 38px;
+  height: 38px;
+}
+.library,
+.panel,
+.rail {
+  background: #fffdfb;
+}
+.rail {
+  padding: 12px 6px;
+}
+.studio .rail button {
+  border-radius: 12px;
+  margin-bottom: 5px;
+  padding: 12px 3px;
+  gap: 7px;
+}
+.libraryContent {
+  padding: 22px 16px;
+}
+.libraryContent h2,
+.panel h2 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+.libraryContent p,
+.panel p {
+  font-size: 13px;
+}
+.templateCard {
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 3px 12px #422e3504;
+}
+.templateCard h3 {
+  font-size: 22px;
+  line-height: 1.25;
+  margin-top: 12px;
+}
+.templateCard button {
+  width: 100%;
+}
+.panel {
+  padding: 24px 20px;
+  border-left: 1px solid var(--studio-border);
+  border-right: 0;
+}
+.panel label {
+  font-size: 13px;
+  gap: 8px;
+  margin-block: 16px;
+}
+.panel input,
+.panel select,
+.panel textarea,
+.coverControls input:not([type="checkbox"]),
+.coverControls select,
+.coverControls textarea {
+  border-radius: 9px;
+  padding: 10px;
+  background: #fffdfb;
+}
+.typography {
+  border-radius: 12px;
+  padding: 14px;
+}
+.studio .textTools button {
+  border-radius: 8px;
+}
+.workspace {
+  background-color: #f1ebe7;
+  background-image: radial-gradient(#d8cbc8 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
+  padding: 36px 28px;
+}
+.photoDock {
+  background: #fffdfbf5;
+  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--studio-border);
+  box-shadow: 0 -4px 20px #422e3506;
+}
+.studio .dockToggle {
+  border-radius: 15px 15px 0 0;
+  color: #785660;
+}
+.studio .photoStrip button {
+  border-radius: 8px;
+}
+.advanced {
+  margin-top: 28px;
+  padding: 14px;
+  border: 1px solid var(--studio-border);
+  border-radius: 12px;
+  background: #fff7f9;
+}
+.advanced summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.advanced[open] summary {
+  margin-bottom: 18px;
+}
+.studio[data-preview="true"] .workspace {
+  background-image: none;
 }

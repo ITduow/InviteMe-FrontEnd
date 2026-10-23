@@ -20,12 +20,13 @@
   "header": {
     "backWedding": "Về đám cưới",
     "saving": "Đang lưu…",
-    "saveDraft": "Lưu bản nháp",
+    "saveDraft": "Lưu & áp dụng",
     "undo": "Hoàn tác",
     "redo": "Làm lại",
     "preview": "Xem trước",
     "backEditor": "Về trình chỉnh sửa",
-    "edit": "Chỉnh sửa"
+    "edit": "Chỉnh sửa",
+    "title": "Studio thiệp mời"
   },
   "categories": {
     "cover": "Bìa thiệp",
@@ -219,7 +220,8 @@
     "quickReplace": "Thay ảnh nhanh",
     "imageCount": "({{count}} ảnh)",
     "goToImage": "Đến ảnh {{number}}",
-    "quickReplaceHelp": "Thêm ảnh hoặc album để dùng thay ảnh nhanh."
+    "quickReplaceHelp": "Thêm ảnh hoặc album để dùng thay ảnh nhanh.",
+    "advanced": "Nâng cao"
   },
   "colors": {
     "picker": "bộ chọn màu {{label}}",

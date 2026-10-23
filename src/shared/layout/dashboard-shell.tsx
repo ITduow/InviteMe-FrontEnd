@@ -13,6 +13,7 @@ import {
   Files,
   Gift,
   HeartHandshake,
+  Home,
   LayoutDashboard,
   Mail,
   Menu,
@@ -542,6 +543,18 @@ function DashboardShellFrame({
           )}
         </nav>
         <div className="mt-3 border-t border-border/80 pt-3">
+          <Link
+            href="/"
+            title={collapsed ? t("home") : undefined}
+            onClick={() => setOpen(false)}
+            className={cn(
+              "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-foreground transition-colors hover:bg-petal/80 hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              collapsed && "md:justify-center md:px-0",
+            )}
+          >
+            <Home className="size-[1.125rem] shrink-0" aria-hidden="true" />
+            <span className={cn(collapsed && "md:sr-only")}>{t("home")}</span>
+          </Link>
           <div className="mb-2 px-1 sm:hidden">
             <LanguageSwitcher className="w-full" />
           </div>

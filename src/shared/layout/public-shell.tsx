@@ -6,12 +6,12 @@ import { BrandLogo } from "@/shared/components/brand-logo";
 import { useTranslation } from "react-i18next";
 import { PublicNavigation } from "./public-navigation";
 
-export function PublicShell({ children }: { children: ReactNode }) {
+export function PublicShell({ children, account }: { children: ReactNode; account?: ReactNode }) {
   const { t: tPublic } = useTranslation("public");
   const { t: tNavigation } = useTranslation("navigation");
   return (
     <div className="public-shell">
-      <PublicNavigation />
+      <PublicNavigation account={account} />
       <main id="main-content" className="public-main">
         {children}
       </main>

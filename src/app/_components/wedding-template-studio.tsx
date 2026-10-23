@@ -8,6 +8,7 @@ import {
   saveInvitationDesign,
 } from "@/features/template-studio";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRuntime } from "@/core/config/runtime";
 import { SessionLoading } from "@/shared/feedback/session-loading";
@@ -89,12 +90,13 @@ function StudioSession({
   snapshot: Awaited<ReturnType<typeof getInvitationDesign>>;
 } & React.ComponentProps<typeof TemplateStudio>) {
   const { t } = useTranslation("screens");
+  const router = useRouter();
   const { api } = useRuntime();
   const { can } = usePermission();
   const cache = useQueryClient();
   const [version, setVersion] = useState(snapshot.version);
   const [initial, setInitial] = useState(
-    snapshot.document ? JSON.stringify(snapshot.document) : undefined,
+    !props.initialTemplate && snapshot.document ? JSON.stringify(snapshot.document) : undefined,
   );
   const [generation, setGeneration] = useState(0);
   const remoteChanged = version !== snapshot.version;
@@ -138,6 +140,7 @@ function StudioSession({
                 const saved = await saveInvitationDesign(api, weddingId, version, serialized);
                 setVersion(saved.version);
                 cache.setQueryData(["invitation-design", weddingId], saved);
+                router.push(`/weddings/${encodeURIComponent(weddingId)}/invitations`);
               }
             : undefined
         }

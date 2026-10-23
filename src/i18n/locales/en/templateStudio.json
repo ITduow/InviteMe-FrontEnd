@@ -20,12 +20,13 @@
   "header": {
     "backWedding": "Back to wedding",
     "saving": "Saving…",
-    "saveDraft": "Save draft",
+    "saveDraft": "Save & apply",
     "undo": "Undo",
     "redo": "Redo",
     "preview": "Preview",
     "backEditor": "Back to editor",
-    "edit": "Edit"
+    "edit": "Edit",
+    "title": "Invitation Studio"
   },
   "categories": {
     "cover": "Invitation cover",
@@ -219,7 +220,8 @@
     "quickReplace": "Quick image replacement",
     "imageCount": "({{count}} images)",
     "goToImage": "Go to image {{number}}",
-    "quickReplaceHelp": "Add an image or album to use quick replacement."
+    "quickReplaceHelp": "Add an image or album to use quick replacement.",
+    "advanced": "Advanced"
   },
   "colors": {
     "picker": "{{label}} color picker",
