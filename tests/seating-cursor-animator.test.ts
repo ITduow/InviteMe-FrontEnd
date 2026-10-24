@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createSeatingCursorAnimator } from "../src/features/guests/utils/seating-cursor-animator";
 
-test("cursor interpolates without React and follows receiver layout; disposal cancels animation", (t) => {
+test("spring follows the latest point without React and tracks receiver layout", (t) => {
   let now = 0;
   let id = 0;
   const frames = new Map<number, FrameRequestCallback>();
@@ -50,11 +50,8 @@ test("cursor interpolates without React and follows receiver layout; disposal ca
     assert.equal(element.style.transform, "translate3d(100px, 100px, 0)");
     animator.push({ ...packet, x: 0.001, sequence: 2 });
     tick(32);
-    assert.equal(
-      String(element.style.transform),
-      "translate3d(100.4px, 100px, 0)",
-      "small movements must not revert to the library's previous spline endpoint",
-    );
+    const smallStep = Number(element.style.transform.match(/\(([^p]+)px/)![1]);
+    assert.ok(smallStep > 100 && smallStep < 100.4, "spring starts moving toward a small update");
     now = 100;
     animator.push({ ...packet, x: 1, sequence: 3 });
     tick(132);

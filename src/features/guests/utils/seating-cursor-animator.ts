@@ -1,25 +1,32 @@
-import { PerfectCursor } from "perfect-cursors";
 import type { SeatingDragPointer } from "../../../core/realtime/seating-drag-events";
 
-// Interpolate in a stable pixel-sized anchor space. Resolve geometry at paint time so
-// receiver scrolling, resizing and table layout changes do not invalidate old samples.
+// A critically damped spring follows the newest sample without building a queue.
+// At a steady speed this setting trails the target by roughly 40 ms.
+const SPRING_FREQUENCY = 50;
+
+function advanceSpring(position: number, velocity: number, target: number, seconds: number) {
+  const offset = position - target;
+  const step = (velocity + SPRING_FREQUENCY * offset) * seconds;
+  const decay = Math.exp(-SPRING_FREQUENCY * seconds);
+  return {
+    position: target + (offset + step) * decay,
+    velocity: (velocity - SPRING_FREQUENCY * step) * decay,
+  };
+}
+
+// Keep points in the anchor's pixel space, then resolve its current geometry at paint time.
 export function createSeatingCursorAnimator(element: HTMLDivElement) {
-  let cursor: PerfectCursor | undefined;
   let pointer: SeatingDragPointer | undefined;
   let basis = { width: 1, height: 1 };
   let point: [number, number] = [0, 0];
-  let endpoint: [number, number] = [0, 0];
+  let velocity: [number, number] = [0, 0];
+  let target: [number, number] = [0, 0];
   let screen: [number, number] | undefined;
   let anchor: HTMLElement | null = null;
+  let lastFrame: number | undefined;
   let frame: number;
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  function disposeCursor() {
-    if (!cursor) return;
-    cancelAnimationFrame(cursor.lastRequestId);
-    cursor.dispose();
-    cursor = undefined;
-  }
-  function paint() {
+
+  function paint(now: number) {
     if (pointer) {
       if (!anchor?.isConnected)
         anchor = document.querySelector<HTMLElement>(
@@ -28,8 +35,22 @@ export function createSeatingCursorAnimator(element: HTMLDivElement) {
       const rect = anchor?.getBoundingClientRect();
       element.hidden = !rect || rect.width <= 0 || rect.height <= 0;
       if (rect && !element.hidden) {
-        // The library may finish between frames without painting the exact endpoint.
-        if (cursor && cursor.state !== "animating") point = endpoint;
+        if (lastFrame !== undefined) {
+          const seconds = Math.max(0, (now - lastFrame) / 1000);
+          const x = advanceSpring(point[0], velocity[0], target[0], seconds);
+          const y = advanceSpring(point[1], velocity[1], target[1], seconds);
+          point = [x.position, y.position];
+          velocity = [x.velocity, y.velocity];
+          if (
+            Math.abs(point[0] - target[0]) < 0.01 &&
+            Math.abs(point[1] - target[1]) < 0.01 &&
+            Math.abs(velocity[0]) < 0.01 &&
+            Math.abs(velocity[1]) < 0.01
+          ) {
+            point = [...target];
+            velocity = [0, 0];
+          }
+        }
         const rawX = rect.left + (point[0] / basis.width) * rect.width;
         const rawY = rect.top + (point[1] / basis.height) * rect.height;
         screen = [rawX, rawY];
@@ -43,58 +64,42 @@ export function createSeatingCursorAnimator(element: HTMLDivElement) {
         element.style.setProperty("--chip-y", y > innerHeight - 200 ? "-190px" : "12px");
       }
     }
+    lastFrame = now;
     frame = requestAnimationFrame(paint);
   }
   frame = requestAnimationFrame(paint);
+
   return {
     push(next: SeatingDragPointer) {
       if (pointer?.dragId === next.dragId && pointer.sequence >= next.sequence) return;
       const changedAnchor = pointer?.anchor !== next.anchor;
+      const firstSample = !pointer;
       pointer = next;
-      if (changedAnchor || !cursor) {
-        disposeCursor();
+      if (changedAnchor || !anchor?.isConnected) {
         anchor = document.querySelector<HTMLElement>(
           `[data-seating-pointer-anchor="${next.anchor}"]`,
         );
         const rect = anchor?.getBoundingClientRect();
         basis = { width: rect?.width || 1, height: rect?.height || 1 };
-        point =
-          screen && rect
-            ? [screen[0] - rect.left, screen[1] - rect.top]
-            : [next.x * basis.width, next.y * basis.height];
-        cursor = new PerfectCursor((value) => {
-          point = [value[0] ?? 0, value[1] ?? 0];
-        });
-        cursor.addPoint(point);
-        if (screen) cursor.timestamp = performance.now() - 34;
+        if (screen && rect && !firstSample) point = [screen[0] - rect.left, screen[1] - rect.top];
+        velocity = [0, 0];
       }
-      // PerfectCursor queues animations internally. On low-FPS receivers, discard
-      // accumulated work and continue from the visible point toward the latest sample.
-      if (cursor && cursor.queue.length >= 2) {
-        disposeCursor();
-        cursor = new PerfectCursor((value) => {
-          point = [value[0] ?? 0, value[1] ?? 0];
-        });
-        cursor.addPoint(point);
-        cursor.timestamp = performance.now() - 34;
+      target = [next.x * basis.width, next.y * basis.height];
+      if (firstSample) {
+        point = [...target];
+        velocity = [0, 0];
       }
-      const target: [number, number] = [next.x * basis.width, next.y * basis.height];
-      endpoint = target;
-      if (reducedMotion.matches) {
-        disposeCursor();
-        point = target;
-      } else cursor?.addPoint(target);
     },
     reset() {
-      disposeCursor();
       pointer = undefined;
       screen = undefined;
       anchor = null;
+      lastFrame = undefined;
+      velocity = [0, 0];
       element.hidden = true;
     },
     dispose() {
       cancelAnimationFrame(frame);
-      disposeCursor();
     },
   };
 }
